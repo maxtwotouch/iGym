@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage directory (if using test coverage)
+coverage/
