@@ -27,3 +27,19 @@ Thumbs.db
 
 # Coverage directory (if using test coverage)
 coverage/
+
+
+# Node stuff
+node_modules/
+dist/
+
+# Django stuff
+*.pyc
+__pycache__/
+db.sqlite3
+
+# Python venv
+venv/
+
+# OS-specific
+.DS_Store
