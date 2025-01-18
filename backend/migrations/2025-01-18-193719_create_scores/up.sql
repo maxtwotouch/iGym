@@ -1,0 +1,5 @@
+CREATE TABLE scores (
+  id SERIAL PRIMARY KEY,
+  username TEXT NOT NULL,
+  score INTEGER NOT NULL
+)

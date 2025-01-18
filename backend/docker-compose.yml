@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5432:5432"
+    # Use a named volume instead of a host path with '~'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_USER: "admin"
+      POSTGRES_DB: "backend-database"
+
+  rust-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: "postgres://admin:password@postgres:5432/backend-database"
+    # Compose will override the container's CMD with this command:
+    command: >
+      sh -c "
+        diesel migration run &&
+        /usr/local/bin/backend
+      "
+
+# Named volumes (stores data in Docker-managed volume)
+volumes:
+  postgres_data:
+    driver: local
