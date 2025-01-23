@@ -27,12 +27,11 @@
 - Max kan hoste nettside hvis dette skal være ønskelig
 
 # Enighet om
-
 - Django i backend
-- 
+- Sette i gang med første sprint mandag 26.01.25, etter avstemning om hva vi skal lage er ferdig. 
 
 # Veien videre
-- Lande på hva vi skal slags
+- Lande på hva vi skal lage
 - Sette i gang med første sprinten, og delegere oppgaver
 
 
