@@ -10,25 +10,16 @@ npm run dev
 # Build for production:
 npm run build
 
-# Project Structure
+# Running backend locally:
+1. Change directory to backend `cd backend`
+1. Create virtual environment in the backend folder `python -m venv ./`
+2. Activate the virtual environment 
+    - Windows: `.\Scripts\Activate`
+    - Linux/MacOS: `source ./bin/activate`
+    - To ensure the venv is active, run `python3 env_checker.py`, which will tell you if it is running in a virtual environment
+3. Install the dependencies `pip install -r requirements.txt`
+4. Run the server `python3 manage.py runserver 0.0.0.0:8000`
+5. When finished, deactivate the virtual environment `deactivate`
 
-my-react-ts-app
-├── .gitignore
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── src
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── ...
-├── backend
-│   ├── manage.py
-│   ├── backend
-│   │   ├── __init__.py
-│   │   ├── asgi.py
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   └── wsgi.py
-│   ├── views.py
-│   └── venv
-└── README.md
+# Running backend in Docker:
+
