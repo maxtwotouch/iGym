@@ -1,15 +1,5 @@
 # INF-2900
 
-# React + TypeScript + Vite
-
-# Install Dependencies
-npm install
-# Start the development server:
-npm run dev
-
-# Build for production:
-npm run build
-
 # Running backend locally:
 1. Change directory to backend `cd backend`
 1. Create virtual environment in the backend folder `python -m venv ./`
@@ -28,7 +18,7 @@ npm run build
 4. Open the browser and go to `http://localhost:3000/`
 
 # Running frontend and backend in docker development environment:
-1. Run `docker-compose up --build`
+1. Run `docker-compose -f docker-compose.test.yml up --build`
 2. Frontned is running on `http://localhost:3000/`, backend is running on `http://localhost:8000/`
 
 The development environment is now running in docker. The frontend is running on port 3000 and the backend is running on port 8000.
