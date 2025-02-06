@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import UserProfile, PersonalTrainerProfile
+from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise
 
 # The default user-set-up if we only have one type of user
 
@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ["id", "username", "password", "profile"]
+        fields = ["id", "username", "password", "profile", "user_type"]
         extra_kwargs = {"password": {"write_only": True}}
     
     def create(self, validated_data):
@@ -51,7 +51,7 @@ class PeronsalTrainerSerializer(serializers.ModelSerializer):
     trainer_profile = PersonalTrainerProfileSerializer()
     class Meta:
         model = User
-        fields = ["id", "username", "password", 'trainer_profile']
+        fields = ["id", "username", "password", 'trainer_profile', "user_type"]
         extra_kwargs = {"password": {"write_only": True}}
     
     def create(self, validated_data):
@@ -59,6 +59,20 @@ class PeronsalTrainerSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         PersonalTrainerProfile.objects.create(user=user, **profile_data)
         return user
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = ["id", "name", "description", "muscle_group"]
+        
+
+
+class WorkoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workout
+        fields = ["id", "author", "name", "date_created", "exercises"]
+        extra_kwargs = {"author": {"read_only": True}}
+    
         
         
     

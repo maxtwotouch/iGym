@@ -1,13 +1,20 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  return <Welcome />;
+  const [message, setMessage] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/helloWorld")
+      .then((response) => response.json())
+      .then((data) => setMessage(data.message))
+      .catch((error) => setMessage("Error fetching data"));
+  }, []);
+
+  return (
+    <div>
+      <h1>Backend Communication Test</h1>
+      <p>{message}</p>
+    </div>
+  );
 }
+
