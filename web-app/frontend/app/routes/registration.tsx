@@ -17,7 +17,7 @@ export default function RegistrationForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Choose the correct URL based on the user type.
+    // URL based on the user type.
     let url = "";
     let payload: any = { username, password };
 
@@ -45,8 +45,6 @@ export default function RegistrationForm() {
         alert("Registration successful!");
         navigate("/login");
       } else {
-        // If the server returns an error page (HTML) instead of JSON,
-        // the following will likely catch it as a JSON parsing error.
         const errorData = await response.json();
         console.error("Registration failed:", errorData);
         alert("Registration failed: " + JSON.stringify(errorData));

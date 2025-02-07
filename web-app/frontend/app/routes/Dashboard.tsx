@@ -3,10 +3,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {jwtDecode} from "jwt-decode";  // Note: default import
 
-// Define the shape of your JWT payload. Make sure it includes the user_type property.
 interface TokenPayload {
   user_type: string;
-  // include other fields if needed (e.g., exp, iat, etc.)
+
 }
 
 // Dashboard view for normal customers
@@ -17,7 +16,7 @@ const CustomerDashboard: React.FC = () => (
       Welcome! Here you can browse personal trainers, book sessions, and view your
       workout history.
     </p>
-    {/* Add more customer-specific content here */}
+
   </div>
 );
 
@@ -29,7 +28,7 @@ const TrainerDashboard: React.FC = () => (
       Welcome! Here you can manage your client appointments, track client progress, and
       update your training packages.
     </p>
-    {/* Add more trainer-specific content here */}
+ 
   </div>
 );
 
