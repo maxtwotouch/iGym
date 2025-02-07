@@ -14,11 +14,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.urls import path, include
 from django.contrib import admin
-from django.urls import path
-from .views import hello_world
+from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListCreate, ExerciseListView
+from .views import WorkoutDelete
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/hello/', hello_world),
+    
+    # Personal trainer and normal users have their own endpoints for registration (may have to be fixed)
+    path("user/register/", CreateUserView.as_view(), name="register_user"),
+    path("personal_trainer/register/", CreatePersonalTrainerView.as_view(), name="register_personal_trainer"),
+    path("token/", TokenObtainPairView.as_view(), name="get_token"),
+    path("user/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("auth/", include("rest_framework.urls")),
+    path("workouts/", WorkoutListCreate.as_view(), name="workout-list"),
+    path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
+    path("workouts/delete/<int:pk>/", WorkoutDelete.as_view(), name="delete-workout")
 ]
+
+
