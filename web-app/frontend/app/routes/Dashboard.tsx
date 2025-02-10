@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
     }
     try {
       const decoded = jwtDecode<TokenPayload>(token);
-      setUserType("user");
+      setUserType("user"); // Original is decoded.user_type change to "personaltrainer"
     } catch (error) {
       navigate("/login");
     }
