@@ -34,29 +34,34 @@ export default function LoginForm() {
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "50px" }}>
-      <h1>Login to GymApp</h1>
-      <form onSubmit={handleLogin}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white">
+      <h1 className="text-4xl font-bold mb-6">Login to GymApp</h1>
+      <form onSubmit={handleLogin} className="bg-gray-800 p-8 rounded-lg shadow-md w-80">
         <input
-          type="text"
+          type="username"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
           required
         />
-        <br />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
           required
         />
-        <br />
-        <button type="submit">Login</button>
+        <button type="submit" className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition">
+          Login
+        </button>
       </form>
-      <p>
-        Don't have an account? <a href="/register">Register here</a>
+      <p className="mt-4">
+        Don't have an account?{" "}
+        <a className="text-blue-500 hover:underline" href="/register">
+          Register here
+        </a>
       </p>
     </div>
   );
