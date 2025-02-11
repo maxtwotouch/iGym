@@ -19,8 +19,6 @@ class PersonalTrainerProfile(models.Model):
     experience = models.CharField(max_length=100, blank=True, default='none')  
     role = models.CharField(max_length=20, default="personal_trainer")
     
-    
-    
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255)
