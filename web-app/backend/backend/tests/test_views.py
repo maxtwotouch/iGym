@@ -83,7 +83,28 @@ class CreateUserViewTest(APITestCase):
         # Make sure that no user was created
         self.assertEqual(User.objects.count(), 0)
     
-            
+    def test_create_user_does_not_return_password(self):
+        url = reverse('register_user')
+        
+        # Create a generic user
+        username = "testUser"
+        password = "testPassword"
+        height = 180
+        weight = 75
+        
+        data = {
+            "username": username,
+            "password": password,
+            "profile": {
+                "height": height,
+                "weight": weight
+            }
+        }
+    
+        response = self.client.post(url, data, format='json')
+        
+        # Verify that the response does not contain the password field
+        self.assertNotIn("password", response.data)
         
 
 class CreatePersonalTrainerViewTest(APITestCase):
@@ -121,9 +142,5 @@ class CreatePersonalTrainerViewTest(APITestCase):
     
     
         
-        
-# Other tests to write for creating user and personal trainer:
-# Missing required fields: such as username, height etc.
-# Invalid field values: such as negative height etc.
-# Password validation, ensure that the password is not part of the response
+    
 

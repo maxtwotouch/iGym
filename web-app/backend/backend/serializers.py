@@ -80,8 +80,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         user = self.user
         
+        data["username"] = user.username
+        
         if hasattr(user, "profile"):
             role = user.profile.role
+            username = user.username
             data["profile"] = {"role": role}
         
         elif hasattr(user, "trainer_profile"):

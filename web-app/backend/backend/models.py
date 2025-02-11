@@ -1,14 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
 
 # Model for normal users
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     
     # Example attributes
-    weight = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0)])
-    height = models.IntegerField(null=True, blank=True, validators=[MinValueValidator(0)])
+    weight = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, default="user")
 
 # Model for personal trainers
@@ -29,11 +28,10 @@ class Exercise(models.Model):
 
     def __str__(self):
         return self.name
-    
-    
+     
 
 class Workout(models.Model):
-    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="workouts")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
     name = models.CharField(max_length=255)
     date_created = models.DateTimeField(auto_now=True)
     exercises = models.ManyToManyField(Exercise)
