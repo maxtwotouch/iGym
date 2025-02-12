@@ -6,8 +6,9 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer
-from .serializers import ExerciseSerializer
+from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 # View for creating a new user
@@ -52,3 +53,7 @@ class ExerciseListView(generics.ListAPIView):
     queryset = Exercise.objects.all()
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class =  CustomTokenObtainPairSerializer
+    permission_classes = [AllowAny]
