@@ -36,7 +36,7 @@ class WorkoutListCreate(generics.ListCreateAPIView):
     
     # Overwriting the create method to associate the workout with the current user
     def perform_create(self, serializer):
-        # Corrected: use self.request.user instead of self.requesty.user
+       # Have to manually add the author because we specified it as read only
         serializer.save(author=self.request.user)
 
 class WorkoutDelete(generics.DestroyAPIView):
