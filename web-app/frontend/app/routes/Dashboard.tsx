@@ -1,34 +1,280 @@
-// Dashboard.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {jwtDecode} from "jwt-decode";  
+import { motion } from "framer-motion";
 
-interface TokenPayload {
-  user_type: string;
-
+// Interface to define the structure of a workout object
+interface Workout {
+  id: number;
+  name: string;
+  date_created: string;
+  exercises: number[];
 }
 
-// Dashboard view for normal customers
-const CustomerDashboard: React.FC = () => (
-  <div>
-    <h1>Customer Dashboard</h1>
-    <p>
-      Welcome! Here you can browse personal trainers, book sessions, and view your
-      workout history.
-    </p>
+// Interface to define the structure of an exercise object
+interface Exercise {
+  id: number;
+  name: string;
+}
 
-  </div>
-);
+const CustomerDashboard: React.FC = () => {
+  const [workouts, setWorkouts] = useState<Workout[]>([]); // Store user's workouts
+  const [newWorkoutName, setNewWorkoutName] = useState<string>(""); 
+  const [username, setUsername] = useState<string>("");
+  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]); // Store available exercises
+  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
-// Dashboard view for personal trainers
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken"); // Retrieve JWT token
+    if (!token) { // Redirect to login if token is missing
+      navigate("/login");
+      return;
+    }
+
+    const name = localStorage.getItem("username"); 
+    setUsername(name || "User"); // Set username to display
+
+    // Fetch workouts from the backend
+    const fetchWorkouts = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/workouts/", {
+          headers: { Authorization: `Bearer ${token}` }, // Include JWT token for authentication so the backend can verify the user's identity
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch workouts");
+          return;
+        }
+        const data = await response.json();
+        setWorkouts(data); // Store the fetched workouts in the state
+      } catch (error) {
+        console.error("Error fetching workouts:", error);
+      }
+    };
+
+    // Fetch available exercises from the backend
+    const fetchExercises = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/exercises/", {
+          headers: { Authorization: `Bearer ${token}` }, // Include JWT token for authentication so the backend can verify the user's identity
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch exercises");
+          return;
+        }
+        const data = await response.json();
+        setAvailableExercises(data); // Store the fetched exercises in the state
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+      }
+    };
+
+    fetchWorkouts();
+    fetchExercises();
+  }, [navigate]); // Call the effect whenever the user navigates to a new page
+
+  const handleLogout = () => { 
+    localStorage.removeItem("accessToken"); 
+    navigate("/login");
+  };  
+
+  const handleExerciseSelection = (exerciseId: number) => {
+    setSelectedExercises((prev) => // Toggle the selected exercise
+      prev.includes(exerciseId) // Check if the exercise is already selected
+        ? prev.filter((id) => id !== exerciseId) // Remove the exercise if it is already selected
+        : [...prev, exerciseId] // Add the exercise if it is not already selected
+    );
+  };
+
+  // Function to get the names of the exercises based on their IDs
+  const getExerciseNames = (exerciseIds: number[]) => {
+    return exerciseIds
+    .map((id) => availableExercises.find((ex) => ex.id === id)?.name)
+    .filter(Boolean); // Remove any undefined values
+  };
+
+  // Function to handle adding a new workout
+  const handleAddWorkout = async (e: React.FormEvent) => {
+    e.preventDefault(); // Stop the form from reloading the page
+
+    const token = localStorage.getItem("accessToken"); 
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/workouts/", { // Send a POST request to the backend to create a new workout
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newWorkoutName,
+          exercises: selectedExercises,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to add workout:", errorData);
+        alert(`Failed to add workout: ${errorData.detail || JSON.stringify(errorData)}`);
+        return;
+      }
+
+      const newWorkout = await response.json(); 
+      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout]); // Add the new workout to the list of workouts
+      setNewWorkoutName("");
+      setSelectedExercises([]); // Clear the form fields
+    } catch (error) {
+      console.error("Error adding workout:", error);
+      alert("An unexpected error occurred.");
+    }
+  };
+
+  return (
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+      {/* Title */}
+      <motion.h1
+        className="text-4xl font-bold mb-6"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        Hello, {username}
+      </motion.h1>
+
+      {/* Logout Button */}
+      <motion.button
+        onClick={handleLogout}
+        className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+        whileHover={{ scale: 1.05 }}
+      >
+        Logout
+      </motion.button>
+
+      {/* Add New Workout Form */}
+      <motion.div
+        className="bg-gray-800 p-4 rounded-lg shadow-md mb-6"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-xl font-bold mb-2">Add New Workout</h2>
+        <form onSubmit={handleAddWorkout}>
+          <input
+            type="text"
+            value={newWorkoutName}
+            onChange={(e) => setNewWorkoutName(e.target.value)}
+            placeholder="Workout Name"
+            className="w-full p-2 rounded bg-gray-700 text-white mb-4"
+            required
+          />
+
+          <div className="relative">
+              <h3 className="text-lg font-bold mb-2">Select Exercises</h3>
+
+              {/* Dropdown Button */}
+              <button
+                type="button"
+                className="w-full text-left p-2 rounded bg-gray-700 text-white flex justify-between items-center"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                {selectedExercises.length > 0
+                  ? selectedExercises
+                      .map((id) => availableExercises.find((ex) => ex.id === id)?.name)
+                      .join(", ")
+                  : "Select exercises"}
+                <span className="ml-2">&#9662;</span> {/* Arrow Icon */}
+              </button>
+
+              {/* Dropdown Menu */}
+              {dropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute w-full bg-gray-800 shadow-lg rounded mt-1 p-2 z-10"
+                >
+                  {availableExercises.map((exercise) => (
+                    <label
+                      key={exercise.id}
+                      className="flex items-center px-3 py-2 hover:bg-gray-700 rounded cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedExercises.includes(exercise.id)}
+                        onChange={() => handleExerciseSelection(exercise.id)}
+                        className="mr-2"
+                      />
+                      {exercise.name}
+                    </label>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
+          <button
+            type="submit"
+            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded mt-4 block"
+          >
+            Create Workout
+          </button>
+        </form>
+      </motion.div>
+
+      {/* Display Workouts */}
+      <motion.div
+        className="bg-gray-800 p-4 rounded-lg shadow-md"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-xl font-bold">My Workouts</h2>
+        {workouts.length === 0 ? (
+          <p className="mt-2">No workouts found.</p>
+        ) : (
+          workouts.map((workout) => (
+            <div
+              key={workout.id}
+              className="mt-4 border-b border-gray-700 pb-4"
+            >
+              <p className="font-semibold">{workout.name}</p>
+              <p className="text-sm text-gray-400">
+                Created: {new Date(workout.date_created).toLocaleString()}
+              </p>
+              <ul className="text-gray-300 mt-2">
+                {getExerciseNames(workout.exercises).map((exerciseName, index) => (
+                  <li key={index}>• {exerciseName}</li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate(`/workouts/${workout.id}`)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 mt-2 rounded"
+              >
+                Go to Workout
+              </button>
+            </div>
+          ))
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const TrainerDashboard: React.FC = () => (
-  <div>
-    <h1>Personal Trainer Dashboard</h1>
-    <p>
-      Welcome! Here you can manage your client appointments, track client progress, and
-      update your training packages.
+  <div className="p-8">
+    <h1 className="text-4xl font-bold mb-4">Personal Trainer Dashboard</h1>x
+    <p className="text-lg">
+      Welcome! Manage your client appointments, track progress, and update your
+      training packages.
     </p>
- 
   </div>
 );
 
@@ -45,14 +291,8 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const decoded = jwtDecode<TokenPayload>(token);
-      console.log("Decoded token:", decoded);
-      if (!decoded.user_type) {
-        console.error("No user_type found in token.");
-      }
       setUserType("user");
     } catch (error) {
-      console.error("Error decoding token:", error);
       navigate("/login");
     }
   }, [navigate]);
@@ -67,5 +307,6 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
+
 
 export default Dashboard;

@@ -19,9 +19,16 @@ export default function LoginForm() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Login successful:", data);
         // Store JWT tokens for subsequent authenticated requests.
         localStorage.setItem("accessToken", data.access);
         localStorage.setItem("refreshToken", data.refresh);
+        localStorage.setItem("username", data.username); // Store username for display
+        // Store user type  
+        if (data.profile?.role) {
+          localStorage.setItem("userType", data.profile.role);
+        }
+        console.log("Stored userType in localStorage:", data.profile.role);
         navigate("/dashboard");
       } else {
         const errorData = await response.json();
