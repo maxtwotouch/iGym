@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { motion } from "framer-motion";
 export default function RegistrationForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState("user"); // "user" or "trainer"
+  const [userType, setUserType] = useState("user"); 
 
   // Fields for normal user
   const [weight, setWeight] = useState("");
@@ -56,75 +56,99 @@ export default function RegistrationForm() {
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "50px" }}>
-      <h1>Register for GymApp</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username: </label>
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.h1
+        className="text-4xl font-bold mb-6"
+        initial={{ y: -20 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        Register for GymApp
+      </motion.h1>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="bg-gray-800 p-8 rounded-lg shadow-md w-80"
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="mb-4">
+          <label className="block mb-1">Username:</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 text-white"
             required
           />
         </div>
-        <br />
-        <div>
-          <label>Password: </label>
+        <div className="mb-4">
+          <label className="block mb-1">Password:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 text-white"
             required
           />
         </div>
-        <br />
-        <div>
-          <label>User Type: </label>
+        <div className="mb-4">
+          <label className="block mb-1">User Type:</label>
           <select
             value={userType}
             onChange={(e) => setUserType(e.target.value)}
+            className="w-full p-2 rounded bg-gray-700 text-white"
           >
             <option value="user">User</option>
             <option value="trainer">Personal Trainer</option>
           </select>
         </div>
-        <br />
         {userType === "user" && (
           <>
-            <div>
-              <label>Weight (kg): </label>
+            <div className="mb-4">
+              <label className="block mb-1">Weight (kg):</label>
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
               />
             </div>
-            <br />
-            <div>
-              <label>Height (cm): </label>
+            <div className="mb-4">
+              <label className="block mb-1">Height (cm):</label>
               <input
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
               />
             </div>
-            <br />
           </>
         )}
         {userType === "trainer" && (
-          <div>
-            <label>Experience: </label>
+          <div className="mb-4">
+            <label className="block mb-1">Experience:</label>
             <input
               type="text"
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 text-white"
             />
           </div>
         )}
-        <br />
-        <button type="submit">Register</button>
-      </form>
-    </div>
+        <motion.button
+          type="submit"
+          className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
+          whileHover={{ scale: 1.05 }}
+        >
+          Register
+        </motion.button>
+      </motion.form>
+    </motion.div>
   );
 }
