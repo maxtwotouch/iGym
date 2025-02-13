@@ -2,7 +2,7 @@
 
 # Running backend locally:
 1. Change directory to backend `cd backend`
-1. Create virtual environment in the backend folder `python -m venv ./`
+1. Create virtual environment in the backend folder `python3 -m venv ./`
 2. Activate the virtual environment 
     - Windows: `.\Scripts\Activate`
     - Linux/MacOS: `source ./bin/activate`
