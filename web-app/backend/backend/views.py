@@ -24,20 +24,26 @@ class CreatePersonalTrainerView(generics.CreateAPIView):
     serializer_class = PeronsalTrainerSerializer
     permission_classes = [AllowAny]
 
-class WorkoutListCreate(generics.ListCreateAPIView):
+
+class CreateWorkoutView(generics.CreateAPIView):
     serializer_class = WorkoutSerializer
     # Only people with a valid access token are allowed to call this endpoint
+    permission_classes = [IsAuthenticated]
+    
+    # Overwriting the create method to associate the workout with the current user
+    def perform_create(self, serializer):
+       # Have to manually add the author because we specified it as read only
+        serializer.save(author=self.request.user)
+
+class WorkoutListView(generics.ListAPIView):
+    serializer_class = WorkoutSerializer
     permission_classes = [IsAuthenticated]
     
     # Get all workouts related to the current user
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(author=user)
-    
-    # Overwriting the create method to associate the workout with the current user
-    def perform_create(self, serializer):
-       # Have to manually add the author because we specified it as read only
-        serializer.save(author=self.request.user)
+        
 
 class WorkoutDelete(generics.DestroyAPIView):
     serializer_class = WorkoutSerializer
