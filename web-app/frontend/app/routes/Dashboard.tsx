@@ -7,6 +7,7 @@ interface Workout {
   id: number;
   name: string;
   date_created: string;
+  author: string;
   exercises: number[];
 }
 
@@ -14,6 +15,8 @@ interface Workout {
 interface Exercise {
   id: number;
   name: string;
+  description: string;
+  muscle_group: string;
 }
 
 const CustomerDashboard: React.FC = () => {
@@ -95,8 +98,6 @@ const CustomerDashboard: React.FC = () => {
 
   // Function to handle adding a new workout
   const handleAddWorkout = async (e: React.FormEvent) => {
-    e.preventDefault(); // Stop the form from reloading the page
-
     const token = localStorage.getItem("accessToken"); 
     if (!token) {
       navigate("/login");
@@ -104,15 +105,15 @@ const CustomerDashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/workouts/", { // Send a POST request to the backend to create a new workout
+      const response = await fetch("http://127.0.0.1:8000/workouts/create/", { // Send a POST request to the backend to create a new workout
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: newWorkoutName,
-          exercises: selectedExercises,
+          name: "New Workout", // Set the default name to "New Workout"
+          exercises: [], // Set the default exercises to an empty array
         }),
       });
 
@@ -125,8 +126,7 @@ const CustomerDashboard: React.FC = () => {
 
       const newWorkout = await response.json(); 
       setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout]); // Add the new workout to the list of workouts
-      setNewWorkoutName("");
-      setSelectedExercises([]); // Clear the form fields
+      // setSelectedExercises([]); // Clear the form fields
     } catch (error) {
       console.error("Error adding workout:", error);
       alert("An unexpected error occurred.");
@@ -221,10 +221,10 @@ const CustomerDashboard: React.FC = () => {
             </div>
 
           <button
-            type="submit"
+            onClick={handleAddWorkout}
             className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded mt-4 block"
           >
-            Create Workout
+            Create New Workout
           </button>
         </form>
       </motion.div>
