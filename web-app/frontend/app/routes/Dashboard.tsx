@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import WorkoutDetails from "./WorkoutDetails";
 
 // Interface to define the structure of a workout object
 interface Workout {
   id: number;
   name: string;
   date_created: string;
-  author: string;
   exercises: number[];
 }
 
@@ -15,8 +15,6 @@ interface Workout {
 interface Exercise {
   id: number;
   name: string;
-  description: string;
-  muscle_group: string;
 }
 
 const CustomerDashboard: React.FC = () => {
@@ -73,7 +71,7 @@ const CustomerDashboard: React.FC = () => {
     };
 
     fetchWorkouts();
-    fetchExercises();
+    //fetchExercises();
   }, [navigate]); // Call the effect whenever the user navigates to a new page
 
   const handleLogout = () => { 
@@ -81,13 +79,14 @@ const CustomerDashboard: React.FC = () => {
     navigate("/login");
   };  
 
-  const handleExerciseSelection = (exerciseId: number) => {
-    setSelectedExercises((prev) => // Toggle the selected exercise
-      prev.includes(exerciseId) // Check if the exercise is already selected
-        ? prev.filter((id) => id !== exerciseId) // Remove the exercise if it is already selected
-        : [...prev, exerciseId] // Add the exercise if it is not already selected
-    );
-  };
+
+  // const handleExerciseSelection = (exerciseId: number) => {
+  //   setSelectedExercises((prev) => // Toggle the selected exercise
+  //     prev.includes(exerciseId) // Check if the exercise is already selected
+  //       ? prev.filter((id) => id !== exerciseId) // Remove the exercise if it is already selected
+  //       : [...prev, exerciseId] // Add the exercise if it is not already selected
+  //   );
+  // };
 
   // Function to get the names of the exercises based on their IDs
   const getExerciseNames = (exerciseIds: number[]) => {
@@ -97,41 +96,44 @@ const CustomerDashboard: React.FC = () => {
   };
 
   // Function to handle adding a new workout
-  const handleAddWorkout = async (e: React.FormEvent) => {
-    const token = localStorage.getItem("accessToken"); 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+  // const handleAddWorkout = async (e: React.FormEvent) => {
+  //   e.preventDefault(); // Stop the form from reloading the page
 
-    try {
-      const response = await fetch("http://127.0.0.1:8000/workouts/create/", { // Send a POST request to the backend to create a new workout
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: "New Workout", // Set the default name to "New Workout"
-          exercises: [], // Set the default exercises to an empty array
-        }),
-      });
+  //   const token = localStorage.getItem("accessToken"); 
+  //   if (!token) {
+  //     navigate("/login");
+  //     return;
+  //   }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to add workout:", errorData);
-        alert(`Failed to add workout: ${errorData.detail || JSON.stringify(errorData)}`);
-        return;
-      }
+  //   try {
+  //     const response = await fetch("http://127.0.0.1:8000/workouts/", { // Send a POST request to the backend to create a new workout
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({
+  //         name: newWorkoutName,
+  //         exercises: selectedExercises,
+  //       }),
+  //     });
 
-      const newWorkout = await response.json(); 
-      setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout]); // Add the new workout to the list of workouts
-      // setSelectedExercises([]); // Clear the form fields
-    } catch (error) {
-      console.error("Error adding workout:", error);
-      alert("An unexpected error occurred.");
-    }
-  };
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       console.error("Failed to add workout:", errorData);
+  //       alert(`Failed to add workout: ${errorData.detail || JSON.stringify(errorData)}`);
+  //       return;
+  //     }
+
+  //     const newWorkout = await response.json(); 
+  //     setWorkouts((prevWorkouts) => [...prevWorkouts, newWorkout]); // Add the new workout to the list of workouts
+  //     setNewWorkoutName("");
+  //     setSelectedExercises([]); // Clear the form fields
+  //   } catch (error) {
+  //     console.error("Error adding workout:", error);
+  //     alert("An unexpected error occurred.");
+  //   }
+  // };
 
   return (
       <motion.div
@@ -159,75 +161,15 @@ const CustomerDashboard: React.FC = () => {
         Logout
       </motion.button>
 
-      {/* Add New Workout Form */}
-      <motion.div
-        className="bg-gray-800 p-4 rounded-lg shadow-md mb-6"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+      {/* Create New Workout Button */}
+      <motion.button
+      onClick={() => navigate("/create")}
+      className="absolute top-[300px] right-[1870px] bg-blue-700 hover:bg-red-700 px-4 py-2 rounded"
+      whileHover={{ scale: 1.05 }}
+
       >
-        <h2 className="text-xl font-bold mb-2">Add New Workout</h2>
-        <form onSubmit={handleAddWorkout}>
-          <input
-            type="text"
-            value={newWorkoutName}
-            onChange={(e) => setNewWorkoutName(e.target.value)}
-            placeholder="Workout Name"
-            className="w-full p-2 rounded bg-gray-700 text-white mb-4"
-            required
-          />
-
-          <div className="relative">
-              <h3 className="text-lg font-bold mb-2">Select Exercises</h3>
-
-              {/* Dropdown Button */}
-              <button
-                type="button"
-                className="w-full text-left p-2 rounded bg-gray-700 text-white flex justify-between items-center"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                {selectedExercises.length > 0
-                  ? selectedExercises
-                      .map((id) => availableExercises.find((ex) => ex.id === id)?.name)
-                      .join(", ")
-                  : "Select exercises"}
-                <span className="ml-2">&#9662;</span> {/* Arrow Icon */}
-              </button>
-
-              {/* Dropdown Menu */}
-              {dropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute w-full bg-gray-800 shadow-lg rounded mt-1 p-2 z-10"
-                >
-                  {availableExercises.map((exercise) => (
-                    <label
-                      key={exercise.id}
-                      className="flex items-center px-3 py-2 hover:bg-gray-700 rounded cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedExercises.includes(exercise.id)}
-                        onChange={() => handleExerciseSelection(exercise.id)}
-                        className="mr-2"
-                      />
-                      {exercise.name}
-                    </label>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-
-          <button
-            onClick={handleAddWorkout}
-            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded mt-4 block"
-          >
-            Create New Workout
-          </button>
-        </form>
-      </motion.div>
+        Create New Workout
+      </motion.button>
 
       {/* Display Workouts */}
       <motion.div

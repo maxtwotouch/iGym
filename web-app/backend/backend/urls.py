@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.urls import path, include
 from django.contrib import admin
-from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListCreate, WorkoutListView, ExerciseListView, CreateWorkoutView
+from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDelete, CustomTokenObtainPairView, WorkoutDetailView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
