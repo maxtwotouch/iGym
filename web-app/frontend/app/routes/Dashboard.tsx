@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import WorkoutDetails from "./WorkoutDetails";
+import 'bootstrap/dist/css/bootstrap.css';
+import NavBar from "~/components/NavBar";
+import 'bootstrap/dist/css/bootstrap.css'
+import imgPath from  '~/images/att.nTSVrpFndF06NcNLdlq793LC_yW3n0D7HbMiXBWrpYE.jpg'
+
 
 // Interface to define the structure of a workout object
 interface Workout {
@@ -136,6 +140,10 @@ const CustomerDashboard: React.FC = () => {
   // };
 
   return (
+
+    <motion.div>
+      <NavBar/>
+      
       <motion.div
         className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8"
         initial={{ opacity: 0 }}
@@ -205,8 +213,9 @@ const CustomerDashboard: React.FC = () => {
             </div>
           ))
         )}
+        </motion.div>
       </motion.div>
-    </motion.div>
+      </motion.div>
   );
 };
 
