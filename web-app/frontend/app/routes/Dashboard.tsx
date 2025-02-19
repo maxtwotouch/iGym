@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import 'bootstrap/dist/css/bootstrap.css';
 import NavBar from "~/components/NavBar";
-import 'bootstrap/dist/css/bootstrap.css'
 import imgPath from  '~/images/att.nTSVrpFndF06NcNLdlq793LC_yW3n0D7HbMiXBWrpYE.jpg'
+import Footer from "../components/Footer";
 
 
 // Interface to define the structure of a workout object
@@ -141,7 +141,7 @@ const CustomerDashboard: React.FC = () => {
 
   return (
 
-    <motion.div>
+    <motion.div className="d-flex flex-column min-vh-100">
       <NavBar/>
       
       <motion.div
@@ -215,7 +215,8 @@ const CustomerDashboard: React.FC = () => {
         )}
         </motion.div>
       </motion.div>
-      </motion.div>
+      <Footer/>
+    </motion.div>
   );
 };
 
