@@ -140,7 +140,7 @@ const CustomerDashboard: React.FC = () => {
 
   return (
 
-    <motion.div>
+    <motion.div className="d-flex flex-column min-vh-100">
       <NavBar/>
       
       <motion.div
@@ -214,7 +214,8 @@ const CustomerDashboard: React.FC = () => {
         )}
         </motion.div>
       </motion.div>
-      </motion.div>
+      <Footer/>
+    </motion.div>
   );
 };
 
