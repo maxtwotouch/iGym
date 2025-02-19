@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import 'bootstrap/dist/css/bootstrap.css';
 import NavBar from "~/components/NavBar";
 import 'bootstrap/dist/css/bootstrap.css'
-import imgPath from  '~/images/att.nTSVrpFndF06NcNLdlq793LC_yW3n0D7HbMiXBWrpYE.jpg'
 
 
 // Interface to define the structure of a workout object

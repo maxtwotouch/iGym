@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import NavBar from "~/components/NavBar";
 
 // Interface to define the structure of a workout object
 interface Workout {
@@ -49,29 +50,31 @@ const Exercises: React.FC = () => {
         }, [navigate]); // Call the effect whenever the user navigates to a new page
 
         return(
-            <motion.div
-                className="bg-gray-800 p-4 rounded-lg shadow-md"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                >
-                <h2 className="text-xl font-bold text-white">Exercises</h2>
-                {availableExercises.length === 0 ? (
-                    <p className="mt-2">No exercises found.</p>
-                ) : (
-                    availableExercises.map((exercise) => (
-                    <div
-                        key={exercise.id}
-                        className="text-white"
+            <motion.div>
+                <NavBar/>
+                <motion.div
+                    className="bg-gray-800 p-4 rounded-lg shadow-md"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
                     >
-                        <p className="font-semibold">{exercise.name}</p>
-                        <ul className="text-gray-300 mt-2">
-                        </ul>
-                    </div>
-                    ))
-                )}
+                    <h2 className="text-xl font-bold text-white">Exercises</h2>
+                    {availableExercises.length === 0 ? (
+                        <p className="mt-2">No exercises found.</p>
+                    ) : (
+                        availableExercises.map((exercise) => (
+                        <div
+                            key={exercise.id}
+                            className="text-white"
+                        >
+                            <p className="font-semibold">{exercise.name}</p>
+                            <ul className="text-gray-300 mt-2">
+                            </ul>
+                        </div>
+                        ))
+                    )}
                 </motion.div>
-
+            </motion.div>
         )
     };
         
