@@ -1,37 +1,65 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
+import NavBar from "~/components/NavBar";
+import Footer from "~/components/Footer";
 
+
+// Interface to define the structure of a workout object
 interface Workout {
-    id: number;
-    name: string;
-    date_created: string;
-    exercises: number[];
+  id: number;
+  name: string;
+  date_created: string;
+  exercises: number[];
 }
 
 // Interface to define the structure of an exercise object
 interface Exercise {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
-const NewWorkout: React.FC = () => {
+
+const CreateWorkout: React.FC = () => {
     const [newWorkoutName, setNewWorkoutName] = useState<string>(""); 
     const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+    const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken"); // Retrieve JWT token
-        if (!token) { // Redirect to login if token is missing
+      const token = localStorage.getItem("accessToken"); 
+        if (!token) { 
         navigate("/login");
         return;
-    };
+      }
 
+      const fetchExercises = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/exercises/", {
+            headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!response.ok) {
+            console.error("Failed to fetch exercises");
+            return;
+            }
+            const data = await response.json();
+            setAvailableExercises(data); 
+        } catch (error) {
+            console.error("Error fetching exercises:", error);
+          }
+      };
+
+      if (location.state) {
+        setSelectedExercises(location.state.selectedExercises);
+      }
+
+      fetchExercises();
     }, [navigate]);
 
-  //Function to handle adding a new workout
-  const handleAddWorkout = async (e: React.FormEvent) => {
-    e.preventDefault(); // Stop the form from reloading the page
+  const handleAddWorkout = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent the default form submission behavior
 
     const token = localStorage.getItem("accessToken"); 
     if (!token) {
@@ -39,8 +67,11 @@ const NewWorkout: React.FC = () => {
       return;
     }
 
+    console.log("Workout Name:", newWorkoutName);
+    console.log("Selected Exercises:", selectedExercises);
+
     try {
-      const response = await fetch("http://127.0.0.1:8000/workouts/create/", { // Send a POST request to the backend to create a new workout
+      const response = await fetch("http://127.0.0.1:8000/workouts/create/", { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,49 +90,115 @@ const NewWorkout: React.FC = () => {
         return;
       }
 
-      const newWorkout = await response.json(); 
-      setNewWorkoutName("");
-      setSelectedExercises([]); // Clear the form fields
+      navigate("/dashboard");
+
     } catch (error) {
       console.error("Error adding workout:", error);
       alert("An unexpected error occurred.");
     }
   };
 
-  const handleAddExercise = () => {
-    console.log("Adding exercise to the workout");
-  };
+  selectedExercises.map((exerciseId) => {
+    const exercise = availableExercises.find((ex) => ex.id === exerciseId);
+    return (
+      <div key={exerciseId} className="text-white">
+        <p>{exercise ? exercise.name : "Unknown Exercise"}</p>
+      </div>
+    );
+  });
 
   return (
-    
-    <motion.div
-      className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1 }}
-    >
-        <h2 className="text-xl font-bold mb-2">Create New Workout</h2>
-        <form onSubmit={handleAddWorkout}></form>
-        <input
-        type="text"
-        value={newWorkoutName}
-        onChange={(e) => setNewWorkoutName(e.target.value)}
-        placeholder="Workout name"
-        className="w-full p-2 rounded bg-gray-700 text-white mb-4"
-        required
-        />
-
-      {/* Add Exercise to the Workout */}
-      <motion.button
-        onClick={() => navigate("/exercises")}
-        className="absolute top-4 right-4 bg-blue-700 hover:bg-red-700 px-4 py-2 rounded"
-        whileHover={{ scale: 1.05 }}
+    <motion.div className="d-flex flex-column min-vh-100">
+      <NavBar />
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
       >
-        Add Exercise
-      </motion.button>
+        {/* Title */}
+        <motion.h1
+          className="text-4xl font-bold mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Create New Workout
+        </motion.h1>
+
+        <motion.form
+          onSubmit={handleAddWorkout}
+          className="bg-gray-800 p-8 rounded-lg shadow-md w-80"
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Workout Name Input */}
+          <input
+            type="text"
+            placeholder="Workout Name"
+            value={newWorkoutName}
+            onChange={(e) => setNewWorkoutName(e.target.value)}
+            className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
+            required
+          />
+
+          {/* Exercises List */}
+          <h2 className="text-lg font-semibold mb-2">Exercises</h2>
+          {selectedExercises.length === 0 ? (
+            <p className="text-gray-400 mb-4">No exercises selected.</p>
+          ) : (
+            <ul className="list-disc list-inside mb-4">
+              {selectedExercises.map((exerciseId) => {
+                const exercise = availableExercises.find((ex) => ex.id === exerciseId);
+                return (
+                  <motion.li
+                    key={exerciseId}
+                    className="text-gray-300"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {exercise ? exercise.name : "Unknown Exercise"}
+                  </motion.li>
+                );
+              })}
+            </ul>
+          )}
+
+          {/* Add Exercise Button */}
+          <motion.button
+            type="button"
+            onClick={() => navigate("/workouts/create/exercises")}
+            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
+            whileHover={{ scale: 1.05 }}
+          >
+            Add Exercises
+          </motion.button>
+
+          {/* Create Workout Button */}
+          <motion.button
+            type="submit"
+            className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+            whileHover={{ scale: 1.05 }}
+          >
+            Create Workout
+          </motion.button>
+        </motion.form>
+
+        {/* Back Button */}
+        <motion.button
+          onClick={() => navigate("/dashboard")}
+          className="mt-4 text-blue-400 hover:text-blue-500 underline"
+          whileHover={{ scale: 1.05 }}
+        >
+          Back to Dashboard
+        </motion.button>
+      </motion.div>
+    <Footer />
     </motion.div>
   );
 };
 
-export default NewWorkout;
+export default CreateWorkout;
 
