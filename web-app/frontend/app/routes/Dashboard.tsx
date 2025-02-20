@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import 'bootstrap/dist/css/bootstrap.css';
 import NavBar from "~/components/NavBar";
 import 'bootstrap/dist/css/bootstrap.css'
-
+import Footer from "~/components/Footer";
 
 // Interface to define the structure of a workout object
 interface Workout {
