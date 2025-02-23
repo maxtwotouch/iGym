@@ -92,7 +92,7 @@ const EditWorkout: React.FC = () => {
       setSelectedExercises(location.state.selectedExercises);
       setNewWorkoutName(location.state.newWorkoutName);
     };
-  }, [selectedExercises, newWorkoutName]);
+  }, [selectedExercises]);
 
   const handleSaveWorkout = async () => {
     const token = localStorage.getItem("accessToken");
