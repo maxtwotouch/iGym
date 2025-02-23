@@ -1,3 +1,4 @@
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib import messages
@@ -9,6 +10,7 @@ from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSeria
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 
 # View for creating a new user
@@ -24,6 +26,16 @@ class CreatePersonalTrainerView(generics.CreateAPIView):
     serializer_class = PeronsalTrainerSerializer
     permission_classes = [AllowAny]
 
+class UpdateWorkoutView(generics.UpdateAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only update workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+    
+
 
 class CreateWorkoutView(generics.CreateAPIView):
     serializer_class = WorkoutSerializer
@@ -32,8 +44,12 @@ class CreateWorkoutView(generics.CreateAPIView):
     
     # Overwriting the create method to associate the workout with the current user
     def perform_create(self, serializer):
-       # Have to manually add the author because we specified it as read only
-        serializer.save(author=self.request.user)
+        if serializer.is_valid():
+            # Have to manually add the author because we specified it as read only
+            serializer.save(author=self.request.user)
+
+        else:
+            print(serializer.errors)
 
 class WorkoutListView(generics.ListAPIView):
     serializer_class = WorkoutSerializer

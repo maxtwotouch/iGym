@@ -15,8 +15,8 @@ function NavBar () {
             <motion.div className="container-fluid">
                 <Link className="navbar-brand" to="/dashboard">iGym</Link>
                 <motion.div className="navbar-nav me-auto"> 
-                    <a className="nav-link" href="#">Features</a>
-                    <Link className="nav-link" to="/exercises">Exercises</Link>
+                    <Link className={`nav-link ${location.pathname === '/features' ? 'active' : ''}`} to="/features">Features</Link>
+                    <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
                 </motion.div>
 
                 {/* Logout button */}

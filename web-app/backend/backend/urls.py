@@ -17,7 +17,7 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib import admin
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
-from .views import WorkoutDelete, CustomTokenObtainPairView, WorkoutDetailView
+from .views import WorkoutDelete, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -32,8 +32,9 @@ urlpatterns = [
     path("auth/", include("rest_framework.urls")),
     path("workouts/", WorkoutListView.as_view(), name="workout-list"),
     path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
-    path("workouts/create/", CreateWorkoutView.as_view, name="workout-create"),
+    path("workouts/create/", CreateWorkoutView.as_view(), name="workout-create"),
     path("workouts/delete/<int:pk>/", WorkoutDelete.as_view(), name="delete-workout"),
+    path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="update-workout"),
     path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout")
 ]
 
