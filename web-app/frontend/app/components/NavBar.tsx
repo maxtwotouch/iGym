@@ -1,17 +1,34 @@
+import { motion } from 'framer-motion';
+import { useNavigate, Link } from "react-router-dom";
 
-import { Link } from 'react-router-dom';
+
 function NavBar () {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem("accessToken");
+        navigate("/login");
+    };
+
     return (
-        <nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
-            <div className="container-fluid">
-                <a className="navbar-brand" href="#">GymApp</a>
-                <div className="navbar-nav me-auto"> 
-                    <a className="nav-link active" href="#">Home</a>
+        <motion.nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+            <motion.div className="container-fluid">
+                <Link className="navbar-brand" to="/dashboard">iGym</Link>
+                <motion.div className="navbar-nav me-auto"> 
                     <a className="nav-link" href="#">Features</a>
                     <Link className="nav-link" to="/exercises">Exercises</Link>
-                </div>
-            </div>
-        </nav>
+                </motion.div>
+
+                {/* Logout button */}
+                <motion.button
+                    onClick={handleLogout}
+                    className='btn btn-danger ms-auto'  
+                    whileHover={{ scale: 1.05 }}
+                    >
+                    Logout
+                </motion.button>
+            </motion.div>
+        </motion.nav>
     )
 }
 

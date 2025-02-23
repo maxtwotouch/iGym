@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
+import 'tailwindcss/tailwind.css';
+import 'bootstrap/dist/css/bootstrap.css';
 
   
 // Interface to define the structure of an exercise object
@@ -15,7 +17,10 @@ interface Exercise {
 const ExerciseSelection: React.FC = () => {
     const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
     const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+    const [newWorkoutName, setNewWorkoutName] = useState<string>("");
+    const [fromPage, setFromPage] = useState<string>(``);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken"); // Retrieve JWT token
@@ -38,7 +43,13 @@ const ExerciseSelection: React.FC = () => {
             } catch (error) {
                 console.error("Error fetching exercises:", error);
             }
-            };
+        };
+
+        if (location.state) {
+            setFromPage(location.state.fromPage);
+            setSelectedExercises(location.state.selectedExercises);
+            setNewWorkoutName(location.state.newWorkoutName);
+        }
 
         fetchExercises();
     }, [navigate]); 
@@ -104,7 +115,7 @@ const ExerciseSelection: React.FC = () => {
         
                 {/* Confirm Selection Button */}
                 <motion.button
-                onClick={() => navigate("/workouts/create", { state: { selectedExercises } })}
+                onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
                 className="w-full py-2 mt-4 bg-blue-600 hover:bg-blue-700 rounded text-white"
                 whileHover={{ scale: 1.05 }}
                 >

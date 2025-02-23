@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import 'bootstrap/dist/css/bootstrap.css';
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
+import 'tailwindcss/tailwind.css';
+import 'bootstrap/dist/css/bootstrap.css';
 
 
 // Interface to define the structure of a workout object
@@ -72,11 +74,6 @@ const CustomerDashboard: React.FC = () => {
     fetchWorkouts();
   }, [navigate]);
 
-  const handleLogout = () => { 
-    localStorage.removeItem("accessToken");
-    navigate("/login");
-  };
-
   return (
     <motion.div className="d-flex flex-column min-vh-100">
       <NavBar />
@@ -96,16 +93,6 @@ const CustomerDashboard: React.FC = () => {
         >
           Hello, {username}
         </motion.h1>
-
-
-          {/* Logout button */}
-          <motion.button
-            onClick={handleLogout}
-            className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-            whileHover={{ scale: 1.05 }}
-          >
-            Logout
-          </motion.button>
 
           <motion.button
             onClick={() => navigate("/workouts/create")}
@@ -154,7 +141,7 @@ const CustomerDashboard: React.FC = () => {
 
                   {/* View Workout Button */}
                   <motion.button
-                    onClick={() => navigate(`/workouts/${workout.id}`)}
+                    onClick={() => navigate(`/workouts/update/${workout.id}`)}
                     className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
                     whileHover={{ scale: 1.05 }}
                   >

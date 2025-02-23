@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
+import 'tailwindcss/tailwind.css';
+import 'bootstrap/dist/css/bootstrap.css';
 
-
-// Interface to define the structure of a workout object
-interface Workout {
-  id: number;
-  name: string;
-  date_created: string;
-  author: string;
-  exercises: number[];
-}
 
 // Interface to define the structure of an exercise object
 interface Exercise {
@@ -23,46 +16,38 @@ interface Exercise {
 }
 
 
-const WorkoutDetails: React.FC = () => {
+const EditWorkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
-  const [workoutName, setWorkoutName] = useState<string>("");
+  const [newWorkoutName, setNewWorkoutName] = useState<string>("");
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const fetchWorkoutDetails = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+    const token = localStorage.getItem("accessToken"); // Retrieve JWT token
+    if (!token) {
+      navigate("/login"); 
+      return;
+    }
 
+    const fetchWorkoutName = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!response.ok) {
-          console.error("Failed to fetch workout details");
+          console.error("Failed to fetch workout");
           return;
         }
-
-        const data = await response.json();
-        setWorkoutName(data.name);
-        setSelectedExercises(data.exercises);
+        const data = await response.json(); 
+        setNewWorkoutName(data.name);
       } catch (error) {
-        console.error("Error fetching workout details:", error);
+        console.error("Error fetching workouts:", error);
       }
     };
 
     const fetchExercises = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        navigate("/login");
-        return;
-      }   
-
       try {
           const response = await fetch(`http://127.0.0.1:8000/exercises/`, {
               headers: { Authorization: `Bearer ${token}` },
@@ -79,10 +64,35 @@ const WorkoutDetails: React.FC = () => {
           console.error("Error fetching exercises:", error);
       }
     };
-            
-    fetchWorkoutDetails();
+
+    const fetchWorkoutExercises = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch workout exercises");
+          return;
+        }
+        const data = await response.json();
+        setSelectedExercises(data.exercises);
+      } catch (error) {
+        console.error("Error fetching workout exercises:", error);
+      }
+    };
+    
+    fetchWorkoutName();
     fetchExercises();
+    fetchWorkoutExercises();
   }, [navigate]); 
+
+  // Updates selected exercises and workout name when navigating back from the exercise selection page, overwriting backend data
+  useEffect(() => { 
+    if (location.state) {
+      setSelectedExercises(location.state.selectedExercises);
+      setNewWorkoutName(location.state.newWorkoutName);
+    };
+  }, [selectedExercises, newWorkoutName]);
 
   const handleSaveWorkout = async () => {
     const token = localStorage.getItem("accessToken");
@@ -92,14 +102,14 @@ const WorkoutDetails: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
+      const response = await fetch(`http://127.0.0.1:8000/workouts/update/${id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: workoutName,
+          name: newWorkoutName,
           exercises: selectedExercises,
         }),
       });
@@ -126,14 +136,6 @@ const WorkoutDetails: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        {/* Back Button */}
-        <motion.button
-          onClick={() => navigate("/dashboard")}
-          className="w-40 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white mb-4"
-          whileHover={{ scale: 1.05 }}
-        >
-          Back
-        </motion.button>
 
         {/* Title */}
         <motion.h1
@@ -155,40 +157,44 @@ const WorkoutDetails: React.FC = () => {
           <label className="block text-lg mb-2">Change Workout Name:</label>
           <input
             type="text"
-            value={workoutName}
-            onChange={(e) => setWorkoutName(e.target.value)}
+            value={newWorkoutName}
+            onChange={(e) => setNewWorkoutName(e.target.value)}
             className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
             required
           />
 
-          {/* Exercise List */}
-          <h2 className="text-xl font-bold mt-4 mb-2">Exercises</h2>
-          {availableExercises.length === 0 ? (
-            <p className="text-sm text-gray-400">No exercises available.</p>
+          {/* Exercises List */}
+          <h2 className="text-lg font-semibold mb-2">Exercises</h2>
+          {selectedExercises.length === 0 ? (
+            <p className="text-gray-400 mb-4">No exercises selected.</p>
           ) : (
-            <div className="space-y-2">
-              {availableExercises.map((exercise) => (
-                <label
-                  key={exercise.id}
-                  className="flex items-center p-2 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedExercises.includes(exercise.id)}
-                    onChange={() =>
-                      setSelectedExercises((prev) =>
-                        prev.includes(exercise.id)
-                          ? prev.filter((id) => id !== exercise.id)
-                          : [...prev, exercise.id]
-                      )
-                    }
-                    className="mr-2"
-                  />
-                  {exercise.name}
-                </label>
-              ))}
-            </div>
+            <ul className="list-disc list-inside mb-4">
+              {selectedExercises.map((exerciseId) => {
+                const exercise = availableExercises.find((ex) => ex.id === exerciseId);
+                return (
+                  <motion.li
+                    key={exerciseId}
+                    className="text-gray-300"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {exercise ? exercise.name : "Unknown Exercise"}
+                  </motion.li>
+                );
+              })}
+            </ul>
           )}
+
+          {/* Add Exercise Button */}
+          <motion.button
+            type="button"
+            onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/update/${id}/`, selectedExercises, newWorkoutName } })}
+            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
+            whileHover={{ scale: 1.05 }}
+          >
+            Add Exercises
+          </motion.button>
 
           {/* Save Button */}
           <motion.button
@@ -199,10 +205,19 @@ const WorkoutDetails: React.FC = () => {
             Save Workout
           </motion.button>
         </motion.div>
+
+        {/* Back Button */}
+        <motion.button
+          onClick={() => navigate("/dashboard")}
+          className="mt-4 text-blue-400 hover:text-blue-500 underline"
+          whileHover={{ scale: 1.05 }}
+        >
+          Back to Dashboard
+        </motion.button>
       </motion.div>
       <Footer />
     </motion.div>
   );
 };
 
-export default WorkoutDetails;
+export default EditWorkout;

@@ -6,7 +6,8 @@ export default [
   route("register", "routes/Registration.tsx"),
   route("dashboard", "routes/Dashboard.tsx"),
   route("exercises", "routes/Exercises.tsx"),
-  route("workouts/:id", "routes/WorkoutDetails.tsx"),
   route("workouts/create", "routes/CreateWorkout.tsx"),
   route("workouts/create/exercises", "routes/ExerciseSelection.tsx"),
+  route("workouts/update/:id", "routes/EditWorkout.tsx"),
+  // route("about", "routes/About.tsx"),
 ] satisfies RouteConfig;

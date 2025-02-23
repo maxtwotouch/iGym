@@ -4,15 +4,9 @@ import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
+import 'tailwindcss/tailwind.css';
+import 'bootstrap/dist/css/bootstrap.css';
 
-
-// Interface to define the structure of a workout object
-interface Workout {
-  id: number;
-  name: string;
-  date_created: string;
-  exercises: number[];
-}
 
 // Interface to define the structure of an exercise object
 interface Exercise {
@@ -53,6 +47,7 @@ const CreateWorkout: React.FC = () => {
 
       if (location.state) {
         setSelectedExercises(location.state.selectedExercises);
+        setNewWorkoutName(location.state.newWorkoutName);
       }
 
       fetchExercises();
@@ -97,15 +92,6 @@ const CreateWorkout: React.FC = () => {
       alert("An unexpected error occurred.");
     }
   };
-
-  selectedExercises.map((exerciseId) => {
-    const exercise = availableExercises.find((ex) => ex.id === exerciseId);
-    return (
-      <div key={exerciseId} className="text-white">
-        <p>{exercise ? exercise.name : "Unknown Exercise"}</p>
-      </div>
-    );
-  });
 
   return (
     <motion.div className="d-flex flex-column min-vh-100">
@@ -169,7 +155,7 @@ const CreateWorkout: React.FC = () => {
           {/* Add Exercise Button */}
           <motion.button
             type="button"
-            onClick={() => navigate("/workouts/create/exercises")}
+            onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
             className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
             whileHover={{ scale: 1.05 }}
           >
@@ -195,7 +181,7 @@ const CreateWorkout: React.FC = () => {
           Back to Dashboard
         </motion.button>
       </motion.div>
-    <Footer />
+      <Footer />
     </motion.div>
   );
 };

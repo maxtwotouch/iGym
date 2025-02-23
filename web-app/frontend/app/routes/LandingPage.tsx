@@ -26,7 +26,7 @@ export default function LandingPage() {
             animate={{ y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            GymApp 💪
+            iGym 💪
           </motion.h1>
           <motion.p
             className="text-xl mb-8"
