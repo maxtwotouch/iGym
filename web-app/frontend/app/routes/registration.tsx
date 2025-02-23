@@ -68,7 +68,7 @@ export default function RegistrationForm() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Register for GymApp
+        Register for iGym
       </motion.h1>
       <motion.form
         onSubmit={handleSubmit}

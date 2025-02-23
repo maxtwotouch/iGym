@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [text, setText] = useState("");
-  const fullText = "Welcome to GymApp";
+  const fullText = "Welcome to iGym";
 
   useEffect(() => {
     let index = 0;
