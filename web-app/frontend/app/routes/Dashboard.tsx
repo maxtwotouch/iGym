@@ -74,6 +74,20 @@ const CustomerDashboard: React.FC = () => {
     fetchWorkouts();
   }, [navigate]);
 
+  const deleteWorkout = (workout: Workout) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetch(`http://127.0.0.1:8000/workouts/delete/${workout.id}/`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(() => {
+      setWorkouts(workouts.filter((w) => w.id !== workout.id));
+    });
+  }
+
   return (
     <motion.div className="d-flex flex-column min-vh-100">
       <NavBar />
@@ -118,9 +132,18 @@ const CustomerDashboard: React.FC = () => {
               {workouts.map((workout) => (
                 <motion.div
                   key={workout.id}
-                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer"
+                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer position-relative"
                   whileHover={{ scale: 1.02 }}
                 >
+                  {/* Delete workouts from Workout List */}
+                  <motion.button
+                    onClick={() => deleteWorkout(workout)}
+                    className="btn btn-danger position-absolute top-0 end-0 m-2"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    ✕
+                  </motion.button>
+
                   <p className="font-semibold">{workout.name}</p>
                   <p className="text-sm text-gray-400">
                     Created: {new Date(workout.date_created).toLocaleString()}

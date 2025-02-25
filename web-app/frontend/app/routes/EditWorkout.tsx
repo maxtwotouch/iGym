@@ -21,6 +21,7 @@ const EditWorkout: React.FC = () => {
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
   const [newWorkoutName, setNewWorkoutName] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,22 +31,6 @@ const EditWorkout: React.FC = () => {
       navigate("/login"); 
       return;
     }
-
-    const fetchWorkoutName = async () => {
-      try {
-        const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) {
-          console.error("Failed to fetch workout");
-          return;
-        }
-        const data = await response.json(); 
-        setNewWorkoutName(data.name);
-      } catch (error) {
-        console.error("Error fetching workouts:", error);
-      }
-    };
 
     const fetchExercises = async () => {
       try {
@@ -65,34 +50,44 @@ const EditWorkout: React.FC = () => {
       }
     };
 
-    const fetchWorkoutExercises = async () => {
+    const fetchWorkoutData = async () => {
       try {
         const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
-          console.error("Failed to fetch workout exercises");
+          console.error("Failed to fetch workout data");
           return;
         }
+
         const data = await response.json();
-        setSelectedExercises(data.exercises);
+        
+        if (!location.state) {
+          setNewWorkoutName(data.name);
+          setSelectedExercises(data.exercises);
+        }
+
       } catch (error) {
-        console.error("Error fetching workout exercises:", error);
+        console.error("Error fetching workout data:", error);
       }
     };
-    
-    fetchWorkoutName();
-    fetchExercises();
-    fetchWorkoutExercises();
+
+    const loadData = async () => {
+      await fetchExercises();
+      await fetchWorkoutData();
+      setLoading(false);
+    } 
+
+    loadData();
   }, [navigate]); 
 
-  // Updates selected exercises and workout name when navigating back from the exercise selection page, overwriting backend data
+  // Updates selected exercises and workout name when navigating back from the exercise selection page
   useEffect(() => { 
-    if (location.state) {
+    if (!loading && location.state) {
       setSelectedExercises(location.state.selectedExercises);
       setNewWorkoutName(location.state.newWorkoutName);
     };
-  }, [selectedExercises]);
+  }, [loading]);
 
   const handleSaveWorkout = async () => {
     const token = localStorage.getItem("accessToken");
@@ -125,6 +120,12 @@ const EditWorkout: React.FC = () => {
     }
 
     navigate("/dashboard");
+  };
+
+  const removeExerciseFromWorkout = (exerciseId: number) => {
+    setSelectedExercises((prevSelectedExercises) => {
+      return prevSelectedExercises.filter((id) => id !== exerciseId);
+    });
   };
 
   return (
@@ -174,13 +175,22 @@ const EditWorkout: React.FC = () => {
                 return (
                   <motion.li
                     key={exerciseId}
-                    className="text-gray-300"
+                    className="text-gray-300 flex justify-between items-center p-2 bg-gray-700 rounded-md mb-2"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                   >
                     {exercise ? exercise.name : "Unknown Exercise"}
-                  </motion.li>
+
+                    {/* Delete exercise from Exercise List */}
+                    <motion.button
+                      onClick={() => removeExerciseFromWorkout(exerciseId)}
+                      className="btn btn-sm btn-danger ml-4"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      ✕
+                    </motion.button>
+                    </motion.li>
                 );
               })}
             </ul>

@@ -5,6 +5,7 @@ import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.css';
+import ExerciseSearchBar from "~/components/ExerciseSearchBar";
 
   
 // Interface to define the structure of an exercise object
@@ -19,6 +20,7 @@ const ExerciseSelection: React.FC = () => {
     const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
     const [newWorkoutName, setNewWorkoutName] = useState<string>("");
     const [fromPage, setFromPage] = useState<string>(``);
+    const [searchQuery, setSearchQuery] = useState<string>("");
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -54,6 +56,10 @@ const ExerciseSelection: React.FC = () => {
         fetchExercises();
     }, [navigate]); 
 
+    const filteredExercises = availableExercises.filter((exercise) =>
+        exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const handleSelectExercise = (exerciseId: number) => {
         setSelectedExercises((prevSelectedExercises) => {
             if (prevSelectedExercises.includes(exerciseId)) {
@@ -68,62 +74,69 @@ const ExerciseSelection: React.FC = () => {
         <motion.div className="d-flex flex-column min-vh-100">
             <NavBar />
             <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
+                className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
             >
-            {/* Title */}
-            <motion.h1
-                className="text-3xl font-bold mb-6"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                Select Exercises
-            </motion.h1>
-        
-            {/* Exercise List */}
-            <motion.div
-                className="bg-gray-800 p-6 rounded-lg shadow-md w-80"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                <h2 className="text-xl font-bold mb-2">Available Exercises</h2>
-        
-                {availableExercises.length === 0 ? (
-                <p className="text-sm text-gray-400">No exercises available.</p>
-                ) : (
-                <div className="space-y-2">
-                    {availableExercises.map((exercise) => (
-                    <label
-                        key={exercise.id}
-                        className="flex items-center p-2 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer"
-                    >
-                        <input
-                        type="checkbox"
-                        checked={selectedExercises.includes(exercise.id)}
-                        onChange={() => handleSelectExercise(exercise.id)}
-                        className="mr-2"
-                        />
-                        {exercise.name}
-                    </label>
-                    ))}
-                </div>
-                )}
-        
-                {/* Confirm Selection Button */}
-                <motion.button
-                onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
-                className="w-full py-2 mt-4 bg-blue-600 hover:bg-blue-700 rounded text-white"
-                whileHover={{ scale: 1.05 }}
+                {/* Title */}
+                <motion.h1
+                    className="text-3xl font-bold mb-6"
+                    initial={{ y: -20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
                 >
-                    Confirm Selection
-                </motion.button>
+                    Select Exercises
+                </motion.h1>
+
+                {/* Exercise Search Bar */}
+                <motion.div className="w-80 mb-4">
+                    <ExerciseSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                </motion.div>
+
+                {/* Exercise List */}
+                <motion.div
+                    className="bg-gray-800 p-6 rounded-lg shadow-md w-80"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <h2 className="text-xl font-bold mb-2">Available Exercises</h2>
+            
+                    {filteredExercises.length > 0 ? (
+                        <motion.ul>
+                            {filteredExercises.map((exercise) => (
+                                <motion.li
+                                    key={exercise.id}
+                                    className={`cursor-pointer p-2 rounded-md mb-2 text-left transition ${
+                                        selectedExercises.includes(exercise.id) 
+                                            ? "bg-blue-500 text-white" // Highlighted when selected
+                                            : "bg-gray-700 hover:bg-gray-600 text-gray-300"
+                                    }`}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleSelectExercise(exercise.id)}
+                                >
+                                    {exercise.name}
+                                </motion.li>
+                            ))}
+                        </motion.ul>
+
+                    ) : (
+                        <h2 className="text-sm text-gray-400">No exercises found.</h2>
+                    )}
+
+                    {/* Confirm Selection Button */}
+                    <motion.button
+                        onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
+                        className="w-full py-2 mt-4 bg-blue-600 hover:bg-blue-700 rounded text-white"
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        Confirm Selection
+                    </motion.button>
+                </motion.div>
             </motion.div>
-        </motion.div>
-        <Footer />
+            <Footer />
         </motion.div>
     );
 };  
