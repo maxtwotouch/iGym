@@ -13,11 +13,11 @@ function NavBar () {
     return (
         <motion.nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
             <motion.div className="container-fluid">
-                <Link className="navbar-brand" to="/dashboard">iGym</Link>
-                <motion.div className="navbar-nav me-auto"> 
-                    <Link className={`nav-link ${location.pathname === '/features' ? 'active' : ''}`} to="/features">Features</Link>
-                    <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
-                </motion.div>
+            <Link className="navbar-brand" to="/dashboard">iGym</Link>
+                    <motion.div className="navbar-nav me-auto"> 
+                        <Link className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`} to="/dashboard">Home</Link>
+                        <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
+                    </motion.div>
 
                 {/* Logout button */}
                 <motion.button
@@ -31,5 +31,6 @@ function NavBar () {
         </motion.nav>
     )
 }
+
 
 export default NavBar
