@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
-from backend.models import UserProfile, PersonalTrainerProfile
-
+from backend.models import UserProfile, PersonalTrainerProfile, Exercise
+from backend.serializers import ExerciseSerializer
 class CreateUserViewTest(APITestCase):
     
     def test_create_user(self):
@@ -139,6 +139,60 @@ class CreatePersonalTrainerViewTest(APITestCase):
             
             # Validate the profile fields
             self.assertEqual(profile.experience, experience)
+
+
+class ExerciseListViewTest(APITestCase):
+    
+    def setUp(self):
+        create_user_url = reverse('register_user')
+        
+        username = "testUser"
+        password = "testPassword"
+        height = 180
+        weight = 75
+        
+        data = {
+            "username": username,
+            "password": password,
+            "profile": {
+                "height": height,
+                "weight": weight
+            }
+        }
+        
+        self.client.post(create_user_url, data, format='json')
+        self.user = User.objects.get(username=username)
+        
+    
+    # Unauthenticated users should be denied access to this enpoint
+    def test_unauthenticated_user_do_not_have_access(self):
+        url = reverse("exercise-list")
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_correct_queryset_is_returned(self):
+        url = reverse("exercise-list")
+        
+        # Create some test exercises
+        Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+
+        # Retrieve a user object and force authenticate it
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Retrieve the exercises and convert it to the same format as the response using the serializer
+        exercises = Exercise.objects.all()
+        serializer = ExerciseSerializer(exercises, many=True)
+        
+        # Make sure that the queryset returned contains all exercises
+        self.assertEqual(response.data, serializer.data)
+        
+        
+        
     
     
         

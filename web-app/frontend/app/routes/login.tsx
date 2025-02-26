@@ -54,7 +54,7 @@ export default function LoginForm() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Login to GymApp
+        Login to iGym
       </motion.h1>
       <motion.form
         onSubmit={handleLogin}

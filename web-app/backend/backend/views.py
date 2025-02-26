@@ -26,6 +26,15 @@ class CreatePersonalTrainerView(generics.CreateAPIView):
     serializer_class = PeronsalTrainerSerializer
     permission_classes = [AllowAny]
 
+class UpdateWorkoutView(generics.UpdateAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only update workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+    
 
 
 class CreateWorkoutView(generics.CreateAPIView):
