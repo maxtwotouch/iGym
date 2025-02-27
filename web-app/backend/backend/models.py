@@ -25,6 +25,8 @@ class Exercise(models.Model):
     # How the exercise is performed
     description = models.TextField(blank=False, null=False)
     muscle_group = models.CharField(max_length=255, null=False, blank=False)
+    
+    image = models.ImageField(upload_to='exercise_images/', blank=True, null=True)
 
     def __str__(self):
         return self.name

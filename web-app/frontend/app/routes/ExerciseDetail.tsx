@@ -2,26 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
-import ExerciseList from "~/components/ExerciseList";
+import Exercise from "~/components/Exercise";
+import Footer from "~/components/Footer";
 import 'bootstrap/dist/css/bootstrap.css'
 
-// Interface to define the structure of a workout object
-interface Workout {
-    id: number;
-    name: string;
-    date_created: string;
-    exercises: number[];
-}
-  
-
-const Exercises: React.FC = () => {
+const ExerciseDetail: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
         }, [navigate]); // Call the effect whenever the user navigates to a new page
 
 return (
-    <motion.div>
+    <motion.div className="d-flex flex-column min-vh-100">
         <NavBar />
 
         <motion.div
@@ -30,16 +22,16 @@ return (
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <h2 className="text-xl font-bold text-white">Exercises</h2>
+            <h2 className="text-xl font-bold text-white">Exercise</h2>
         
-        <ExerciseList />
+        <Exercise />
+        
 
         </motion.div>  
+        <Footer />
     </motion.div>
 );
 
     };
         
-export default Exercises;
-
-
+export default ExerciseDetail;
