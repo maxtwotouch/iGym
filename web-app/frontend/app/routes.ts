@@ -9,6 +9,10 @@ export default [
   route("workouts/create", "routes/CreateWorkout.tsx"),
   route("workouts/create/exercises", "routes/ExerciseSelection.tsx"),
   route("workouts/update/:id", "routes/EditWorkout.tsx"),
+<<<<<<< Updated upstream
   route("exercises/:id", "routes/ExerciseDetail.tsx"),
   // route("about", "routes/About.tsx"),
+=======
+  route("about", "routes/About.tsx"),
+>>>>>>> Stashed changes
 ] satisfies RouteConfig;

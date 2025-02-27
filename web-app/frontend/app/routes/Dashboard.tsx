@@ -181,14 +181,104 @@ const CustomerDashboard: React.FC = () => {
   );
 };
 
-const TrainerDashboard: React.FC = () => (
-  <div className="p-8">
-    <h1 className="text-4xl font-bold mb-4">Personal Trainer Dashboard</h1>
-    <p className="text-lg">
-      Welcome! Manage your client appointments, track progress, and update your training packages.
-    </p>
-  </div>
-);
+const TrainerDashboard: React.FC = () => {
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [username, setUsername] = useState<string>("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    
+    const name = localStorage.getItem("username");
+    setUsername(name || "trainer");
+
+    // Fetch customers (This would need a backend endpoint)
+    const fetchCustomers = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/trainer/customers/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (!response.ok) {
+          console.error("Failed to fetch customers");
+          return;
+        }
+        
+        const data = await response.json();
+        setCustomers(data);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
+    };
+
+    fetchCustomers();
+  }, [navigate]);
+
+  return (
+    <motion.div className="d-flex flex-column min-vh-100">
+      <NavBar />
+      <motion.div
+        className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        {/* Display trainer's name */}
+        <motion.h1
+          className="text-4xl font-bold mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Hello, Trainer {username}
+        </motion.h1>
+
+        {/* Customers List */}
+        <motion.div
+          className="bg-gray-800 p-6 rounded-lg shadow-md w-96"
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-xl font-bold mb-4">My Customers</h2>
+
+          {customers.length === 0 ? (
+            <p className="text-sm text-gray-400">No customers found.</p>
+          ) : (
+            <div className="space-y-4">
+              {customers.map((customer) => (
+                <motion.div
+                  key={customer.id}
+                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <p className="font-semibold">{customer.username}</p>
+                  <p className="text-sm text-gray-400">
+                    Height: {customer.profile.height}cm | Weight: {customer.profile.weight}kg
+                  </p>
+
+                  {/* View Customer Button */}
+                  <motion.button
+                    onClick={() => navigate(`/trainer/customers/${customer.id}`)}
+                    className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    View Customer Details
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+      <Footer />
+    </motion.div>
+  );
+};
 
 const Dashboard: React.FC = () => {
   const [userType, setUserType] = useState<string | null>(null);
