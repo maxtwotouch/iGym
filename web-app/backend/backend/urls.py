@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.urls import path, include
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
-from .views import WorkoutDelete, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView
+from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -33,9 +35,13 @@ urlpatterns = [
     path("workouts/", WorkoutListView.as_view(), name="workout-list"),
     path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
     path("workouts/create/", CreateWorkoutView.as_view(), name="workout-create"),
-    path("workouts/delete/<int:pk>/", WorkoutDelete.as_view(), name="delete-workout"),
+    path("workouts/delete/<int:pk>/", WorkoutDeleteView.as_view(), name="workout-delete"),
     path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="update-workout"),
-    path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout")
+    path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout"),
+    path("exercises/<int:pk>/", ExerciseDetailView.as_view(), name="get-exercise"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

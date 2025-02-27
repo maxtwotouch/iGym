@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
-from backend.models import UserProfile, PersonalTrainerProfile, Exercise
+from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout
 from backend.serializers import ExerciseSerializer
+
 class CreateUserViewTest(APITestCase):
     
     def test_create_user(self):
@@ -190,6 +191,162 @@ class ExerciseListViewTest(APITestCase):
         
         # Make sure that the queryset returned contains all exercises
         self.assertEqual(response.data, serializer.data)
+
+class CreateWorkoutViewTest(APITestCase):
+    def setUp(self):
+        create_user_url = reverse('register_user')
+        
+        username = "testUser"
+        password = "testPassword"
+        height = 180
+        weight = 75
+        
+        data = {
+            "username": username,
+            "password": password,
+            "profile": {
+                "height": height,
+                "weight": weight
+            }
+        }
+        
+        # Create some test exercises
+        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+        
+        self.client.post(create_user_url, data, format='json')
+        self.user = User.objects.get(username=username)
+    
+    # Unauthenticated users should be denied access to this enpoint
+    def test_unauthenticated_user_do_not_have_access(self):
+        url = reverse("workout-create")
+        
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_create_workout_basic(self):
+        url = reverse("workout-create")
+        workout_name = "Test Workout"
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Data for creating a workout
+        data = {
+            "name": workout_name,
+            "exercises": [self.first_exercise.id, self.second_exercise.id]
+        }
+    
+        # Make the POST request
+        response = self.client.post(url, data=data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Workout.objects.count(), 1)
+        
+        workout = Workout.objects.get(id=response.data["id"])
+        self.assertEqual(workout.author, self.user)
+        self.assertEqual(workout.name, workout_name)
+
+
+class TestWorkoutDeleteView(APITestCase):
+    def setUp(self):
+        create_user_url = reverse('register_user')
+        
+        username = "testUser"
+        password = "testPassword"
+        height = 180
+        weight = 75
+        
+        user_data = {
+            "username": username,
+            "password": password,
+            "profile": {
+                "height": height,
+                "weight": weight
+            }
+        }
+        
+        self.client.post(create_user_url, user_data, format='json')
+        self.user = User.objects.get(username=username)
+        
+        # Create some test exercises
+        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+        
+        create_workout_url = reverse('workout-create')
+        workout_name = "Test Workout"
+        
+        workout_data = {
+            "name": workout_name,
+            "exercises": [self.first_exercise.id, self.second_exercise.id]
+        }
+        
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.post(create_workout_url, data=workout_data, format='json')
+        self.workout = Workout.objects.get(id=response.data["id"])
+        
+        
+    def test_delete_workout_basic(self):
+        url = reverse("workout-delete", kwargs={"pk": self.workout.id})
+        
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertNotIn(self.workout, Workout.objects.all())  
+    
+    def test_delete_non_existent_workout(self):
+        invalid_url = reverse("workout-delete", kwargs={"pk": 100})
+        
+        response = self.client.delete(invalid_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn(self.workout, Workout.objects.all())
+    
+    def test_delete_other_users_workout(self):
+        url = reverse("workout-delete", kwargs={"pk": self.workout.id})
+        
+        # Create a second user
+        create_user_url = reverse('register_user')
+        
+        username = "secondTestUser"
+        password = "testPassword"
+        height = 200
+        weight = 100
+        
+        user_data = {
+            "username": username,
+            "password": password,
+            "profile": {
+                "height": height,
+                "weight": weight
+            }
+        }
+        
+        self.client.post(create_user_url, user_data, format='json')
+        secondUser = User.objects.get(username=username)
+        self.client.force_authenticate(user=secondUser)
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn(self.workout, Workout.objects.all())
+        
+
+# Views to test: listWorkout, workoutDetail, updateWorkout
+
+# List workout: normal check, check that others workouts are not listed
+# workoutDetail: check that the details are correct, check that you can not see the details of others workouts, check what happens if you try to find the details of a non-existent workout
+# updateWorkout: check that you can update your own workout, check that you can not update others workouts, what happens if yoou try to update a non-existent workout
+
+        
+        
+        
+        
+        
+        
+        
+        
+    
+        
+        
+        
         
         
         
