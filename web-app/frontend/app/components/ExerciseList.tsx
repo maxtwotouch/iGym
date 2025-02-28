@@ -1,5 +1,6 @@
 
 import { select } from "motion/react-client";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -75,7 +76,13 @@ function ExerciseList() {
 
                             {selectedExercise === exercise.id && (
                                 <div className="mt-2">
-                                    <button className="btn btn-primary mr-2">More Info</button>
+                                    <motion.button
+                                        onClick={() => navigate(`/exercises/${exercise.id}`)}
+                                        className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+                                        whileHover={{ scale: 1.05 }}
+                                    >
+                                        More Info
+                                    </motion.button>
                                 </div>
                             )}
                         </li>

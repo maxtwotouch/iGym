@@ -1,7 +1,9 @@
 from django.test import TestCase
+from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from backend.models import UserProfile, PersonalTrainerProfile
+from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout
+
 
 class UserProfileModelTest(TestCase):
     
@@ -27,10 +29,11 @@ class UserProfileModelTest(TestCase):
         height = -120
         weight = -75
         user = User.objects.create_user(username="testuser", password="password")
-        profile = UserProfile.objects.create(user=user, weight=weight, height=height)
+        profile = UserProfile(user=user, weight=weight, height=height)
+    
         
-        with self.assertRaises(ValidationError):
-            profile.full_clean()
+        with self.assertRaises(IntegrityError):
+            profile.save()  
             
     
 
@@ -51,5 +54,88 @@ class PersonalTrainerProfileModelTest(TestCase):
         profile = PersonalTrainerProfile.objects.create(user=user)
         
         self.assertEqual(profile.experience, experience)
+        
+
+class ExerciseModelTest(TestCase):
+    
+    def test_create_exercise_basic(self):
+        name = "test exercise"
+        description = "test description"
+        muscle_group = "test muscle group"
+        
+        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group)
+        
+        self.assertEqual(exercise.name, name)
+        self.assertEqual(exercise.description, description)
+        self.assertEqual(exercise.muscle_group, muscle_group)
+    
+    def test_create_without_required_fields(self):
+        exercise = Exercise()
+        
+        # Should raise a validation error as name, descrption and muscle group is required fields
+        with self.assertRaises(ValidationError):
+            exercise.full_clean()
+    
+    def test_str_method(self):
+        name = "test exercise"
+        description = "test description"
+        muscle_group = "test muscle group"
+        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group)
+        
+        self.assertEqual(str(exercise), name)
+
+
+class WorkoutModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        
+        # Create some test exercises
+        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+    
+    def test_create_workout_basic(self):
+        name = "test workout"
+        workout = Workout.objects.create(name=name, author=self.user)
+        
+        # Add the exercises to the workout
+        workout.exercises.set([self.first_exercise, self.second_exercise])
+        
+        
+        self.assertEqual(workout.name, name)
+        self.assertEqual(workout.author, self.user)
+        self.assertEqual(name, workout.name)
+        
+        # Ensure that the date was set automatically
+        self.assertIsNotNone(workout.date_created)
+        
+        # Make sure that  the 2 exercises were added to the workout
+        self.assertIn(self.first_exercise, workout.exercises.all())
+        self.assertIn(self.second_exercise, workout.exercises.all())
+    
+    def test_create_workout_without_author(self):
+        name = "test workout"
+        workout = Workout(name=name)
+        
+        with self.assertRaises(IntegrityError):
+            workout.save()  
+    
+    def test_create_workout_with_name_exceeding_max_length(self):
+        name = "A" * 256
+        
+        workout = Workout(name=name, author=self.user)
+        
+        with self.assertRaises(ValidationError):
+            workout.full_clean()
+        
+        
+        
+        
+        
+    
+        
+        
+        
+        
+        
         
     

@@ -1,13 +1,14 @@
-import { motion } from 'framer-motion';
-import { useNavigate, Link } from "react-router-dom";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 
-
-function NavBar () {
-    const navigate = useNavigate();
+function NavBar() {
+    const location = useLocation();
 
     const handleLogout = () => {
-        localStorage.removeItem("accessToken");
-        navigate("/login");
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('username');
+        window.location.href = '/login';
     };
 
     return (
@@ -15,7 +16,7 @@ function NavBar () {
             <motion.div className="container-fluid">
                 <Link className="navbar-brand" to="/dashboard">iGym</Link>
                 <motion.div className="navbar-nav me-auto"> 
-                    <Link className={`nav-link ${location.pathname === '/features' ? 'active' : ''}`} to="/features">Features</Link>
+                    <Link className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`} to="/dashboard">Home</Link>
                     <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
                 </motion.div>
 
@@ -24,12 +25,12 @@ function NavBar () {
                     onClick={handleLogout}
                     className='btn btn-danger ms-auto'  
                     whileHover={{ scale: 1.05 }}
-                    >
+                >
                     Logout
                 </motion.button>
             </motion.div>
         </motion.nav>
-    )
+    );
 }
 
-export default NavBar
+export default NavBar;

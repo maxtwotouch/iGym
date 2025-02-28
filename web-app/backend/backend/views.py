@@ -1,7 +1,4 @@
-
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib import messages
 from .models import Workout, Exercise
 from django.shortcuts import render
 from django.contrib.auth.models import User
@@ -35,8 +32,6 @@ class UpdateWorkoutView(generics.UpdateAPIView):
         user = self.request.user
         return Workout.objects.filter(author=user)
     
-
-
 class CreateWorkoutView(generics.CreateAPIView):
     serializer_class = WorkoutSerializer
     # Only people with a valid access token are allowed to call this endpoint
@@ -64,13 +59,19 @@ class WorkoutDetailView(generics.RetrieveAPIView):
     serializer_class = WorkoutSerializer
     permission_classes = [IsAuthenticated]
     
-    
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(author=user)
+
+class ExerciseDetailView(generics.RetrieveAPIView):
+    serializer_class = ExerciseSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Exercise.objects.all()
         
 
-class WorkoutDelete(generics.DestroyAPIView):
+class WorkoutDeleteView(generics.DestroyAPIView):
     serializer_class = WorkoutSerializer
     permission_classes = [IsAuthenticated]
     
