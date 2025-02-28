@@ -1,0 +1,21 @@
+[
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Pec Deck",
+            "description": "Starting position: Sitting on the Peck deck machine with your back pressed against the backrest, your forearms well supported against the padded parts provided for this purpose. Your upper arms should be parallel to the ground and in line with your shoulders. Execution: Tighten your arms as much as possible following the movement of the machine. Tighten your chest at the end of the movement and then slowly return to the initial position.",
+            "muscle_group": "Chest, front deltoids",
+            "image": "exercise_images/pec_deck.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Seated Cable Row",
+            "description": "Starting position: Sitting on the machine's bench with your feet on the wedge. Grasp the double handle attached to the cable with both hands. Keep back straight and knees slightly bent. Execution: Pull the load towards your abdomen. Tighten your back at the end of the movement by bringing your elbows as far back as possible. Then slowly return to the initial position.",
+            "muscle_group": "Back, Hind deltoids, biceps",
+            "image": "exercise_images/seated_cable_row.png"
+        }
+
+    }
+]
