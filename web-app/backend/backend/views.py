@@ -1,10 +1,11 @@
 from rest_framework.response import Response
-from .models import Workout, Exercise
+from .models import Workout, Exercise, ExerciseSession, Set
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer
-from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer
+from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
+from .serializers import SetSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -46,6 +47,27 @@ class CreateWorkoutView(generics.CreateAPIView):
         else:
             print(serializer.errors)
 
+class CreateWorkoutSessionView(generics.CreateAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+        else:
+            print(serializer.errors)
+
+class CreateExerciseSessionView(generics.CreateAPIView):
+    queryset = ExerciseSession.objects.all()
+    serializer_class = ExerciseSessionSerializer
+    permission_classes = [IsAuthenticated]
+
+class CreateSetView(generics.CreateAPIView):
+    queryset = Set.objects.all()
+    serializer_class = SetSerializer
+    permission_classes = [IsAuthenticated]
+    
+
 class WorkoutListView(generics.ListAPIView):
     serializer_class = WorkoutSerializer
     permission_classes = [IsAuthenticated]
@@ -54,6 +76,7 @@ class WorkoutListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(author=user)
+    
 
 class WorkoutDetailView(generics.RetrieveAPIView):
     serializer_class = WorkoutSerializer

@@ -17,11 +17,14 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# For static files
+# base URL prefix for serving static files
 STATIC_URL = '/static/'
+# where the static files will be stored
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# base URL prefix for serving media files
 MEDIA_URL = '/media/'
+# where uploaded media files will be stored
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 

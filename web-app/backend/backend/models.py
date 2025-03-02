@@ -35,20 +35,28 @@ class Exercise(models.Model):
 class Workout(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
     name = models.CharField(max_length=255)
+    
+    # Set the date created to the current time
     date_created = models.DateTimeField(auto_now=True)
     exercises = models.ManyToManyField(Exercise)
 
 class WorkoutSession(models.Model):
+    # The user performing the workout is not necessarily the same as the one that created the workout
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_sessions")
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     start_time = models.DateTimeField(auto_now_add=True)
-    
 
-class WorkoutExerciseSession(models.Model):
-    workout_session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE)
+# Represents a single exercise being performed in a workout session
+class ExerciseSession(models.Model):
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
-    
-    sets = models.PositiveIntegerField()
+    workout_session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="exercise_sessions")
+
+class Set(models.Model):
+    exercise_session = models.ForeignKey(ExerciseSession, on_delete=models.CASCADE, related_name="sets")
     repetitions = models.PositiveIntegerField()
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=False)
 
+
+
+    
 
