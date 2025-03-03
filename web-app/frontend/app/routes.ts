@@ -11,5 +11,6 @@ export default [
   route("workouts/update/:id", "routes/EditWorkout.tsx"),
   route("exercises/:id", "routes/ExerciseDetail.tsx"),
   route("about", "routes/About.tsx"),
+  route(":id/workout/session/create", "routes/WorkoutSession.tsx"),
 ] satisfies RouteConfig;
 

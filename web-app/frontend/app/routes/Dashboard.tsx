@@ -143,7 +143,8 @@ const CustomerDashboard: React.FC = () => {
                   >
                     ✕
                   </motion.button>
-
+                
+                  {/* Display workout name */}
                   <p className="font-semibold">{workout.name}</p>
                   <p className="text-sm text-gray-400">
                     Created: {new Date(workout.date_created).toLocaleString()}
@@ -169,6 +170,15 @@ const CustomerDashboard: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                   >
                     View Workout
+                  </motion.button>
+
+                  {/* Start workout session (logging) */}
+                  <motion.button
+                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
+                    className="mt-2 w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    Start Workout
                   </motion.button>
                 </motion.div>
               ))}
