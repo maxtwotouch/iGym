@@ -1,5 +1,5 @@
 from rest_framework.response import Response
-from .models import Workout, Exercise, ExerciseSession, Set
+from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
@@ -76,6 +76,13 @@ class WorkoutListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(author=user)
+
+
+class WorkoutSessionListView(generics.ListAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    queryset = WorkoutSession.objects.all()
     
 
 class WorkoutDetailView(generics.RetrieveAPIView):

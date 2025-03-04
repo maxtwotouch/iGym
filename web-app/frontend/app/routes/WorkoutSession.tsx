@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
+import { create } from "motion/react-m";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -147,9 +148,115 @@ const WorkoutSession: React.FC = () => {
                     : session
             );
         });
-    }
+    };
+
+    const createWorkoutSession = async (token: string): Promise<number | null> => {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/workout/session/create/', {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ workout: id}),
+        });
+
+        if (!response.ok) {
+            console.error("Failed to create workout session");
+            return null;
+        }
+
+        const  data = await response.json();
+        return data.id;
+        
+        } catch(error) {
+            console.error("Error creating workout session:", error);
+            return null;
+
+        }
+    };
+
+    const createSets = async (token: string, exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
+        try {
+            const requests = sets.map(set => {
+                return fetch(`http://127.0.0.1:8000/set/create/`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        exercise_session: exerciseSessionId,
+                        weight: Number(set.weight),
+                        repetitions: Number(set.repetitions),
+                    }),
+                });
+            });
+            
+            const responses = await Promise.all(requests);
+            const allSuccessful = responses.every(response => response.ok);
+
+            if (!allSuccessful) {
+                console.error("Failed to create one or more sets");
+                return false;
+            }
+
+            console.log(`All sets for ExerciseSession ${exerciseSessionId} created successfully`);
+            return true;
+        
+        } catch (error) {
+            console.error("Error creating sets:", error);
+            return false;
+        }
+    };
+
+    const createExerciseSessions = async (token: string, workoutSessionId: number): Promise<number | null> => {
+        try {
+            const requests = workoutExerciseSessions.map(async session => {
+                const response = await fetch('http://127.0.0.1:8000/exercise/session/create/', {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 
+                        exercise: session.exercise,
+                        workout_session: workoutSessionId,
+                    }),
+                });
+                
+                if(!response.ok) {
+                    console.error("Failed to create exercise session for exercise", session.exercise);
+                    return null;
+                }
+
+                const data = await response.json();
+                console.log("Exercise Session Created:", data);
+                
+                //  Create sets for this exercise session
+                await createSets(token, data.id, session.sets);
+
+                return data.id;
+            });
+        
+            const exerciseSessionIds = await Promise.all(requests);
+            if (!exerciseSessionIds.every(id => id !== null)) {
+                console.error("Some exercise sessions failed to create");
+                alert("Some exercise sessions failed to create");
+                return null;
+            }
+
+            console.log("All exercise sessions created successfully.");
+            return null;
+        
+        } catch (error) {
+            console.error("Error creating exercise sessions:", error);
+            return null;
+        }
+    };
 
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
+        console.log("Handling log session");
         e.preventDefault();
 
         const token = localStorage.getItem("accessToken");
@@ -158,36 +265,16 @@ const WorkoutSession: React.FC = () => {
             return;
         }
 
-        const requestBody = {
-            workout: id,
-            exercise_sessions: workoutExerciseSessions.map(session => ({
-                exercise: session.exercise,
-                sets: session.sets.map(set => ({
-                    weight: Number(set.weight),
-                    repetitions: Number(set.repetitions),
-                })),
-            }))
-        };
+        const workoutSessionId = await createWorkoutSession(token);
 
-        try {
-        const response = await fetch(`http://127.0.0.1:8000/${id}/workout/session/create/`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-            console.error("Failed to log workout session");
+        if(!workoutSessionId) {
+            alert("Failed to create workout session. Please try again."); // Provide feedback to the user
             return;
         }
 
+        const exerciseSessionIds = await createExerciseSessions(token, workoutSessionId);
+
         navigate("/dashboard");
-        } catch (error) {
-            console.error("Error logging workout session:", error);
-        }
     };
 
     return (
@@ -260,14 +347,20 @@ const WorkoutSession: React.FC = () => {
                             );
                         })
                     )}
+                    <motion.button 
+                        type="submit"
+                        className="mt-6 w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        Save Session
+                    </motion.button>
                 </motion.form>
 
-                <motion.button className="mt-6 w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition" whileHover={{ scale: 1.05 }}>Save Session</motion.button>
 
                 {/* Back Button */}
                 <motion.button
                     onClick={() => navigate("/dashboard")}
-                    className="mt-4 text-blue-400 hover:text-blue-500 underline"
+                    className="mt-6 w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
                     whileHover={{ scale: 1.05 }}
                 >
                     Back to Dashboard

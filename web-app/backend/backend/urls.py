@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
-from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView
+from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -43,6 +43,7 @@ urlpatterns = [
     path("workout/session/create/", CreateWorkoutSessionView.as_view(), name="workouts_session-create"),
     path("exercise/session/create/", CreateExerciseSessionView.as_view(), name="exercise_session-create"),
     path("set/create/", CreateSetView.as_view(), name="set-create"),
+    path("workouts_sessions/", WorkoutSessionListView.as_view(), name="workout_session-list"),
 ]
 
 # Serve media files during development

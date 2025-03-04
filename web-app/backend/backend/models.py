@@ -42,7 +42,7 @@ class Workout(models.Model):
 
 class WorkoutSession(models.Model):
     # The user performing the workout is not necessarily the same as the one that created the workout
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_sessions")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_sessions", null=True)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     start_time = models.DateTimeField(auto_now_add=True)
 
