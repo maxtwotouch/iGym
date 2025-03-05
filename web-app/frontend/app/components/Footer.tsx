@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion';
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
-
-function Footer () {
+function Footer() {
     return (
         <motion.footer className="bg-dark text-white py-4">
             <motion.div className="container">
@@ -19,7 +19,7 @@ function Footer () {
                     <motion.div className="col-md-3 col-sm-6">
                         <h4>About Us</h4>
                         <ul className="list-unstyled">
-                            <li><a href="/about" className="text-white">Learn more about us</a></li>
+                            <li><Link to="/about" className="text-white">Learn more about us</Link></li>
                         </ul>
                     </motion.div>
                     {/* Column 3 */}
@@ -45,7 +45,7 @@ function Footer () {
                 </motion.div>
             </motion.div>
         </motion.footer>
-    )
+    );
 }
 
 export default Footer;
