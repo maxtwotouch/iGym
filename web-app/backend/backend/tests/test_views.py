@@ -145,6 +145,7 @@ class CreatePersonalTrainerViewTest(APITestCase):
 class ExerciseListViewTest(APITestCase):
     
     def setUp(self):
+        # Create a user object
         create_user_url = reverse('register_user')
         
         username = "testUser"
@@ -165,11 +166,12 @@ class ExerciseListViewTest(APITestCase):
         self.user = User.objects.get(username=username)
         
     
-    # Unauthenticated users should be denied access to this enpoint
+    
     def test_unauthenticated_user_do_not_have_access(self):
         url = reverse("exercise-list")
-        
         response = self.client.get(url)
+        
+        # Unauthenticated users should not be able to get the list of exercises
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_correct_queryset_is_returned(self):
@@ -217,7 +219,6 @@ class CreateWorkoutViewTest(APITestCase):
         self.client.post(create_user_url, data, format='json')
         self.user = User.objects.get(username=username)
     
-    # Unauthenticated users should be denied access to this enpoint
     def test_unauthenticated_user_do_not_have_access(self):
         url = reverse("workout-create")
         
@@ -239,9 +240,10 @@ class CreateWorkoutViewTest(APITestCase):
         # Make the POST request
         response = self.client.post(url, data=data, format='json')
         
+        # Verify that the workout was created and verify the attribute values
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Workout.objects.count(), 1)
-        
+    
         workout = Workout.objects.get(id=response.data["id"])
         self.assertEqual(workout.author, self.user)
         self.assertEqual(workout.name, workout_name)
@@ -296,8 +298,13 @@ class TestWorkoutDeleteView(APITestCase):
     def test_delete_non_existent_workout(self):
         invalid_url = reverse("workout-delete", kwargs={"pk": 100})
         
+        # Try to delete a workout that does not exist
         response = self.client.delete(invalid_url)
+        
+        # Should not find the workout
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        # Make sure that the workout we stored earlier still exists
         self.assertIn(self.workout, Workout.objects.all())
     
     def test_delete_other_users_workout(self):
@@ -323,9 +330,14 @@ class TestWorkoutDeleteView(APITestCase):
         self.client.post(create_user_url, user_data, format='json')
         secondUser = User.objects.get(username=username)
         self.client.force_authenticate(user=secondUser)
+        
+        # Try do delete the workout that was created by the first user
         response = self.client.delete(url)
         
+        # Since the queryset is filtered based on the user making the request, the view should not find the specific workout
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        # Make sure that the workout stored earlier still exists
         self.assertIn(self.workout, Workout.objects.all())
         
 

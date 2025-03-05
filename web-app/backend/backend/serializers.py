@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise
+from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
+from .models import ExerciseSession, Set
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
@@ -73,6 +74,26 @@ class WorkoutSerializer(serializers.ModelSerializer):
         model = Workout
         fields = ["id", "author", "name", "date_created", "exercises"]
         extra_kwargs = {"author": {"read_only": True}}
+
+class SetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Set
+        fields = ["id", "exercise_session", "repetitions", "weight"]
+
+class ExerciseSessionSerializer(serializers.ModelSerializer):
+    sets = SetSerializer(many=True, read_only=True)
+    class Meta:
+        model = ExerciseSession
+        fields = ["id", "exercise", "workout_session", "sets"]
+
+class WorkoutSessionSerializer(serializers.ModelSerializer):
+    exercise_sessions = ExerciseSessionSerializer(many=True, read_only=True)  # Include related exercise sessions
+    class Meta:
+        model = WorkoutSession
+        fields = ["id", "user", "workout", "start_time", "exercise_sessions"]
+        extra_kwargs = {"user": {"read_only": True}}
+
+        
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):

@@ -62,9 +62,6 @@ const CreateWorkout: React.FC = () => {
       return;
     }
 
-    console.log("Workout Name:", newWorkoutName);
-    console.log("Selected Exercises:", selectedExercises);
-
     try {
       const response = await fetch("http://127.0.0.1:8000/workouts/create/", { 
         method: "POST",

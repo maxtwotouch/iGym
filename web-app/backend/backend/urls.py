@@ -19,7 +19,8 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
-from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView
+from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
+from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -36,12 +37,24 @@ urlpatterns = [
     path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
     path("workouts/create/", CreateWorkoutView.as_view(), name="workout-create"),
     path("workouts/delete/<int:pk>/", WorkoutDeleteView.as_view(), name="workout-delete"),
-    path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="update-workout"),
+    path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="workout-update"),
     path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout"),
     path("exercises/<int:pk>/", ExerciseDetailView.as_view(), name="get-exercise"),
+    path("workout/session/create/", CreateWorkoutSessionView.as_view(), name="workouts_session-create"),
+    path("exercise/session/create/", CreateExerciseSessionView.as_view(), name="exercise_session-create"),
+    path("set/create/", CreateSetView.as_view(), name="set-create"),
+    path("workouts_sessions/", WorkoutSessionListView.as_view(), name="workout_session-list"),
 ]
 
+# Serve media files during development
+# static is a helper function that adds new URL patterns to serve media files
+# it is a function that allow serving files that are upploaded from a specified directory (MEDIA_ROOT)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
+# How it works:
+#  1: frontend sends a request to http://127.0.0.1:8000/media/exercise_pictures/picture.png
+#  2: Django's URL configuration looks for URL patters that match the requested path. Since we have set up the static file serving as we have, the requested path will match the condition because it starts with /media/
+#  3: Since the MEDIA_URL is defined as /media/, Django knows to handle it as a request for a media file
+#  4: Django will look for the the file in the directory specified by MEDIA_ROOT
