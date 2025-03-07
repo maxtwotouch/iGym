@@ -166,7 +166,7 @@ const WorkoutSession: React.FC = () => {
             return null;
         }
 
-        const  data = await response.json();
+        const data = await response.json();
         return data.id;
         
         } catch(error) {
@@ -255,6 +255,7 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
+    // Function to handle logging
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
         console.log("Handling log session");
         e.preventDefault();
@@ -268,11 +269,11 @@ const WorkoutSession: React.FC = () => {
         const workoutSessionId = await createWorkoutSession(token);
 
         if(!workoutSessionId) {
-            alert("Failed to create workout session. Please try again."); // Provide feedback to the user
+            alert("Failed to create workout session. Please try again."); 
             return;
         }
 
-        const exerciseSessionIds = await createExerciseSessions(token, workoutSessionId);
+        await createExerciseSessions(token, workoutSessionId);
 
         navigate("/dashboard");
     };
@@ -289,7 +290,6 @@ const WorkoutSession: React.FC = () => {
                 >
                     Log Workout Session
                 </motion.h1>
-
                 <motion.form 
                     className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
                     onSubmit={handleLogSession}
@@ -307,11 +307,19 @@ const WorkoutSession: React.FC = () => {
                                     key={session.exercise} 
                                     className="bg-gray-700 p-4 rounded-lg shadow-md flex flex-col items-center"
                                 >
-                                    <motion.h2 className="text-lg font-semibold mb-4">{exercise ? exercise.name : "Unknown Exercise"} </motion.h2>
-
+                                    <motion.h2 
+                                        className="text-lg font-semibold mb-4"
+                                    >
+                                        {exercise ? exercise.name : "Unknown Exercise"} 
+                                    </motion.h2>
                                     {session.sets.map((set, index) => (
                                         <motion.div key={set.id} className="w-full mb-4">
-                                            <motion.h3 className="text-md font-medium">Set {index + 1}</motion.h3>
+                                            <motion.h3 
+                                                className="text-md font-medium"
+                                            >
+                                                Set {index + 1}
+                                            </motion.h3>
+                                            {/* Input for weight */}
                                             <input 
                                                 type="string" 
                                                 placeholder="Weight (kg)" 
@@ -319,6 +327,7 @@ const WorkoutSession: React.FC = () => {
                                                 value={set.weight}
                                                 onChange={(e) => handleInputChange(session.exercise, set.id, "weight", e.target.value)}
                                             />
+                                            {/* Input for repetitions */}
                                             <input 
                                                 type="string" 
                                                 placeholder="Repetitions" 
@@ -326,6 +335,7 @@ const WorkoutSession: React.FC = () => {
                                                 value={set.repetitions}
                                                 onChange={(e) => handleInputChange(session.exercise, set.id, "repetitions", e.target.value)}
                                             />
+                                            {/* Remove set Button */}
                                             <motion.button 
                                                 type="button" 
                                                 className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition" 
@@ -335,7 +345,7 @@ const WorkoutSession: React.FC = () => {
                                             </motion.button>
                                         </motion.div>
                                     ))}
-
+                                    {/* Add set Button */}
                                     <motion.button 
                                         type="button" 
                                         className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
@@ -347,20 +357,22 @@ const WorkoutSession: React.FC = () => {
                             );
                         })
                     )}
-                    <motion.button 
-                        type="submit"
-                        className="mt-6 w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
-                        whileHover={{ scale: 1.05 }}
-                    >
-                        Save Session
-                    </motion.button>
+                    {/* Save Button */}
+                    <motion.div className="w-full col-span-full flex justify-center mt-6">
+                        <motion.button 
+                            type="submit"
+                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            Save Session
+                        </motion.button>
+                    </motion.div>
                 </motion.form>
-
 
                 {/* Back Button */}
                 <motion.button
                     onClick={() => navigate("/dashboard")}
-                    className="mt-6 w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                    className="mt-4 text-blue-400 hover:text-blue-500 underline"
                     whileHover={{ scale: 1.05 }}
                 >
                     Back to Dashboard
