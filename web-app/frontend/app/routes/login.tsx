@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
 export default function LoginForm() {
   const [username, setUsername] = useState(""); 
@@ -11,7 +12,7 @@ export default function LoginForm() {
     e.preventDefault();
     
     try {
-      const response = await fetch("http://127.0.0.1:8000/token/", {
+      const response = await fetch( `${backendUrl}/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -65,6 +66,7 @@ export default function LoginForm() {
       >
         <input
           type="username"
+          name="username"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -73,6 +75,7 @@ export default function LoginForm() {
         />
         <input
           type="password"
+          name="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -81,6 +84,7 @@ export default function LoginForm() {
         />
         <motion.button
           type="submit"
+          name="loginButton"
           className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
           whileHover={{ scale: 1.05 }}
         >

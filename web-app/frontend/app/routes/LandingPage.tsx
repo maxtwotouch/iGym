@@ -52,6 +52,7 @@ export default function LandingPage() {
             </Link>
             <Link to="/register">
               <motion.button
+                name="registrationButton"
                 className="px-6 py-3 bg-green-600 rounded-lg shadow hover:bg-green-700 transition"
                 whileHover={{ scale: 1.03 }}
               >
