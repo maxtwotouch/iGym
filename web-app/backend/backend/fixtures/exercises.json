@@ -5,7 +5,8 @@
             "name": "Pec Deck",
             "description": "Starting position: Sitting on the Peck deck machine with your back pressed against the backrest, your forearms well supported against the padded parts provided for this purpose. Your upper arms should be parallel to the ground and in line with your shoulders. Execution: Tighten your arms as much as possible following the movement of the machine. Tighten your chest at the end of the movement and then slowly return to the initial position.",
             "muscle_group": "Chest, front deltoids",
-            "image": "exercise_images/pec_deck.png"
+            "image": "exercise_images/pec_deck.png",
+            "calories": 0.25
         }
     },
     {
@@ -14,7 +15,8 @@
             "name": "Seated Cable Row",
             "description": "Starting position: Sitting on the machine's bench with your feet on the wedge. Grasp the double handle attached to the cable with both hands. Keep back straight and knees slightly bent. Execution: Pull the load towards your abdomen. Tighten your back at the end of the movement by bringing your elbows as far back as possible. Then slowly return to the initial position.",
             "muscle_group": "Back, Hind deltoids, biceps",
-            "image": "exercise_images/seated_cable_row.png"
+            "image": "exercise_images/seated_cable_row.png",
+            "calories": 0.4
         }
 
     },
@@ -24,7 +26,8 @@
             "name": "Cable One-Arm Lateral Raise",
             "description": "Starting position: Stand with your feet shoulder-width apart, your left side close to the pulley. The handle in your right hand, against the front of your thigh. Execution: Slowly raise your arm to the side in an arc to the horizontal. Keep your elbow slightly bent. Stay in the raised position for a moment and then slowly return to the original position.",
             "muscle_group": "Deltoids",
-            "image": "exercise_images/cable_one_arm_lateral_raise.png"
+            "image": "exercise_images/cable_one_arm_lateral_raise.png",
+            "calories": 0.2
         }
     },
     {
@@ -33,7 +36,8 @@
             "name": "Hammer Curl",
             "description": "Starting position: Standing with knees slightly bent and back straight. Hold a dumbbell in each hand, in a neutral grip along the body. Execution: Without making a bust movement, raise a dumbbell by bending the forearms. Keep your hand in a neutral grip (hence the name hammer grip). Contract your biceps, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
             "muscle_group": "Biceps",
-            "image": "exercise_images/hammer_curl.png"
+            "image": "exercise_images/hammer_curl.png",
+            "calories": 0.15
         }
     },
     {
@@ -42,7 +46,8 @@
             "name": "Squat",
             "description": "Starting position: Standing with the bar resting on your trapezium and shoulders. Grasp the bar with your hands for a good support. Keep your head straight. Execution: Bend your knees and hips as if you were sitting down. While keeping your back straight, let your buttocks go backwards, which will tilt your chest slightly forwards to make the movement as natural as possible. The moment your thighs are parallel to the ground, move upwards, doing the movement in the opposite direction. Given the complexity of this movement, ask a trainer in your gym to show you how to perform it correctly the first time.",
             "muscle_group": "Main muscles: Thigh and buttock muscles. Secondary muscles: Abs and lumbar muscles",
-            "image": "exercise_images/squat.png"
+            "image": "exercise_images/squat.png",
+            "calories": 1.0
         }
     }
 ]

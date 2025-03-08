@@ -9,6 +9,7 @@ import { create } from "motion/react-m";
 interface Exercise {
     name: string;
     id: number;
+    calories: number;
 }
 
 // Interface for a workout exercise session
@@ -150,7 +151,7 @@ const WorkoutSession: React.FC = () => {
         });
     };
 
-    const createWorkoutSession = async (token: string): Promise<number | null> => {
+    const createWorkoutSession = async (token: string, totalCalories: number): Promise<number | null> => {
         try {
             const response = await fetch('http://127.0.0.1:8000/workout/session/create/', {
                 method: "POST",
@@ -158,7 +159,10 @@ const WorkoutSession: React.FC = () => {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ workout: id}),
+                body: JSON.stringify({ 
+                    workout: id,
+                    calories_burned: totalCalories
+                }),
         });
 
         if (!response.ok) {
@@ -255,7 +259,22 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
-    // Function to handle logging
+    const calculateTotalCalories = () => {
+        let totalCalories = 0;
+
+        workoutExerciseSessions.forEach(session => {
+            const exercise = availableExercises.find(ex => ex.id === session.exercise);
+            if (!exercise) return; // Skip if exercise is not found
+        
+            session.sets.forEach(set => {
+                totalCalories += exercise.calories;
+           });
+        
+        });
+
+        return totalCalories;
+    }
+
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
         console.log("Handling log session");
         e.preventDefault();
@@ -266,7 +285,9 @@ const WorkoutSession: React.FC = () => {
             return;
         }
 
-        const workoutSessionId = await createWorkoutSession(token);
+        const totalCaloriesBurned = calculateTotalCalories();
+
+        const workoutSessionId = await createWorkoutSession(token, totalCaloriesBurned);
 
         if(!workoutSessionId) {
             alert("Failed to create workout session. Please try again."); 
