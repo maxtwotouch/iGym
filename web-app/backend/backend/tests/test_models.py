@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout
+from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
 
 
 class UserProfileModelTest(TestCase):
@@ -139,15 +139,130 @@ class WorkoutModelTest(TestCase):
         with self.assertRaises(ValidationError):
             workout.full_clean()
         
-        
-        
-        
-        
-    
-        
-        
-        
-        
-        
-        
-    
+
+class WorkoutSessionModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+
+        # Create a test workout
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+
+    def test_create_workout_session_basic(self):
+        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
+
+        # Add calories burned to the workout session
+        workout_session.calories_burned = 1
+
+        self.assertEqual(workout_session.user, self.user)
+        self.assertEqual(workout_session.workout, self.workout)
+        self.assertEqual(workout_session.calories_burned, 1)
+
+        # Ensure that the start time was set automatically
+        self.assertIsNotNone(workout_session.start_time)
+
+    def test_create_workout_session_with_empty_workout(self):
+        workout_session = WorkoutSession(user=self.user)
+
+        # Should raise an integrity error as workout is a required field
+        with self.assertRaises(IntegrityError):
+            workout_session.save()
+
+    def test_create_workout_session_with_empty_user(self):
+        workout_session = WorkoutSession(workout=self.workout)
+
+        # User should default to None if not specified
+        self.assertIsNone(workout_session.user)
+
+    def test_create_workout_session_with_negative_calories_burned(self):
+        workout_session = WorkoutSession(user=self.user, workout=self.workout)
+
+        workout_session.calories_burned = -1 
+
+        # Should raise an integrity error as calories burned should be a positive integer or default to null
+        with self.assertRaises(IntegrityError):
+            workout_session.save()
+
+
+class ExerciseSessionModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+
+        # Create a test workout session
+        self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
+
+        # Create a test exercise
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+
+    def test_create_exercise_session_basic(self):
+        exercise_session = ExerciseSession(exercise=self.exercise, workout_session=self.workout_session)
+
+        self.assertEqual(exercise_session.exercise, self.exercise)
+        self.assertEqual(exercise_session.workout_session, self.workout_session)
+
+    def test_create_exercise_session_with_empty_exercise(self):
+        exercise_session = ExerciseSession(workout_session=self.workout_session)
+
+        # Should raise an integrity error as exercise is a required field
+        with self.assertRaises(IntegrityError):
+            exercise_session.save()
+
+    def test_create_exercise_session_with_empty_workout_session(self):
+        exercise_session = ExerciseSession(exercise=self.exercise)
+
+        # Should raise an integrity error as workout session is a required field
+        with self.assertRaises(IntegrityError):
+            exercise_session.save()
+
+
+class SetSessionModelTest(TestCase):
+    def setUp(self):
+        # Establish a user, workout, workout session, exercise and exercise session
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
+
+        self.repetitions = 10
+        self.weight = 50
+
+    def test_create_set_basic(self):
+        exercise_set = Set(exercise_session=self.exercise_session, repetitions=self.repetitions, weight=self.weight)
+
+        self.assertEqual(exercise_set.exercise_session, self.exercise_session)
+        self.assertEqual(exercise_set.repetitions, self.repetitions)
+        self.assertEqual(exercise_set.weight, self.weight)
+
+    def test_create_set_with_empty_exercise_session(self):
+        exercise_set = Set(repetitions=self.repetitions, weight=self.weight)
+
+        # Should raise an integrity error as exercise session is a required field
+        with self.assertRaises(IntegrityError):
+            exercise_set.save()
+
+    def test_create_set_with_negative_repetitions(self):
+        exercise_set = Set(exercise_session=self.exercise_session, weight=self.weight)
+
+        exercise_set.repetitions = -1
+
+        # Should raise an integrity error as repetitions should be a positive integer
+        with self.assertRaises(IntegrityError):
+            exercise_set.save()
+
+    def test_create_set_with_no_weight(self):
+        exercise_set = Set(exercise_session=self.exercise_session, repetitions=self.repetitions)
+
+        # Should not raise an error as weight is not a required field
+        self.assertIsNone(exercise_set.weight)
+
+    def test_create_set_with_negative_weight(self):
+        exercise_set = Set(exercise_session=self.exercise_session, repetitions=self.repetitions)
+
+        exercise_set.weight = -1    
+
+        # Should raise an validation error as weight should be a positive decimal number
+        with self.assertRaises(ValidationError):
+            exercise_set.full_clean()
+
+    # Visit later, should be tested against max digits and assigned decimal places

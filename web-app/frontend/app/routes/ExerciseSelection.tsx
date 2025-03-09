@@ -6,6 +6,7 @@ import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import ExerciseSearchBar from "~/components/ExerciseSearchBar";
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
   
 // Interface to define the structure of an exercise object
@@ -33,7 +34,7 @@ const ExerciseSelection: React.FC = () => {
 
         const fetchExercises = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/exercises/", {
+                const response = await fetch(`${backendUrl}/exercises/`, {
                 headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -41,6 +42,7 @@ const ExerciseSelection: React.FC = () => {
                 return;
                 }
                 const data = await response.json();
+                console.log("Exercises received:", data); 
                 setAvailableExercises(data); 
             } catch (error) {
                 console.error("Error fetching exercises:", error);
@@ -97,6 +99,7 @@ const ExerciseSelection: React.FC = () => {
                 {/* Exercise List */}
                 <motion.div
                     className="bg-gray-800 p-6 rounded-lg shadow-md w-80"
+                    id="exerciseList"
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5 }}
@@ -108,6 +111,7 @@ const ExerciseSelection: React.FC = () => {
                             {filteredExercises.map((exercise) => (
                                 <motion.li
                                     key={exercise.id}
+                                    data-id={exercise.id}
                                     className={`cursor-pointer p-2 rounded-md mb-2 text-left transition ${
                                         selectedExercises.includes(exercise.id) 
                                             ? "bg-blue-500 text-white" // Highlighted when selected
@@ -128,6 +132,7 @@ const ExerciseSelection: React.FC = () => {
 
                     {/* Confirm Selection Button */}
                     <motion.button
+                        name="confirmSelectionButton"
                         onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
                         className="w-full py-2 mt-4 bg-blue-600 hover:bg-blue-700 rounded text-white"
                         whileHover={{ scale: 1.05 }}

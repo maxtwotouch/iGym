@@ -6,6 +6,7 @@ import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.css';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
 
 // Interface to define the structure of a workout object
@@ -40,7 +41,7 @@ const CustomerDashboard: React.FC = () => {
 
     const fetchWorkouts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/workouts/", {
+        const response = await fetch(`${backendUrl}/workouts/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -56,7 +57,7 @@ const CustomerDashboard: React.FC = () => {
 
     const fetchExercises = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/exercises/", {
+        const response = await fetch(`${backendUrl}/exercises/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -80,7 +81,7 @@ const CustomerDashboard: React.FC = () => {
       navigate("/login");
       return;
     }
-    fetch(`http://127.0.0.1:8000/workouts/delete/${workout.id}/`, {
+    fetch(`${backendUrl}/workouts/delete/${workout.id}/`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     }).then(() => {
@@ -109,6 +110,7 @@ const CustomerDashboard: React.FC = () => {
         </motion.h1>
 
           <motion.button
+            name="createWorkoutButton"
             onClick={() => navigate("/workouts/create")}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
             whileHover={{ scale: 1.05 }}
@@ -131,6 +133,7 @@ const CustomerDashboard: React.FC = () => {
             <div className="space-y-4">
               {workouts.map((workout) => (
                 <motion.div
+                  id="workoutElement"
                   key={workout.id}
                   className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer position-relative"
                   whileHover={{ scale: 1.02 }}
@@ -165,6 +168,7 @@ const CustomerDashboard: React.FC = () => {
 
                   {/* View Workout Button */}
                   <motion.button
+                    name="viewWorkoutButton"
                     onClick={() => navigate(`/workouts/update/${workout.id}`)}
                     className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
                     whileHover={{ scale: 1.05 }}
@@ -209,7 +213,7 @@ const TrainerDashboard: React.FC = () => {
     // Fetch customers (This would need a backend endpoint)
     const fetchCustomers = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/trainer/customers/", {
+        const response = await fetch(`${backendUrl}/trainer/customers/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         

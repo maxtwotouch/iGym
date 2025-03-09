@@ -17,8 +17,9 @@ export default function RegistrationForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8000';
-    console.log("Backend URL:", backendUrl);
+    console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
     // URL based on the user type.
     let url = "";
@@ -43,6 +44,8 @@ export default function RegistrationForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      console.log("Registration reponpse: ", response.status);
 
       if (response.ok) {
         alert("Registration successful!");

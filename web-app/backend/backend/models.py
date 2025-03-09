@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 
 # Model for normal users
 class UserProfile(models.Model):
@@ -50,7 +52,7 @@ class WorkoutSession(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
 
     # Total number of calories burned in the workout
-    calories_burned = models.IntegerField(null=True, blank=True)
+    calories_burned = models.PositiveIntegerField(null=True, blank=True)
 
 # Represents a single exercise being performed in a workout session
 class ExerciseSession(models.Model):
@@ -60,9 +62,8 @@ class ExerciseSession(models.Model):
 class Set(models.Model):
     exercise_session = models.ForeignKey(ExerciseSession, on_delete=models.CASCADE, related_name="sets")
     repetitions = models.PositiveIntegerField()
-    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=False)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=False, validators=[MinValueValidator(Decimal("0.00"))])
 
-
-
-    
-
+    # Visit later, may need to manually check if the weight is 5 digits, and is assigned 2 decimal places
+    def clean(self):
+        return super().clean()
