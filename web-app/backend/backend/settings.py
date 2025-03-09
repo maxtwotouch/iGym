@@ -59,6 +59,8 @@ SIMPLE_JWT = {
 
 INSTALLED_APPS = [
     'backend',
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -102,6 +104,14 @@ TEMPLATES = [
         },
     },
 ]
+
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
