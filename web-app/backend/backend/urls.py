@@ -20,7 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
-from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView
+from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
+from .views import ListUserView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -44,6 +45,10 @@ urlpatterns = [
     path("exercise/session/create/", CreateExerciseSessionView.as_view(), name="exercise_session-create"),
     path("set/create/", CreateSetView.as_view(), name="set-create"),
     path("workouts_sessions/", WorkoutSessionListView.as_view(), name="workout_session-list"),
+    path("chat_room/<int:pk>/", ChatRoomRetrieveView.as_view(), name="chat_room-retrieve"),
+    path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
+    path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
+    path("users/", ListUserView.as_view(), name="user-list"),
 ]
 
 """
