@@ -14,4 +14,3 @@ export default [
   route("calendar", "routes/Calendar.tsx"),
   route(":id/workout/session/create", "routes/WorkoutSession.tsx"),
 ] satisfies RouteConfig;
-
