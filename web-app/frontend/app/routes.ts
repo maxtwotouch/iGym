@@ -15,4 +15,3 @@ export default [
   route(":id/workout/session/create", "routes/WorkoutSession.tsx"),
 ] satisfies RouteConfig;
 
-] satisfies RouteConfig;
