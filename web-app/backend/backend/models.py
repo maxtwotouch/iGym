@@ -67,3 +67,19 @@ class Set(models.Model):
     # Visit later, may need to manually check if the weight is 5 digits, and is assigned 2 decimal places
     def clean(self):
         return super().clean()
+
+class ChatRoom(models.Model):
+    participants = models.ManyToManyField(User)
+    date_created = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=255, blank=False)
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    content = models.TextField(blank=False, null=False)
+    date_sent = models.DateTimeField(auto_now_add=True)
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
+
+
+
+
+

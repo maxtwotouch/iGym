@@ -1,13 +1,13 @@
 from rest_framework.response import Response
-from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set
-from django.shortcuts import render
+from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom
 from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
-from .serializers import SetSerializer
+from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -17,6 +17,12 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     # Everyone is allowed to create a user
     permission_classes = [AllowAny]
+
+
+class ListUserView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
 
 # View for creating a new personal trainer
 class CreatePersonalTrainerView(generics.CreateAPIView):
@@ -119,3 +125,31 @@ class ExerciseListView(generics.ListAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class =  CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]
+
+
+class ChatRoomRetrieveView(generics.RetrieveAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ChatRoom.objects.filter(participants=user)
+
+
+class ChatRoomListView(generics.ListAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ChatRoom.objects.filter(participants=user)
+
+class ChatRoomCreateView(generics.CreateAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+    
+    
+    
+    
+

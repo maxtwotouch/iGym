@@ -1,20 +1,20 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
-from .models import ExerciseSession, Set
+from .models import ExerciseSession, Set, ChatRoom, Message
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ["id", "username", "password"]
-#         extra_kwargs = {"password": {"write_only": True}}
+class DefaultUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
         
-#     def create(self, validated_data):
-#         user = User.objects.create_user(**validated_data) 
-#         return user
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data) 
+        return user
 
 # Serializer for the user profile
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -113,6 +113,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data["trainer_profile"] = {"role": role}
         
         return data
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ["id", "sender", "content", "date_sent", "chat_room"]
+        
+
+
+class ChatRoomSerializer(serializers.ModelSerializer):
+    messages = MessageSerializer(many=True, read_only=True)
+    class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "date_created", "name", "messages"]
+        
     
         
         

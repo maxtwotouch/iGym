@@ -49,5 +49,15 @@
             "image": "exercise_images/squat.png",
             "calories": 1.0
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Shoulder Press",
+            "description": "Starting position: Sitting on a bench with your back well supported against the backrest. Hold the dumbbells in your hands (pronation grip) a little above shoulder height. Your elbows are on the outside and your forearms are perpendicular to the ground. Execution: Push the dumbbells upwards. Until your arms are fully extended. Then return to the original position.",
+            "muscle_group": "Main muscles: Deltoids. Secondary muscles: Triceps",
+            "image": "exercise_images/dumbbell_shoulder_press.png",
+            "calories": 0.3
+        }
     }
 ]
