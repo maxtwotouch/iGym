@@ -92,8 +92,7 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         model = WorkoutSession
         fields = ["id", "user", "workout", "start_time", "exercise_sessions", "calories_burned"]
         extra_kwargs = {"user": {"read_only": True}}
-
-        
+ 
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -114,19 +113,29 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return data
 
+
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ["id", "sender", "content", "date_sent", "chat_room"]
         
 
-
 class ChatRoomSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
+    participants = serializers.SerializerMethodField()
     class Meta:
         model = ChatRoom
         fields = ["id", "participants", "date_created", "name", "messages"]
-        
+
+    def get_participants(self, obj):
+        return obj.participants.values("id", "username")
+    
+
+class ChatRoomCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "date_created", "name"]
+    
     
         
         
