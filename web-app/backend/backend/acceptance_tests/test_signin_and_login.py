@@ -8,10 +8,6 @@ import subprocess
 from django.conf import settings
 import os
 import time
-from django.core.management import call_command
-from backend.models import Exercise
-
-
 
 class SignInAndLogInTest(StaticLiveServerTestCase):
     @classmethod
@@ -55,7 +51,7 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         cls.browser.quit()
         cls.frontend_process.terminate()
         super().tearDownClass()
-
+    
     def test_sign_in_and_login(self):
         self.browser.get("http://localhost:5173")
 
@@ -97,7 +93,6 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         )
 
         time.sleep(5)
-        print("Login page reached")
 
         # Fill out the login page
         self.browser.find_element(By.NAME, "username").send_keys("testuser")
