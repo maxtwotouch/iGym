@@ -65,7 +65,7 @@ class PeronsalTrainerSerializer(serializers.ModelSerializer):
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = ["id", "name", "description", "muscle_group", "image", "calories"]
+        fields = ["id", "name", "description", "muscle_group", "image"]
         
 
 
@@ -105,8 +105,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         if hasattr(user, "profile"):
             role = user.profile.role
-            username = user.username
-            data["profile"] = {"role": role}
+            data["profile"] = {
+                "role": role,
+                "weight": user.profile.weight
+            }
         
         elif hasattr(user, "trainer_profile"):
             role = user.trainer_profile.role

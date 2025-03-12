@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import { create } from "motion/react-m";
+import { pre } from "motion/react-client";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -24,8 +25,11 @@ const WorkoutSession: React.FC = () => {
     const [workoutExerciseSessions, setWorkoutExerciseSessions] = useState<WorkoutExerciseSession[]>([]);
     const { id } = useParams(); 
     const navigate = useNavigate(); 
+    const [timer, setTimer] = useState(0);
+    const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
+        setIsRunning(true);
         const fetchWorkout = async () => {
             const token = localStorage.getItem("accessToken");
             if (!token) {
@@ -52,6 +56,13 @@ const WorkoutSession: React.FC = () => {
             }
         };
 
+        // This function will be called every second (since 1000 milliseconds = 1 second)
+        const interval = setInterval(() => {
+            if (isRunning) {
+                setTimer(prev => prev += 1);
+            }
+        }, 1000);
+
         const fetchExercises = async () => {
             const token = localStorage.getItem("accessToken");
             if (!token) {
@@ -75,7 +86,8 @@ const WorkoutSession: React.FC = () => {
 
         fetchExercises();
         fetchWorkout();
-    }, [navigate]);
+        return () => clearInterval(interval);
+    }, [navigate, isRunning]);
 
     // Function to add a set
     const addSet = (exerciseId: number) => {
@@ -261,16 +273,14 @@ const WorkoutSession: React.FC = () => {
 
     const calculateTotalCalories = () => {
         let totalCalories = 0;
+        let MET = 3.0
 
-        workoutExerciseSessions.forEach(session => {
-            const exercise = availableExercises.find(ex => ex.id === session.exercise);
-            if (!exercise) return; // Skip if exercise is not found
+        const weight = localStorage.getItem("weight");
+
+        // Check that  weigth is not an empty string, null, undefined, 0 or NaN and convert it to a float
+        const weightValue = weight ? parseFloat(weight) : 0;
         
-            session.sets.forEach(set => {
-                totalCalories += exercise.calories;
-           });
-        
-        });
+        totalCalories = MET * weightValue * (timer / 3600);
 
         return totalCalories;
     }
@@ -286,6 +296,7 @@ const WorkoutSession: React.FC = () => {
         }
 
         const totalCaloriesBurned = calculateTotalCalories();
+        console.log("total calories burned: ", totalCaloriesBurned);
 
         const workoutSessionId = await createWorkoutSession(token, totalCaloriesBurned);
 
@@ -311,6 +322,11 @@ const WorkoutSession: React.FC = () => {
                 >
                     Log Workout Session
                 </motion.h1>
+
+                <div className="absolute top-16 right-2 text-lg bg-gray-800 p-2 rounded">
+                    Time: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                </div>
+
                 <motion.form 
                     className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
                     onSubmit={handleLogSession}

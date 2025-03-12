@@ -27,9 +27,6 @@ class Exercise(models.Model):
     # How the exercise is performed
     description = models.TextField(blank=False, null=False)
     muscle_group = models.CharField(max_length=255, null=False, blank=False)
-
-    # Approx number of calories burned per rep
-    calories = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=False)
     
     image = models.ImageField(upload_to='exercise_images/', blank=True, null=True)
 
@@ -52,7 +49,7 @@ class WorkoutSession(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
 
     # Total number of calories burned in the workout
-    calories_burned = models.PositiveIntegerField(null=True, blank=True)
+    calories_burned = models.FloatField(null=True, blank=True)
 
 # Represents a single exercise being performed in a workout session
 class ExerciseSession(models.Model):

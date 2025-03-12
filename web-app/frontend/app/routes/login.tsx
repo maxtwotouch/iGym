@@ -30,6 +30,11 @@ export default function LoginForm() {
           localStorage.setItem("userType", data.profile.role);
         }
         console.log("Stored userType in localStorage:", data.profile.role);
+
+        if (data.profile.role === "user") {
+          console.log("storing the users weight");
+          localStorage.setItem("weight", data.profile.weight);
+        }
         navigate("/dashboard");
       } else {
         const errorData = await response.json();

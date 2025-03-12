@@ -828,6 +828,26 @@ class TestUpdateWorkout(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+
+# Views to test:
+# Create exercise session view
+# Create set view
+# Create workout session view
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class TestWorkoutSessionCreate(APITestCase):
     def setUp(self):
         create_user_url = reverse('register_user')

@@ -9,7 +9,6 @@ import React, { useState, useEffect } from "react";
     muscle_group: string
     description: string
     image: string //Url
-    calories: number
 }
 
 function Exercise() {
@@ -60,7 +59,6 @@ function Exercise() {
             {exercise.name}
           </motion.h1>
           <h2>Muscle Group: {exercise.muscle_group}</h2>
-          <h2>Calories per rep: {exercise.calories}</h2>
           <p>{exercise.description}</p>
           <img src={`${exercise.image}`} alt={exercise.name} />
         </div>
