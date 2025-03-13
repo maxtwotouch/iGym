@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 # Model for normal users
 class UserProfile(models.Model):
@@ -44,12 +45,16 @@ class Workout(models.Model):
 
 class WorkoutSession(models.Model):
     # The user performing the workout is not necessarily the same as the one that created the workout
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_sessions", null=True)
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_sessions", blank=False, null=False)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     start_time = models.DateTimeField(auto_now_add=True)
+    calories_burned = models.FloatField(null=True, blank=True)
 
     # Total number of calories burned in the workout
-    calories_burned = models.FloatField(null=True, blank=True)
+    def save(self, *args, **kwargs):
+        if self.calories_burned is not None and self.calories_burned < 0:
+            raise ValidationError("Calories burned cannot be negative.")
+        super().save(*args, **kwargs)
 
 # Represents a single exercise being performed in a workout session
 class ExerciseSession(models.Model):

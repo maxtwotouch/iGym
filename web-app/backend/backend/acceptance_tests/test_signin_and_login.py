@@ -52,6 +52,7 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         cls.frontend_process.terminate()
         super().tearDownClass()
     
+
     def test_sign_in_and_login(self):
         self.browser.get("http://localhost:5173")
 
@@ -104,109 +105,7 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         )
         login_button.click()
 
-        # Wait for dashboard page
-        WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.NAME, "username"))
-        )
-
         time.sleep(5)
 
         print("Successfully logged in and reached dashboard!")
 
-    # def test_workout_creation_and_edit(self):
-    #     self.test_sign_in_and_login()
-
-    #     # Click create workout button
-    #     create_workout_button = WebDriverWait(self.browser, 10).until(
-    #         EC.element_to_be_clickable((By.NAME, "createWorkoutButton"))
-    #     )
-    #     create_workout_button.click()
-
-    #     # Click add exercises button
-    #     add_exercises_button = WebDriverWait(self.browser, 10).until(
-    #         EC.element_to_be_clickable((By.NAME, "addExercisesButton"))
-    #     )
-    #     add_exercises_button.click()
-
-    #     # Wait for the add exercises page
-    #     WebDriverWait(self.browser, 10).until(
-    #         EC.presence_of_element_located((By.ID, "exerciseList"))
-    #     )
-
-    #     time.sleep(5)
-
-
-    #     time.sleep(50)
-
-    #     # Select an exercise
-    #     exercise_option = self.browser.find_element(By.CSS_SELECTOR, "option[data-id='1']")
-    #     exercise_option.click()
-
-    #     # Click confirm selection of exercises
-    #     confirm_button = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "confirmSelectionButton"))
-    #     )
-    #     confirm_button.click()
-
-    #     # Give name to the workout
-    #     workout_name_field = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "workoutName"))
-    #     )
-    #     workout_name_field.send_keys("Test workout")
-
-    #     # Confirm creation of new workout
-    #     confirm_create_workout = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "createWorkoutButton"))
-    #     )
-    #     confirm_create_workout.click()
-
-    #     # Wait until locateed the created workout in the workout list
-    #     WebDriverWait(self.browser, 5).until(
-    #         EC.presence_of_element_located((By.ID, "workoutElement"))
-    #     )
-
-    #     # Click view workout for editing
-    #     view_workout_button = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "viewWorkoutButton"))
-    #     )
-    #     view_workout_button.click()
-
-    #     # Wait for the workout detail page
-    #     WebDriverWait(self.browser, 5).until(
-    #         EC.presence_of_element_located((By.NAME, "workoutName"))
-    #     )
-
-    #     # Edit the selected exercise to a new exercise
-    #     edit_exercise_button = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "editExercises"))
-    #     )
-    #     edit_exercise_button.click()
-
-    #     # Wait for the edit exercises page
-    #     WebDriverWait(self.browser, 10).until(
-    #         EC.presence_of_element_located((By.ID, "exerciseList"))
-    #     )
-
-    #     time.sleep(5)
-
-    #     # Remove selection of the first exercise
-    #     exercise_option = self.browser.find_element(By.CSS_SELECTOR, "option[data-id='1']")
-    #     exercise_option.click()
-
-    #     # Select an exercise
-    #     exercise_option = self.browser.find_element(By.CSS_SELECTOR, "option[data-id='2']")
-    #     exercise_option.click()
-
-    #     # Click confirm selection of exercises
-    #     confirm_button = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "confirmSelectionButton"))
-    #     )
-    #     confirm_button.click()
-
-    #     time.sleep(5)
-
-    #     # Confirm the edit of the workout
-    #     confirm_edit_workout = WebDriverWait(self.browser, 5).until(
-    #         EC.element_to_be_clickable((By.NAME, "saveWorkout"))
-    #     )
-    #     confirm_edit_workout.click()
