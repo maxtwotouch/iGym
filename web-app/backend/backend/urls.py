@@ -15,10 +15,48 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+<<<<<<< Updated upstream
 from django.urls import path
 from .views import hello_world
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/hello/', hello_world),
+=======
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
+from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
+from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView,  ScheduledWorkoutListView, CreateScheduledWorkoutView
+from .views import ListUserView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    
+    # Personal trainer and normal users have their own endpoints for registration (may have to be fixed)
+    path("user/register/", CreateUserView.as_view(), name="register_user"),
+    path("personal_trainer/register/", CreatePersonalTrainerView.as_view(), name="register_personal_trainer"),
+    path("token/", CustomTokenObtainPairView.as_view(), name="get_token"),
+    path("user/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("auth/", include("rest_framework.urls")),
+    path("workouts/", WorkoutListView.as_view(), name="workout-list"),
+    path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
+    path("workouts/create/", CreateWorkoutView.as_view(), name="workout-create"),
+    path("workouts/delete/<int:pk>/", WorkoutDeleteView.as_view(), name="workout-delete"),
+    path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="workout-update"),
+    path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout"),
+    path("exercises/<int:pk>/", ExerciseDetailView.as_view(), name="get-exercise"),
+    path("workout/session/create/", CreateWorkoutSessionView.as_view(), name="workouts_session-create"),
+    path("exercise/session/create/", CreateExerciseSessionView.as_view(), name="exercise_session-create"),
+    path("set/create/", CreateSetView.as_view(), name="set-create"),
+    path("workouts_sessions/", WorkoutSessionListView.as_view(), name="workout_session-list"),
+    path("chat_room/<int:pk>/", ChatRoomRetrieveView.as_view(), name="chat_room-retrieve"),
+    path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
+    path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
+    path("users/", ListUserView.as_view(), name="user-list"),
+    path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
+    path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+>>>>>>> Stashed changes
 ]

@@ -1,5 +1,180 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+<<<<<<< Updated upstream
+=======
+from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, ScheduledWorkout
+from django.contrib.auth.models import User
+from rest_framework import generics
+from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer
+from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer, ScheduledWorkoutSerializer
+from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth.decorators import login_required
+
+
+
+# View for creating a new user
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    # Everyone is allowed to create a user
+    permission_classes = [AllowAny]
+
+
+class ListUserView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
+
+# View for creating a new personal trainer
+class CreatePersonalTrainerView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = PeronsalTrainerSerializer
+    permission_classes = [AllowAny]
+
+class UpdateWorkoutView(generics.UpdateAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only update workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+    
+class CreateWorkoutView(generics.CreateAPIView):
+    serializer_class = WorkoutSerializer
+    # Only people with a valid access token are allowed to call this endpoint
+    permission_classes = [IsAuthenticated]
+    
+    # Overwriting the create method to associate the workout with the current user
+    def perform_create(self, serializer):
+        if serializer.is_valid():
+            # Have to manually add the author because we specified it as read only
+            serializer.save(author=self.request.user)
+
+        else:
+            print(serializer.errors)
+
+class CreateWorkoutSessionView(generics.CreateAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+        else:
+            print(serializer.errors)
+
+class CreateExerciseSessionView(generics.CreateAPIView):
+    queryset = ExerciseSession.objects.all()
+    serializer_class = ExerciseSessionSerializer
+    permission_classes = [IsAuthenticated]
+
+class CreateSetView(generics.CreateAPIView):
+    queryset = Set.objects.all()
+    serializer_class = SetSerializer
+    permission_classes = [IsAuthenticated]
+    
+
+class WorkoutListView(generics.ListAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Get all workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+
+
+class WorkoutSessionListView(generics.ListAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    queryset = WorkoutSession.objects.all()
+
+class UserWorkoutSessionListView(generics.ListAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Return only the sessions belonging to the current user
+        return WorkoutSession.objects.filter(user=self.request.user)
+
+class WorkoutDetailView(generics.RetrieveAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+
+class ExerciseDetailView(generics.RetrieveAPIView):
+    serializer_class = ExerciseSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Exercise.objects.all()
+        
+
+class WorkoutDeleteView(generics.DestroyAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only delete workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Workout.objects.filter(author=user)
+    
+class ExerciseListView(generics.ListAPIView):
+    # Provide a proper queryset rather than the model itself
+    queryset = Exercise.objects.all()
+    serializer_class = ExerciseSerializer
+    permission_classes = [IsAuthenticated]
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class =  CustomTokenObtainPairSerializer
+    permission_classes = [AllowAny]
+
+
+class ChatRoomRetrieveView(generics.RetrieveAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ChatRoom.objects.filter(participants=user)
+
+
+class ChatRoomListView(generics.ListAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ChatRoom.objects.filter(participants=user)
+
+class ChatRoomCreateView(generics.CreateAPIView):
+    serializer_class = ChatRoomSerializer
+    permission_classes = [IsAuthenticated]
+    
+class CreateScheduledWorkoutView(generics.CreateAPIView):
+    serializer_class = ScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        
+class ScheduledWorkoutListView(generics.ListAPIView):
+    serializer_class = ScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return ScheduledWorkout.objects.filter(user=self.request.user)
+    
+    
+    
+>>>>>>> Stashed changes
 
 @api_view(["GET"])
 def hello_world(request):
