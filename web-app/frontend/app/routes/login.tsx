@@ -22,19 +22,14 @@ export default function LoginForm() {
         const data = await response.json();
         console.log("Login successful:", data);
         // Store JWT tokens for subsequent authenticated requests.
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("username", data.username); // Store username for display
+        localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
+        localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
+        localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username); // Store username for display
         // Store user type  
-        if (data.profile?.role) {
-          localStorage.setItem("userType", data.profile.role);
+        if (import.meta.env.VITE_USER_TYPE || data.profile?.role) {
+          localStorage.setItem("userType", import.meta.env.VITE_USER_TYPE || data.profile.role);
         }
-        console.log("Stored userType in localStorage:", data.profile.role);
-
-        if (data.profile.role === "user") {
-          console.log("storing the users weight");
-          localStorage.setItem("weight", data.profile.weight);
-        }
+        console.log("Stored userType in localStorage:", import.meta.env.VITE_USER_TYPE || data.profile.role);
         navigate("/dashboard");
       } else {
         const errorData = await response.json();
