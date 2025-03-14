@@ -37,6 +37,7 @@ class Exercise(models.Model):
 
 class Workout(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
+    owners = models.ManyToManyField(User, blank=True)
     name = models.CharField(max_length=255)
     
     # Set the date created to the current time

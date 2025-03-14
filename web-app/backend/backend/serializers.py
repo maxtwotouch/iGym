@@ -72,7 +72,7 @@ class ExerciseSerializer(serializers.ModelSerializer):
 class WorkoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workout
-        fields = ["id", "author", "name", "date_created", "exercises"]
+        fields = ["id", "author", "owners", "name", "date_created", "exercises"]
         extra_kwargs = {"author": {"read_only": True}}
 
 class SetSerializer(serializers.ModelSerializer):
