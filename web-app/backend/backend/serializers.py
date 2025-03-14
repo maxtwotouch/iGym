@@ -39,14 +39,12 @@ class UserSerializer(serializers.ModelSerializer):
         UserProfile.objects.create(user=user, **profile_data)
         return user
     
-    
-    
-    
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["experience"]
+        fields = ["user", "experience", "role"]
 
 # Nested serializer to connect with the personal trainer model
 class PeronsalTrainerSerializer(serializers.ModelSerializer):

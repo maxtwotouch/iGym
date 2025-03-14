@@ -1,9 +1,9 @@
 from rest_framework.response import Response
-from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set
+from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, PersonalTrainerProfile
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer
+from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer, PersonalTrainerProfileSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -23,6 +23,18 @@ class CreatePersonalTrainerView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = PeronsalTrainerSerializer
     permission_classes = [AllowAny]
+
+# View for listing all personal trainers
+class PersonalTrainerListView(generics.ListAPIView):
+    # Get all personal trainers
+    serializer_class = PersonalTrainerProfileSerializer
+    # Only people with a valid access token are allowed to call this endpoint
+    permission_classes = [IsAuthenticated]
+
+    # Get all personal trainers
+    def get_queryset(self):
+        return PersonalTrainerProfile.objects.all()
+
 
 class UpdateWorkoutView(generics.UpdateAPIView):
     serializer_class = WorkoutSerializer
