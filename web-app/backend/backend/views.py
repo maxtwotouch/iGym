@@ -73,7 +73,7 @@ class CreateExerciseSessionView(generics.CreateAPIView):
         workout_session = serializer.validated_data["workout_session"]
         
         if not workout_session.workout.exercises.filter(id=exercise.id).exists():
-            serializers.ValidationError("This exercise is not a part of the workout")
+            raise serializers.ValidationError("This exercise is not a part of the workout")
         
         serializer.save()
 
@@ -98,7 +98,8 @@ class WorkoutSessionListView(generics.ListAPIView):
     serializer_class = WorkoutSessionSerializer
     permission_classes = [IsAuthenticated]
     
-    queryset = WorkoutSession.objects.all()
+    def get_queryset(self):
+        return WorkoutSession.objects.filter(user=self.request.user)
     
 
 class WorkoutDetailView(generics.RetrieveAPIView):

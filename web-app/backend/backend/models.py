@@ -4,14 +4,6 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 
-# Model for normal users
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    
-    # Example attributes
-    weight = models.PositiveIntegerField(null=True, blank=True)
-    height = models.PositiveIntegerField(null=True, blank=True)
-    role = models.CharField(max_length=20, default="user")
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -20,6 +12,18 @@ class PersonalTrainerProfile(models.Model):
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
     role = models.CharField(max_length=20, default="personal_trainer")
+
+# Model for normal users
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    
+    # If the personal trainer is deleted, set the field to null
+    personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, blank=True, null=True, related_name="pt")
+        
+    # Example attributes
+    weight = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    role = models.CharField(max_length=20, default="user")
     
 
 class Exercise(models.Model):
@@ -81,6 +85,10 @@ class Message(models.Model):
     content = models.TextField(blank=False, null=False)
     date_sent = models.DateTimeField(auto_now_add=True)
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
+    
+    
+
+
 
 
 

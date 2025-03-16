@@ -220,7 +220,7 @@ class ExerciseSessionModelTest(TestCase):
             exercise_session.save()
 
 
-class SetSessionModelTest(TestCase):
+class SetModelTest(TestCase):
     def setUp(self):
         # Establish a user, workout, workout session, exercise and exercise session
         self.user = User.objects.create_user(username="testuser", password="password")
@@ -273,4 +273,10 @@ class SetSessionModelTest(TestCase):
 
     # Visit later, should be tested against max digits and assigned decimal places
 
+    
+# Model tests that needs to be updated
+#  Userprofile - now contains a personal trainer field
+# Workout, now contains a owners field
+# All models with foreign key, make sure that  on cascade works
+# Message, chatroom
 

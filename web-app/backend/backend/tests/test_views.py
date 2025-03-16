@@ -247,6 +247,9 @@ class CreateWorkoutViewTest(APITestCase):
         workout = Workout.objects.get(id=response.data["id"])
         self.assertEqual(workout.author, self.user)
         self.assertEqual(workout.name, workout_name)
+        
+        # Make sure that the creater was added as one of the owners
+        self.assertIn(self.user, workout.owners.all())
 
 
 class TestWorkoutDeleteView(APITestCase):
@@ -521,6 +524,25 @@ class TestListWorkout(APITestCase):
         response = self.client.get(url)
         # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_not_creator_but_still_owner_(self):
+        url = reverse("workout-list")
+        # Create a third user
+        third_user = User.objects.create(username="third_user", password="passowrd")
+        
+        # Add the user as one of the owners for the first workout
+        self.secondUserWorkout.owners.set([third_user])
+
+        self.client.force_authenticate(user=third_user)
+        
+        # Since the third user is an owner of the second user workout, it should come up when the third user calls this endpoint
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        serializer = WorkoutSerializer([self.secondUserWorkout], many=True)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data, serializer.data)
+        
+        
 
 class TestWorkoutDetail(APITestCase):
     def setUp(self):
@@ -948,6 +970,25 @@ class TestCreateExerciseSessionView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ExerciseSession.objects.count(), 0)
     
+    def test_create_exercise_session_with_non_beloning_exercise(self):
+        self.client.force_authenticate(user=self.user)
+        
+        # Second exercise that is not part of the workout session
+        second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+        
+        data = {
+            "exercise": second_exercise.id,
+            "workout_session": self.workout_session.id
+        }
+        
+        response = self.client.post(self.url, data=data, format='json')
+        
+        # The exercise session should not be created since the exercise does not exist in the workout
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(ExerciseSession.objects.count(), 0)
+        
+        
+    
 class TestCreateWorkoutSessionView(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username="testuser", password="password")
@@ -1019,238 +1060,9 @@ class TestCreateWorkoutSessionView(APITestCase):
         
         self.assertEqual(workout_session.user, self.second_user)
         self.assertEqual(workout_session.workout.author, self.user)
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
-        
-        
-        
-        
-        
-        
     
     
+# Next to be tested: 
+# workout session list view
+
         
-        
-        
-        
-
-
-#     def test_create_set_basic(self):
-#         # Create a workout session
-#         response = self.client.post(self.create_workout_session_url, data=self.workout_session, format='json')
-#         workout_session = WorkoutSession.objects.get(id=response.data["id"])
-
-#         # Set the workout session for the exercise session
-#         self.exercise_session["workout_session"] = workout_session.id
-        
-#         # Create an exercise session
-#         response = self.client.post(self.create_exercise_session_url, data=self.exercise_session, format='json')
-#         exercise_session = ExerciseSession.objects.get(id=response.data["id"])
-
-#         # Set the exercise session for the set
-#         self.set["exercise_session"] = exercise_session.id
-
-#         # Make a POST request to the create view
-#         response = self.client.post(self.create_set_url, data=self.set, format='json')
-
-#         # Check that the response status code is 201 CREATED
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(Set.objects.count(), 1)
-
-#         # Retrieve the set
-#         created_set = Set.objects.get(id=response.data["id"])
-
-#         # Check that the attributes of the set are correct
-#         self.assertEqual(created_set.exercise_session, exercise_session)
-#         self.assertEqual(created_set.repetitions, self.set["repetitions"])
-#         self.assertEqual(created_set.weight, self.set["weight"])
-        
-        
-        
-
-
-
-# Views to test:
-# Create exercise session view
-# Create set view
-# Create workout session view
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class TestWorkoutSessionCreate(APITestCase):
-#     def setUp(self):
-#         create_user_url = reverse('register_user')
-        
-#         # Create a user
-#         username = "testUser"
-#         password = "testPassword"
-#         height = 180
-#         weight = 75
-
-#         user_data = {
-#             "username": username,
-#             "password": password,
-#             "profile": {
-#                 "height": height,
-#                 "weight": weight
-#             }
-#         }
-
-#         self.client.post(create_user_url, user_data, format='json')
-#         self.user = User.objects.get(username=username)
-
-#         # Authenticate the user
-#         self.client.force_authenticate(user=self.user)
-
-#         # Create a test exercise for a workout
-#         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
-
-#         # Create a workout
-#         create_workout_url = reverse('workout-create')
-#         workout_name = "Test Workout"
-
-#         workout_data = {
-#             "author": self.user.id,
-#             "name": workout_name,
-#             "exercises": [self.exercise.id]
-#         }
-
-#         # Create one workout for the user
-#         response = self.client.post(create_workout_url, data=workout_data, format='json')
-#         self.workout = Workout.objects.get(id=response.data["id"])
-
-#         # Create the workout session 
-#         self.create_workout_session_url = reverse('workouts_session-create')
-
-#         self.workout_session = {
-#             "workout": self.workout.id,
-#             "user": self.user.id,
-#         }
-
-#         # Create the exercise session
-#         self.create_exercise_session_url = reverse('exercise_session-create')
-
-#         self.exercise_session = {
-#             "workout_session": None, # Will be set later
-#             "exercise": self.exercise.id,
-#         }
-
-#         # Create the set
-#         self.create_set_url = reverse('set-create')
-#         repetions = 10
-#         weight = 10
-
-#         self.set = {
-#             "exercise_session": None, # Will be set later
-#             "repetitions": repetions,
-#             "weight": weight
-#         }
-
-#     # Test that a user can create a workout session
-#     def test_create_workout_session_basic(self):
-#         # Make a POST request to the create view
-#         response = self.client.post(self.create_workout_session_url, data=self.workout_session, format='json')
-
-#         # Check that the response status code is 201 CREATED
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(WorkoutSession.objects.count(), 1)
-
-#         # Retrieve the workout session
-#         workout_session = WorkoutSession.objects.get(id=response.data["id"])
-
-#         # Check that the attributes of the workout session are correct
-#         self.assertEqual(workout_session.user, self.user)
-#         self.assertEqual(workout_session.workout, self.workout)
-
-#     # Test that a user can create an exercise session
-#     def test_create_exercise_session_basic(self):
-#         # Create a workout session
-#         response = self.client.post(self.create_workout_session_url, data=self.workout_session, format='json')
-#         workout_session = WorkoutSession.objects.get(id=response.data["id"])
-
-#         # Set the workout session for the exercise session
-#         self.exercise_session["workout_session"] = workout_session.id
-
-#         # Make a POST request to the create view
-#         response = self.client.post(self.create_exercise_session_url, data=self.exercise_session, format='json')
-
-#         # Check that the response status code is 201 CREATED
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(ExerciseSession.objects.count(), 1)
-
-#         # Retrieve the exercise session
-#         exercise_session = ExerciseSession.objects.get(id=response.data["id"])
-
-#         # Check that the attributes of the exercise session are correct
-#         self.assertEqual(exercise_session.workout_session, workout_session)
-#         self.assertEqual(exercise_session.exercise, self.exercise)
-
-#     # Test that a user can create a set
-#     def test_create_set_basic(self):
-#         # Create a workout session
-#         response = self.client.post(self.create_workout_session_url, data=self.workout_session, format='json')
-#         workout_session = WorkoutSession.objects.get(id=response.data["id"])
-
-#         # Set the workout session for the exercise session
-#         self.exercise_session["workout_session"] = workout_session.id
-        
-#         # Create an exercise session
-#         response = self.client.post(self.create_exercise_session_url, data=self.exercise_session, format='json')
-#         exercise_session = ExerciseSession.objects.get(id=response.data["id"])
-
-#         # Set the exercise session for the set
-#         self.set["exercise_session"] = exercise_session.id
-
-#         # Make a POST request to the create view
-#         response = self.client.post(self.create_set_url, data=self.set, format='json')
-
-#         # Check that the response status code is 201 CREATED
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(Set.objects.count(), 1)
-
-#         # Retrieve the set
-#         created_set = Set.objects.get(id=response.data["id"])
-
-#         # Check that the attributes of the set are correct
-#         self.assertEqual(created_set.exercise_session, exercise_session)
-#         self.assertEqual(created_set.repetitions, self.set["repetitions"])
-#         self.assertEqual(created_set.weight, self.set["weight"])
-
-#     # Test that an unauthorized user cannot create a workout session
-#     def test_create_workout_session_for_unauthenticated_user(self):
-#         # Remove the authentication
-#         self.client.force_authenticate(user=None)
-
-#         # Make a POST request to the create view
-#         response = self.client.post(self.create_workout_session_url, data=self.workout_session, format='json')
-
-#         # Check that the response status code is 401 UNAUTHORIZED
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-#         # Restore authentication for the user
-#         self.client.force_authenticate(user=self.user)
