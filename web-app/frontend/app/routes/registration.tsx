@@ -27,7 +27,7 @@ export default function RegistrationForm() {
 
     if (userType === "user") {
       url = url = `${backendUrl}/user/register/`;
-      payload.profile = {
+      payload.user_profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
       };
@@ -44,8 +44,6 @@ export default function RegistrationForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      console.log("Registration reponpse: ", response.status);
 
       if (response.ok) {
         alert("Registration successful!");
@@ -142,15 +140,17 @@ export default function RegistrationForm() {
           </>
         )}
         {userType === "trainer" && (
-          <div className="mb-4">
-            <label className="block mb-1">Experience:</label>
-            <input
-              type="text"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              className="w-full p-2 rounded bg-gray-700 text-white"
-            />
-          </div>
+          <>
+            <div className="mb-4">
+              <label className="block mb-1">Experience:</label>
+              <input
+                type="text"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+          </>
         )}
         <motion.button
           type="submit"

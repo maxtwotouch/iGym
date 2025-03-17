@@ -10,37 +10,39 @@ export default function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+  
     try {
-      const response = await fetch( `${backendUrl}/token/`, {
+      const response = await fetch(`${backendUrl}/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
-        // Store JWT tokens for subsequent authenticated requests.
-        localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
-        localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
-        localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username); // Store username for display
-        // Store user type  
-        if (import.meta.env.VITE_USER_TYPE || data.profile?.role) {
-          localStorage.setItem("userType", import.meta.env.VITE_USER_TYPE || data.profile.role);
-        }
-        console.log("Stored userType in localStorage:", import.meta.env.VITE_USER_TYPE || data.profile.role);
-        navigate("/dashboard");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData);
-        alert("Login failed: " + (errorData.detail || "Unknown error"));
+      const data = await response.json();
+      if (!response.ok || !data.access) {
+        alert("Login failed: Incorrect username or password.");
+        return;
       }
+  
+      // Store JWT tokens for subsequent authenticated requests.
+      localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
+      localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
+      localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username);
+      localStorage.setItem("user_id", import.meta.env.VITE_USER_ID || data.id);
+  
+      if (data.user_profile?.role) {
+        localStorage.setItem("userType", data.user_profile.role);
+      } else if (data.trainer_profile?.role) {
+        localStorage.setItem("userType", data.trainer_profile.role);
+      }
+  
+      navigate("/dashboard"); // Redirect to the dashboard after successful login.
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");
     }
   };
+  
 
   return (
     <motion.div

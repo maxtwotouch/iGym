@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
-from .views import ListUserView, MessageListView, ChatRoomDeleteView
+from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -48,9 +48,13 @@ urlpatterns = [
     path("chat_room/<int:pk>/", ChatRoomRetrieveView.as_view(), name="chat_room-retrieve"),
     path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
     path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
-    path("chat_room/messages/<int:pk>/", MessageListView.as_view(), name="chat_room-messages"),
     path("chat_room/delete/<int:pk>/", ChatRoomDeleteView.as_view(), name="chat_room-delete"),
     path("users/", ListUserView.as_view(), name="user-list"),
+    path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
+    path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
+    path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
+    path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
+    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail")
 ]
 
 """

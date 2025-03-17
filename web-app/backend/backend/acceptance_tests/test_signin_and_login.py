@@ -138,6 +138,7 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
             f.write(f"VITE_REFRESH_TOKEN={self.refresh_token}\n")
             f.write(f"VITE_USERNAME={self.test_user.username}\n")
             f.write(f"VITE_USER_TYPE={self.test_profile.role}\n")
+            f.write(f"VITE_USER_ID={self.test_user.id}\n")
         
         # Navigate to app and login
         self.browser.refresh()

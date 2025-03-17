@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Select from 'react-select';
 
-interface User {
+type User = {
     id: number;
     username: string;
 }
 
-interface ChatRoom {
+type ChatRoom = {
     id: number;
     name: string;
     participants: User[];
@@ -21,61 +21,67 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     const [selectedParticipants, setSelectedParticipants] = useState<User[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [resetDropDown, setResetDropDown] = useState(0); 
 
     const fetchChatRooms = async () => {
-        const token = localStorage.getItem("accessToken"); 
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("Access token not found in localStorage");
+            navigate("/login");
+        }
+        
         try {
-            const response = await fetch("http://127.0.0.1:8000/chat_rooms/", {
+            const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_rooms/", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (!response.ok) {
-                console.error("Failed to fetch chat rooms");
-                return;
-            }
-            const data = await response.json();
-            setChatRooms(data);
+            const chatRoom = await chatRoomResponse.json();
+            setChatRooms(chatRoom);
         } catch (error) {
             console.error("Error fetching chat rooms:", error);
         }
     };
 
-    const fetchUsers = async () => {
-        const token = localStorage.getItem("accessToken"); 
-        try {
-            const response = await fetch("http://127.0.0.1:8000/users/", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!response.ok) {
-                console.error("Failed to fetch users");
-                return;
-            }
-            const data = await response.json();
-            setUsers(data);
-
-            const current_user_username = localStorage.getItem("username");
-            const current_user = data.find((user: { username: string; }) => user.username === current_user_username);
-            if (current_user) {
-                setCurrentUser(current_user);
-            }
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        }
-    };
-
     useEffect(() => {
-        fetchUsers();
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+            alert("Access token not found in localStorage");
+            navigate("/login");
+        }
+    
+        const fetchUsers = async () => {
+            try {
+                const userObjectsResponse = await fetch("http://127.0.0.1:8000/users/", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const userObjects = await userObjectsResponse.json();
+                setUsers(userObjects);
+    
+                // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
+                const current_user_id = localStorage.getItem("user_id");
+                const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
+                if (current_user) {
+                    setCurrentUser(current_user);
+                }
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        };
+
         fetchChatRooms();
+        fetchUsers();
     }, [navigate]);
 
     const handleCreateChatRoom = async () => {
-        if (newChatRoomName.trim() && selectedParticipants.length > 0) {
+        if (newChatRoomName.trim() && selectedParticipants.length > 0) { // Check if chat room name and participants are provided
+            setResetDropDown(resetDropDown + 1); // Reset the dropdown
+
             const participantIds = selectedParticipants.map(user => user.id);
             
             // Include the creator of the chat room
             if (currentUser && !participantIds.includes(currentUser.id)) {
                 participantIds.push(currentUser.id);
             }
-        
+
             const response = await fetch("http://127.0.0.1:8000/chat_room/create/", {
                 method: "POST",
                 headers: {
@@ -191,7 +197,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
                 {/* Dropdown for users */}
                 <Select
-                    key={selectedParticipants.length == 0 ? 'empty' : 'has-participants'} // Reset dropdown when participants change
+                    key={resetDropDown} // Reset the selected users when chat room is created
                     isMulti
                     options={users
                         .filter(user => user.id !== currentUser?.id) // Exclude current user
@@ -225,6 +231,8 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                         })
                     }}
                 />
+
+                {/* Create Chat Room Button */}
                 <motion.button
                     onClick={handleCreateChatRoom}
                     className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
