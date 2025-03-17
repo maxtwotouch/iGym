@@ -115,6 +115,125 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
 
     # def test_workout_creation_and_edit(self):
     #     self.test_sign_in_and_login()
+    def test_workout_creation_and_edit(self):
+        # Load exercise data and verify
+        call_command("loaddata", "exercises.json")
+        exercises = Exercise.objects.all()
+        print("DEBUG: Exercises in test database:")
+        for e in exercises:
+            print(f" - {e.id}: {e.name}")
+        
+        # Create test user with profile
+        self.test_user = User.objects.create_user(username="testuser", password="password")
+        self.test_profile = UserProfile.objects.create(user=self.test_user, weight=70, height=175, role="user")
+        
+        # Generate and store JWT tokens
+        refresh = RefreshToken.for_user(self.test_user)
+        self.access_token = str(refresh.access_token)
+        self.refresh_token = str(refresh)
+        
+        env_path = r"C:\Users\danie\Documents\INF-2900\web-app\frontend\.env"
+        with open(env_path, "a") as f:
+            f.write(f"VITE_ACCESS_TOKEN={self.access_token}\n")
+            f.write(f"VITE_REFRESH_TOKEN={self.refresh_token}\n")
+            f.write(f"VITE_USERNAME={self.test_user.username}\n")
+            f.write(f"VITE_USER_TYPE={self.test_profile.role}\n")
+            f.write(f"VITE_USER_ID={self.test_user.id}\n")
+        
+        # Navigate to app and login
+        self.browser.refresh()
+        time.sleep(5)
+        self.browser.get("http://localhost:5173")
+        
+        login_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "loginButton"))
+        )
+        login_button.click()
+        
+        self.browser.find_element(By.NAME, "username").send_keys("testuser")
+        self.browser.find_element(By.NAME, "password").send_keys("password")
+        
+        login_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "loginButton"))
+        )
+        login_button.click()
+        
+        # Create workout
+        create_workout_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "createWorkoutButton"))
+        )
+        create_workout_button.click()
+        
+        add_exercises_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "addExercisesButton"))
+        )
+        add_exercises_button.click()
+        
+        # Select exercise
+        WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-id='1']"))
+        )
+        
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "li[data-id='1']")
+        exercise_option.click()
+        
+        confirm_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "confirmSelectionButton"))
+        )
+        confirm_button.click()
+        
+        # Name and create workout
+        workout_name_field = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "workoutName"))
+        )
+        workout_name_field.send_keys("Test workout")
+        
+        confirm_create_workout = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "createWorkoutButton"))
+        )
+        confirm_create_workout.click()
+        
+        # View and edit workout
+        WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.ID, "workoutElement"))
+        )
+        
+        view_workout_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "viewWorkoutButton"))
+        )
+        view_workout_button.click()
+        
+        WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.NAME, "workoutName"))
+        )
+        
+        # Edit exercises
+        edit_exercise_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "editExercises"))
+        )
+        edit_exercise_button.click()
+        
+        WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.ID, "exerciseList"))
+        )
+        
+        # Change exercise selection
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "li[data-id='1']")
+        exercise_option.click()
+        
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "li[data-id='2']")
+        exercise_option.click()
+        
+        confirm_button = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "confirmSelectionButton"))
+        )
+        confirm_button.click()
+        
+        # Save workout changes
+        confirm_edit_workout = WebDriverWait(self.browser, 5).until(
+            EC.element_to_be_clickable((By.NAME, "saveWorkout"))
+        )
+        confirm_edit_workout.click()
 
     #     # Click create workout button
     #     create_workout_button = WebDriverWait(self.browser, 10).until(

@@ -5,12 +5,14 @@ from decimal import Decimal
 
 # Model for normal users
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
     
     # Example attributes
     weight = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, default="user")
+
+    personal_trainer = models.ForeignKey("PersonalTrainerProfile", on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -18,8 +20,7 @@ class PersonalTrainerProfile(models.Model):
     
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
-    role = models.CharField(max_length=20, default="personal_trainer")
-    
+    role = models.CharField(max_length=20, default="trainer")
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
@@ -36,8 +37,9 @@ class Exercise(models.Model):
 
 class Workout(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
+    owners = models.ManyToManyField(User, blank=True)
     name = models.CharField(max_length=255)
-    
+
     # Set the date created to the current time
     date_created = models.DateTimeField(auto_now=True)
     exercises = models.ManyToManyField(Exercise)
@@ -85,6 +87,10 @@ class ScheduledWorkout(models.Model):
         return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
 
 
-
+class WorkoutMessage(models.Model):
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    date_sent = models.DateTimeField(auto_now_add=True)
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="workout_messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages")
 
 

@@ -27,8 +27,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
-from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView,  ScheduledWorkoutListView, CreateScheduledWorkoutView
-from .views import ListUserView
+from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
+from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -55,8 +55,23 @@ urlpatterns = [
     path("chat_room/<int:pk>/", ChatRoomRetrieveView.as_view(), name="chat_room-retrieve"),
     path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
     path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
+    path("chat_room/messages/<int:pk>/", MessageListView.as_view(), name="chat_room-messages"),
+    path("chat_room/delete/<int:pk>/", ChatRoomDeleteView.as_view(), name="chat_room-delete"),
     path("users/", ListUserView.as_view(), name="user-list"),
-    path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
-    path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
->>>>>>> Stashed changes
 ]
+
+"""
+    Serve media files during development
+    static is a helper function that adds new URL patterns to serve media files
+    it is a function that allow serving files that are upploaded from a specified directory (MEDIA_ROOT)"
+"""
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
+"""
+    How it works:
+        1: frontend sends a request to http://127.0.0.1:8000/media/exercise_pictures/picture.png
+        2: Django's URL configuration looks for URL patters that match the requested path. Since we have set up the static file serving as we have, the requested path will match the condition because it starts with /media/
+        3: Since the MEDIA_URL is defined as /media/, Django knows to handle it as a request for a media file
+        4: Django will look for the the file in the directory specified by MEDIA_ROOT
+"""
