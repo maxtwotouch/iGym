@@ -32,15 +32,20 @@ const ExerciseSelection: React.FC = () => {
             return;
         }
 
+        console.log("backend url, ", backendUrl);
+
+
         const fetchExercises = async () => {
             try {
                 const response = await fetch(`${backendUrl}/exercises/`, {
                 headers: { Authorization: `Bearer ${token}` },
                 });
+                console.log("Response status:", response.status);
                 if (!response.ok) {
                 console.error("Failed to fetch exercises");
                 return;
                 }
+                console.log(localStorage.getItem("accessToken"));
                 const data = await response.json();
                 console.log("Exercises received:", data); 
                 setAvailableExercises(data); 

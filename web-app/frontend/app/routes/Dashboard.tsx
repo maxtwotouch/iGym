@@ -49,6 +49,7 @@ const CustomerDashboard: React.FC = () => {
           return;
         }
         const data = await response.json(); 
+        console.log("Fetched workouts:", data);
         setWorkouts(data); 
       } catch (error) {
         console.error("Error fetching workouts:", error);
@@ -196,9 +197,10 @@ const CustomerDashboard: React.FC = () => {
 };
 
 const TrainerDashboard: React.FC = () => {
-  const [customers, setCustomers] = useState<any[]>([]);
   const [username, setUsername] = useState<string>("");
   const navigate = useNavigate();
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -210,27 +212,57 @@ const TrainerDashboard: React.FC = () => {
     const name = localStorage.getItem("username");
     setUsername(name || "trainer");
 
-    // Fetch customers (This would need a backend endpoint)
-    const fetchCustomers = async () => {
+    const fetchWorkouts = async () => {
       try {
-        const response = await fetch(`${backendUrl}/trainer/customers/`, {
+        const response = await fetch(`${backendUrl}/workouts/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
         if (!response.ok) {
-          console.error("Failed to fetch customers");
+          console.error("Failed to fetch workouts");
           return;
         }
-        
-        const data = await response.json();
-        setCustomers(data);
+        const data = await response.json(); 
+        console.log("Fetched workouts:", data);
+        setWorkouts(data); 
       } catch (error) {
-        console.error("Error fetching customers:", error);
+        console.error("Error fetching workouts:", error);
       }
     };
 
-    fetchCustomers();
+    const fetchExercises = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/exercises/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch exercises");
+          return;
+        }
+        const data = await response.json();
+        setExercises(data);
+      } catch (error) {
+        console.error("Error fetching exercises:", error);
+      }
+    };
+
+    fetchExercises();
+    fetchWorkouts();
+
   }, [navigate]);
+
+  const deleteWorkout = (workout: Workout) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetch(`${backendUrl}/workouts/delete/${workout.id}/`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(() => {
+      setWorkouts(workouts.filter((w) => w.id !== workout.id));
+    });
+  }
 
   return (
     <motion.div className="d-flex flex-column min-vh-100">
@@ -251,37 +283,80 @@ const TrainerDashboard: React.FC = () => {
           Hello, Trainer {username}
         </motion.h1>
 
-        {/* Customers List */}
+        <motion.button
+            name="createWorkoutButton"
+            onClick={() => navigate("/workouts/create")}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+            whileHover={{ scale: 1.05 }}
+          >
+            Create New Workout
+          </motion.button>
+
+        {/* Workout List */}
         <motion.div
           className="bg-gray-800 p-6 rounded-lg shadow-md w-96"
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-xl font-bold mb-4">My Customers</h2>
+          <h2 className="text-xl font-bold mb-4">My Workouts</h2>
 
-          {customers.length === 0 ? (
-            <p className="text-sm text-gray-400">No customers found.</p>
+          {workouts.length === 0 ? (
+            <p className="text-sm text-gray-400">No workouts found.</p>
           ) : (
             <div className="space-y-4">
-              {customers.map((customer) => (
+              {workouts.map((workout) => (
                 <motion.div
-                  key={customer.id}
-                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer"
+                  id="workoutElement"
+                  key={workout.id}
+                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 cursor-pointer position-relative"
                   whileHover={{ scale: 1.02 }}
                 >
-                  <p className="font-semibold">{customer.username}</p>
+                  {/* Delete workouts from Workout List */}
+                  <motion.button
+                    onClick={() => deleteWorkout(workout)}
+                    className="btn btn-danger position-absolute top-0 end-0 m-2"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    ✕
+                  </motion.button>
+                
+                  {/* Display workout name */}
+                  <p className="font-semibold">{workout.name}</p>
                   <p className="text-sm text-gray-400">
-                    Height: {customer.profile.height}cm | Weight: {customer.profile.weight}kg
+                    Created: {new Date(workout.date_created).toLocaleString()}
                   </p>
 
-                  {/* View Customer Button */}
+                  {/* Display exercises in the workout */}
+                  <p className="mt-2">Exercises:</p>
+                  <ul className="list-disc list-inside">
+                  {workout.exercises.map((exerciseId) => {
+                      const exercise = exercises.find((ex) => ex.id === exerciseId);
+                      return (
+                        <li key={exerciseId} className="text-sm">
+                        {exercise ? exercise.name : "Unknown Exercise"}
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* View Workout Button */}
                   <motion.button
-                    onClick={() => navigate(`/trainer/customers/${customer.id}`)}
+                    name="viewWorkoutButton"
+                    onClick={() => navigate(`/workouts/update/${workout.id}`)}
                     className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
                     whileHover={{ scale: 1.05 }}
                   >
-                    View Customer Details
+                    View Workout
+                  </motion.button>
+
+                  {/* Start workout session (logging) */}
+                  <motion.button
+                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
+                    className="mt-2 w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    Start Workout
                   </motion.button>
                 </motion.div>
               ))}
@@ -304,8 +379,7 @@ const Dashboard: React.FC = () => {
       navigate("/login");
       return;
     }
-    // Currently always set to "user" 
-    setUserType("user");
+    setUserType(localStorage.getItem("userType"));
   }, [navigate]);
 
   if (!userType) {

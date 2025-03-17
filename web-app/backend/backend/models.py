@@ -4,6 +4,16 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 
+# Model for normal users
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    
+    # Example attributes
+    weight = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    role = models.CharField(max_length=20, default="user")
+
+    personal_trainer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -11,20 +21,7 @@ class PersonalTrainerProfile(models.Model):
     
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
-    role = models.CharField(max_length=20, default="personal_trainer")
-
-# Model for normal users
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    
-    # If the personal trainer is deleted, set the field to null
-    personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, blank=True, null=True, related_name="pt")
-        
-    # Example attributes
-    weight = models.PositiveIntegerField(null=True, blank=True)
-    height = models.PositiveIntegerField(null=True, blank=True)
-    role = models.CharField(max_length=20, default="user")
-    
+    role = models.CharField(max_length=20, default="trainer")
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
@@ -43,7 +40,7 @@ class Workout(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
     owners = models.ManyToManyField(User, blank=True)
     name = models.CharField(max_length=255)
-    
+
     # Set the date created to the current time
     date_created = models.DateTimeField(auto_now=True)
     exercises = models.ManyToManyField(Exercise)
@@ -86,11 +83,11 @@ class Message(models.Model):
     date_sent = models.DateTimeField(auto_now_add=True)
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
     
-    
 
-
-
-
-
+class WorkoutMessage(models.Model):
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    date_sent = models.DateTimeField(auto_now_add=True)
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="workout_messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages")
 
 
