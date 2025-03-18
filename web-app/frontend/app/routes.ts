@@ -13,4 +13,6 @@ export default [
   route("about", "routes/About.tsx"),
   route("calendar", "routes/Calendar.tsx"),
   route(":id/workout/session/create", "routes/WorkoutSession.tsx"),
+  route("chat", "routes/Chat.tsx"),
+  route("personalTrainers", "routes/SelectPT.tsx"),
 ] satisfies RouteConfig;

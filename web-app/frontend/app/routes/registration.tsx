@@ -17,18 +17,22 @@ export default function RegistrationForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
+
     // URL based on the user type.
     let url = "";
     let payload: any = { username, password };
 
     if (userType === "user") {
-      url = "http://127.0.0.1:8000/user/register/";
-      payload.profile = {
+      url = url = `${backendUrl}/user/register/`;
+      payload.user_profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
       };
     } else if (userType === "trainer") {
-      url = "http://127.0.0.1:8000/personal_trainer/register/";
+      url = `${backendUrl}/personal_trainer/register/`;
       payload.trainer_profile = {
         experience,
       };
@@ -81,6 +85,7 @@ export default function RegistrationForm() {
           <label className="block mb-1">Username:</label>
           <input
             type="text"
+            name = "username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-2 rounded bg-gray-700 text-white"
@@ -91,6 +96,7 @@ export default function RegistrationForm() {
           <label className="block mb-1">Password:</label>
           <input
             type="password"
+            name="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 rounded bg-gray-700 text-white"
@@ -100,6 +106,7 @@ export default function RegistrationForm() {
         <div className="mb-4">
           <label className="block mb-1">User Type:</label>
           <select
+            name="userType"
             value={userType}
             onChange={(e) => setUserType(e.target.value)}
             className="w-full p-2 rounded bg-gray-700 text-white"
@@ -114,6 +121,7 @@ export default function RegistrationForm() {
               <label className="block mb-1">Weight (kg):</label>
               <input
                 type="number"
+                name="weight"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 className="w-full p-2 rounded bg-gray-700 text-white"
@@ -123,6 +131,7 @@ export default function RegistrationForm() {
               <label className="block mb-1">Height (cm):</label>
               <input
                 type="number"
+                name="height"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
                 className="w-full p-2 rounded bg-gray-700 text-white"
@@ -131,18 +140,21 @@ export default function RegistrationForm() {
           </>
         )}
         {userType === "trainer" && (
-          <div className="mb-4">
-            <label className="block mb-1">Experience:</label>
-            <input
-              type="text"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              className="w-full p-2 rounded bg-gray-700 text-white"
-            />
-          </div>
+          <>
+            <div className="mb-4">
+              <label className="block mb-1">Experience:</label>
+              <input
+                type="text"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+              />
+            </div>
+          </>
         )}
         <motion.button
           type="submit"
+          name="submitButton"
           className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
           whileHover={{ scale: 1.05 }}
         >

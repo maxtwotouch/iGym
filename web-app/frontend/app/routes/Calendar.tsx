@@ -7,135 +7,183 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-// import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import '@fullcalendar/bootstrap5';
 
 
-// Define workout and customer types
-interface Workout {
-  id: number;
-  title: string;
-  start: string;
-  end: string;
-  customerId?: number;
-  customerName?: string;
-  description?: string;
-  color?: string;
-}
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
-interface Customer {
-  id: number;
-  username: string;
-}
 
 export default function Calendar() {
   const navigate = useNavigate();
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // For storing scheduled workouts
+  const [workouts, setWorkouts] = useState<any[]>([]);
+  
+  // For storing workout templates
+  const [availableWorkouts, setAvailableWorkouts] = useState<any[]>([]);
+
+  // UI state
   const [error, setError] = useState("");
-  const [isTrainer, setIsTrainer] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<number | "all">("all");
-  const [selectedEvent, setSelectedEvent] = useState<Workout | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // For the “view details” modal
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  // For the “schedule new workout” modal
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+
+  // <-- This is the main difference: we store a string for date/time
+  const [selectedDateTime, setSelectedDateTime] = useState<string>("");
+
+  // Load scheduled workouts
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    const userType = localStorage.getItem("userType");
-    
     if (!token) {
       navigate("/login");
       return;
     }
 
-    setIsTrainer(userType === "trainer");
-    
-    // Fetch data
-    const fetchData = async () => {
+    // Example: fetch scheduled workouts
+    const fetchScheduledWorkouts = async () => {
       try {
         setIsLoading(true);
-
-        // If trainer, fetch all customers first
-        if (userType === "trainer") {
-          const customersResponse = await fetch("http://localhost:8000/api/trainer/customers/", {
-            headers: { 
-              Authorization: `Bearer ${token}` 
-            }
-          });
-          
-          if (!customersResponse.ok) {
-            throw new Error("Failed to fetch customers");
-          }
-          
-          const customersData = await customersResponse.json();
-          setCustomers(customersData);
-        }
-
-        // Fetch workouts (either for the user or all customers if trainer)
-        const url = userType === "trainer" 
-          ? "http://localhost:8000/api/trainer/workouts/"
-          : "http://localhost:8000/api/workouts/calendar/";
-          
-        const response = await fetch(url, {
-          headers: { 
-            Authorization: `Bearer ${token}` 
-          }
+        const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-
         if (!response.ok) {
-          throw new Error("Failed to fetch calendar data");
+          throw new Error("Failed to fetch scheduled workouts");
         }
-
         const data = await response.json();
         
-        // Format workouts for calendar
-        const formattedWorkouts = data.map((workout: any) => ({
-          id: workout.id,
-          title: workout.title,
-          start: workout.scheduled_date,
-          end: workout.end_time || new Date(new Date(workout.scheduled_date).getTime() + 60*60*1000).toISOString(), // Default 1hr if no end
-          customerId: workout.customer_id,
-          customerName: workout.customer_name,
-          description: workout.description,
-          color: userType === "trainer" ? getCustomerColor(workout.customer_id) : "#3788d8"
+        // Convert to FullCalendar event objects
+        const formatted = data.map((item: any) => ({
+          id: item.id,
+          title: item.workout_title,
+          start: item.scheduled_date,
+          end: new Date(new Date(item.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
         }));
-
-        setWorkouts(formattedWorkouts);
+        setWorkouts(formatted);
       } catch (err: any) {
-        console.error("Error fetching calendar data:", err);
-        setError(err.message || "Failed to load calendar data");
+        console.error(err);
+        setError(err.message || "Failed to load scheduled workouts");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchScheduledWorkouts();
   }, [navigate]);
 
-  // Generate consistent colors for different customers
-  const getCustomerColor = (customerId: number): string => {
-    const colors = [
-      "#3788d8", "#ff8800", "#28a745", "#dc3545", "#6f42c1", 
-      "#fd7e14", "#20c997", "#e83e8c", "#17a2b8", "#6c757d"
-    ];
-    return colors[customerId % colors.length];
+  // Load available workout templates
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    const fetchAvailableWorkouts = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/workouts/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch available workouts");
+        }
+        const data = await response.json();
+
+        setAvailableWorkouts(
+          data.map((w: any) => ({
+            id: w.id,
+            title: w.name
+          }))
+        );
+      } catch (err: any) {
+        console.error(err);
+      }
+    };
+
+    fetchAvailableWorkouts();
+  }, []);
+
+  // When user clicks a date on the calendar
+  const handleDateClick = (arg: any) => {
+    // FullCalendar's arg.date is a JS date object with date + time (often midnight if you are in dayGridMonth).
+    // We can create an ISO string suitable for <input type="datetime-local" /> but must slice off seconds & decimals.
+    
+    const dateObj = arg.date; // a JS date
+    // Convert to "YYYY-MM-DDTHH:MM" string
+    // Note: toISOString() => "YYYY-MM-DDTHH:MM:SS.sssZ"
+    // We'll drop the last part for a local input:
+    const localDateTime = new Date(dateObj.getTime() - dateObj.getTimezoneOffset()*60000)
+      .toISOString()
+      .slice(0, 16); // "YYYY-MM-DDTHH:MM"
+
+    setSelectedDateTime(localDateTime);
+    setShowScheduleModal(true);
   };
 
-  const handleEventClick = (info: any) => {
-    const workout = workouts.find(w => w.id.toString() === info.event.id);
-    if (workout) {
-      setSelectedEvent(workout);
-      setShowModal(true);
+  // POST to schedule a workout
+  const handleScheduleWorkout = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token || !selectedWorkoutId || !selectedDateTime) return;
+
+    // Convert the user-chosen local date/time to full ISO:
+    // If the user is in a certain timezone, <input type="datetime-local" />
+    // does not store the offset. We can parse it manually.
+    const fullDate = new Date(selectedDateTime);
+    // Convert to UTC ISO string:
+    const isoDateTime = fullDate.toISOString();
+
+    const postData = {
+      // The key must match your serializer's field:
+      // `workout_template = models.ForeignKey(...)`
+      workout_template: selectedWorkoutId,
+      scheduled_date: isoDateTime
+    };
+
+    try {
+      const response = await fetch(`${backendUrl}/scheduled_workout/create/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(postData)
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to schedule workout");
+      }
+      const newSession = await response.json();
+      
+      // Add the new event to our local array
+      const newEvent = {
+        id: newSession.id,
+        title: newSession.workout_title,
+        start: newSession.scheduled_date,
+        end: new Date(new Date(newSession.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
+      };
+      setWorkouts((prev) => [...prev, newEvent]);
+
+      // Reset
+      setShowScheduleModal(false);
+      setSelectedWorkoutId(null);
+      setSelectedDateTime("");
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to schedule workout");
     }
   };
 
-  const handleCustomerFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setSelectedCustomer(value === "all" ? "all" : parseInt(value));
+  // View details modal
+  const handleEventClick = (info: any) => {
+    const event = workouts.find((w) => w.id.toString() === info.event.id);
+    if (event) {
+      setSelectedEvent(event);
+      setShowModal(true);
+    }
   };
-
-  const filteredWorkouts = isTrainer && selectedCustomer !== "all" 
-    ? workouts.filter(workout => workout.customerId === selectedCustomer)
-    : workouts;
 
   return (
     <motion.div className="d-flex flex-column min-vh-100">
@@ -146,38 +194,14 @@ export default function Calendar() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="container bg-dark text-white rounded-lg shadow p-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <h1 className="text-center mb-4">Workout Calendar</h1>
-          
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
-
-          {isTrainer && (
-            <div className="mb-4">
-              <label htmlFor="customerFilter" className="form-label">Filter by Customer:</label>
-              <select 
-                id="customerFilter" 
-                className="form-select bg-dark text-white border-secondary" 
-                value={selectedCustomer === "all" ? "all" : selectedCustomer.toString()}
-                onChange={handleCustomerFilter}
-              >
-                <option value="all">All Customers</option>
-                {customers.map(customer => (
-                  <option key={customer.id} value={customer.id.toString()}>
-                    {customer.username}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {error && <div className="alert alert-danger">{error}</div>}
 
           <div className="calendar-container bg-dark text-white">
             {isLoading ? (
@@ -191,51 +215,115 @@ export default function Calendar() {
                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"
                 headerToolbar={{
-                  left: 'prev,next today',
-                  center: 'title',
-                  right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                  left: "prev,next today",
+                  center: "title",
+                  right: "dayGridMonth,timeGridWeek,timeGridDay"
                 }}
-                events={filteredWorkouts}
+                events={workouts}
                 eventClick={handleEventClick}
+                dateClick={handleDateClick}
+                // for time selection via drag, you can enable "selectable: true," and use "select" event
+                // selectable={true}
+                // select={handleSelect}
                 height="auto"
-                themeSystem="bootstrap"
-                // Custom styles for dark theme
-                eventBackgroundColor="#3788d8"
-                eventBorderColor="#2c6cb0"
-                dayCellClassNames="bg-dark-subtle text-white-50"
-                slotLabelClassNames="text-white-50"
-                dayHeaderClassNames="text-white"
+                themeSystem="bootstrap5"
               />
             )}
           </div>
 
-          {/* Event Detail Modal */}
+          {/* Event details modal */}
           {showModal && selectedEvent && (
-            <div className="modal d-block" tabIndex={-1} role="dialog" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-              <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+              <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content bg-dark text-white">
                   <div className="modal-header">
                     <h5 className="modal-title">{selectedEvent.title}</h5>
-                    <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
+                    <button type="button" className="btn-close btn-close-white"
+                            onClick={() => setShowModal(false)}></button>
                   </div>
                   <div className="modal-body">
-                    {isTrainer && selectedEvent.customerName && (
-                      <p><strong>Customer:</strong> {selectedEvent.customerName}</p>
-                    )}
                     <p><strong>Date:</strong> {new Date(selectedEvent.start).toLocaleDateString()}</p>
-                    <p><strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()} - {new Date(selectedEvent.end).toLocaleTimeString()}</p>
-                    {selectedEvent.description && (
-                      <p><strong>Description:</strong> {selectedEvent.description}</p>
-                    )}
+                    <p><strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()} - 
+                      {new Date(selectedEvent.end).toLocaleTimeString()}</p>
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Close</button>
                     <button 
-                      type="button" 
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="button"
                       className="btn btn-primary"
                       onClick={() => navigate(`/workouts/update/${selectedEvent.id}`)}
                     >
                       View Workout Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Schedule a new workout modal */}
+          {showScheduleModal && (
+            <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content bg-dark text-white">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Schedule Workout</h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowScheduleModal(false)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    <label htmlFor="workoutSelect" className="form-label">
+                      Select a Workout Template:
+                    </label>
+                    <select
+                      id="workoutSelect"
+                      className="form-select bg-dark text-white border-secondary mb-3"
+                      value={selectedWorkoutId || ""}
+                      onChange={(e) => setSelectedWorkoutId(Number(e.target.value))}
+                    >
+                      <option value="">-- Select a Workout --</option>
+                      {availableWorkouts.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.title}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Input for date+time */}
+                    <label htmlFor="dateTimeInput" className="form-label">
+                      Pick Date &amp; Time:
+                    </label>
+                    <input
+                      id="dateTimeInput"
+                      type="datetime-local"
+                      className="form-control bg-dark text-white border-secondary"
+                      value={selectedDateTime}
+                      onChange={(e) => setSelectedDateTime(e.target.value)}
+                    />
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowScheduleModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleScheduleWorkout}
+                    >
+                      Schedule
                     </button>
                   </div>
                 </div>
