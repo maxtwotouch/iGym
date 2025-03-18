@@ -67,8 +67,10 @@ class UpdateWorkoutView(generics.UpdateAPIView):
         return Workout.objects.filter(owners=user)
     
     def perform_update(self, serializer):
+        user = self.request.user
         if serializer.is_valid():
-            serializer.save(owners=self.request.user)
+            workout = serializer.save(author=user)  # Save first
+            workout.owners.add(user)  # Ensure author is in owners
         else:
             print(serializer.errors)
     
@@ -124,8 +126,16 @@ class WorkoutListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(owners=user)
-    
 
+class ClientsListView(generics.ListAPIView):
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        #  Retrieve all user profiles where personal_trainer is the current user's trainer profile
+        return User.objects.filter(profile__personal_trainer__user=user)
+    
 
 class WorkoutSessionListView(generics.ListAPIView):
     serializer_class = WorkoutSessionSerializer

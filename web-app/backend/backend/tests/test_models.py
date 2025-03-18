@@ -20,6 +20,7 @@ class UserProfileModelTest(TestCase):
         self.assertEqual(profile.user, user)
         self.assertEqual(profile.weight, weight)
         self.assertEqual(profile.height, height)
+        self.assertEqual(profile.personal_trainer, None)
     
     def test_create_user_without_weight_and_height(self):
         user = User.objects.create_user(username="testuser", password="password")
@@ -38,6 +39,39 @@ class UserProfileModelTest(TestCase):
         # Saving this user profile in the database should raise an integrity error
         with self.assertRaises(IntegrityError):
             profile.save()  
+    
+    def test_delete_user_cascade(self):
+        user = User.objects.create_user(username="testuser", password="password")
+        profile = UserProfile.objects.create(user=user)
+        
+        # Deleting the user should also delete the user profile
+        user.delete()
+        
+        # Make sure that the user profile was deleted
+        self.assertEqual(UserProfile.objects.count(), 0)
+    
+    def test_delete_personal_trainer(self):
+        weight = 75
+        height = 180
+        
+        user = User.objects.create_user(username="testuser", password="password")
+        profile = UserProfile.objects.create(user=user, weight=weight, height=height)
+        
+        experience = "2 years"
+        
+        # Create a django user and link it to our custom personal trainer profile
+        personal_trainer = User.objects.create_user(username="testPT", password="password")
+        personal_trainer_profile = PersonalTrainerProfile.objects.create(user=user, experience=experience)
+        
+        profile.peronsal_trainer = personal_trainer_profile
+        profile.save()
+        
+        # Deleting the personal trainer should set the personal trainer field to Null
+        personal_trainer_profile.delete()
+        
+        # Make sure that the personal trainer field was set to Null
+        self.assertIsNone(profile.personal_trainer)
+        
             
 
 class PersonalTrainerProfileModelTest(TestCase):
@@ -61,6 +95,16 @@ class PersonalTrainerProfileModelTest(TestCase):
         
         # None should have been assigned for this attribute
         self.assertEqual(profile.experience, experience)
+    
+    def test_delete_personal_trainer_cascade(self):
+        user = User.objects.create_user(username="testuser", password="password")
+        profile = PersonalTrainerProfile.objects.create(user=user)
+        
+        # Deleting the user should also delete the personal trainer profile
+        user.delete()
+        
+        # Make sure that the personal trainer profile was deleted
+        self.assertEqual(PersonalTrainerProfile.objects.count(), 0)
         
 
 class ExerciseModelTest(TestCase):
@@ -118,9 +162,13 @@ class WorkoutModelTest(TestCase):
         # Ensure that the date was set automatically
         self.assertIsNotNone(workout.date_created)
         
+        # It is the job of the view to add the user as an owner
+        self.assertEqual(workout.owners.count(), 0)
+        
         # Make sure that the 2 exercises were added to the workout
         self.assertIn(self.first_exercise, workout.exercises.all())
         self.assertIn(self.second_exercise, workout.exercises.all())
+        
     
     def test_create_workout_without_author(self):
         name = "test workout"
@@ -139,6 +187,15 @@ class WorkoutModelTest(TestCase):
         # Should raise a validation error since it exceeds max length
         with self.assertRaises(ValidationError):
             workout.full_clean()
+    
+    def test_delete_workout_cascade(self):
+        workout = Workout.objects.create(name="test workout", author=self.user)
+        
+        # Deleting the author should also delete the workout
+        self.user.delete()
+        
+        # Make sure that the workout was deleted
+        self.assertEqual(Workout.objects.count(), 0)
         
 
 class WorkoutSessionModelTest(TestCase):
