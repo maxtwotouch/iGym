@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
-import { create } from "motion/react-m";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {

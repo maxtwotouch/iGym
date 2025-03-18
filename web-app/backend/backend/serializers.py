@@ -20,11 +20,12 @@ class DefaultUserSerializer(serializers.ModelSerializer):
 
 # Serializer for the user profile
 class UserProfileSerializer(serializers.ModelSerializer):
-    personal_trainer = serializers.PrimaryKeyRelatedField(queryset=PersonalTrainerProfile.objects.all())
+    # Allow only users with a trainer profile to be set as personal trainers
+    personal_trainer = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(trainer_profile__isnull=False), required=False, allow_null=True)
     class Meta:
         model = UserProfile
         
-        fields = ["id", "height", "weight", "personal_trainer"] 
+        fields = ["height", "weight", "personal_trainer"] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
@@ -56,10 +57,10 @@ class UserSerializer(serializers.ModelSerializer):
     
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
-    clients = serializers.PrimaryKeyRelatedField(many=True, queryset=UserProfile.objects.all())
+    clients = serializers.PrimaryKeyRelatedField(many=True, required=False, allow_null=True, read_only=True)
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["id", "experience", "clients"]
+        fields = ["experience", "clients"]
 
 # Nested serializer to connect with the personal trainer model
 class PersonalTrainerSerializer(serializers.ModelSerializer):
@@ -76,23 +77,6 @@ class PersonalTrainerSerializer(serializers.ModelSerializer):
         PersonalTrainerProfile.objects.create(**profile_data)
         return user
     
-    def update(self, instance, validated_data):
-        # Extract nested trainer_profile data (if any)
-        profile_data = validated_data.pop("trainer_profile", None)
-        # Update the flat fields of the User model
-        instance = super().update(instance, validated_data)
-        if profile_data:
-            trainer_profile = instance.trainer_profile
-            # Handle the many-to-many field clients separately if provided
-            clients = profile_data.pop("clients", None)
-            if clients is not None:
-                trainer_profile.clients.set(clients)
-            # Update remaining fields in the PersonalTrainerProfile
-            for attr, value in profile_data.items():
-                setattr(trainer_profile, attr, value)
-            trainer_profile.save()
-        return instance
-
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise

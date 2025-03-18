@@ -12,7 +12,7 @@ class UserProfile(models.Model):
     height = models.PositiveIntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, default="user")
 
-    personal_trainer = models.ForeignKey("PersonalTrainerProfile", on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
+    personal_trainer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
