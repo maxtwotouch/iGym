@@ -1,3 +1,4 @@
+
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
@@ -148,14 +149,14 @@ class WorkoutSessionModelTest(TestCase):
         self.workout = Workout.objects.create(name="test workout", author=self.user)
 
     def test_create_workout_session_basic(self):
-        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
-
         # Add calories burned to the workout session
-        workout_session.calories_burned = 1
+        calories_burned = 0.5
+        
+        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=calories_burned)
 
         self.assertEqual(workout_session.user, self.user)
         self.assertEqual(workout_session.workout, self.workout)
-        self.assertEqual(workout_session.calories_burned, 1)
+        self.assertEqual(workout_session.calories_burned, calories_burned)
 
         # Ensure that the start time was set automatically
         self.assertIsNotNone(workout_session.start_time)
@@ -168,34 +169,38 @@ class WorkoutSessionModelTest(TestCase):
             workout_session.save()
 
     def test_create_workout_session_with_empty_user(self):
-        workout_session = WorkoutSession(workout=self.workout)
+        calories_burned = 0.5
+        workout_session = WorkoutSession(workout=self.workout, calories_burned=calories_burned)
 
-        # User should default to None if not specified
-        self.assertIsNone(workout_session.user)
+        # A user performing the workout session is required
+        with self.assertRaises(IntegrityError):
+            workout_session.save()
 
     def test_create_workout_session_with_negative_calories_burned(self):
-        workout_session = WorkoutSession(user=self.user, workout=self.workout)
-
-        workout_session.calories_burned = -1 
+        calories_burned = -0.5 
+        
+        workout_session = WorkoutSession(user=self.user, workout=self.workout, calories_burned=calories_burned)
 
         # Should raise an integrity error as calories burned should be a positive integer or default to null
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             workout_session.save()
 
 
 class ExerciseSessionModelTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
+        
+        # Create a test exercise
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout.exercises.set([self.exercise])
 
         # Create a test workout session
         self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
 
-        # Create a test exercise
-        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
 
     def test_create_exercise_session_basic(self):
-        exercise_session = ExerciseSession(exercise=self.exercise, workout_session=self.workout_session)
+        exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
 
         self.assertEqual(exercise_session.exercise, self.exercise)
         self.assertEqual(exercise_session.workout_session, self.workout_session)
@@ -215,7 +220,7 @@ class ExerciseSessionModelTest(TestCase):
             exercise_session.save()
 
 
-class SetSessionModelTest(TestCase):
+class SetModelTest(TestCase):
     def setUp(self):
         # Establish a user, workout, workout session, exercise and exercise session
         self.user = User.objects.create_user(username="testuser", password="password")
@@ -223,12 +228,13 @@ class SetSessionModelTest(TestCase):
         self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
+        self.workout.exercises.set([self.exercise])
 
         self.repetitions = 10
         self.weight = 50
 
     def test_create_set_basic(self):
-        exercise_set = Set(exercise_session=self.exercise_session, repetitions=self.repetitions, weight=self.weight)
+        exercise_set = Set.objects.create(exercise_session=self.exercise_session, repetitions=self.repetitions, weight=self.weight)
 
         self.assertEqual(exercise_set.exercise_session, self.exercise_session)
         self.assertEqual(exercise_set.repetitions, self.repetitions)
@@ -266,3 +272,11 @@ class SetSessionModelTest(TestCase):
             exercise_set.full_clean()
 
     # Visit later, should be tested against max digits and assigned decimal places
+
+    
+# Model tests that needs to be updated
+#  Userprofile - now contains a personal trainer field
+# Workout, now contains a owners field
+# All models with foreign key, make sure that  on cascade works
+# Message, chatroom
+

@@ -8,7 +8,6 @@ type PT = {
     name: string;
     trainer_profile?: {
         id: number;
-        clients: number[];
         experience: string;
     };
 };
@@ -34,11 +33,10 @@ const PtList: React.FC = () => {
                 const data = await response.json();
                 setPts(data.map((pt: any) => ({ 
                     id: pt.id, 
-                    name: pt.username, 
+                    name: pt.username,
                     trainer_profile: {
                         id: pt.trainer_profile.id,
-                        experience: pt.trainer_profile.experience,
-                        clients: pt.trainer_profile.clients || []
+                        experience: pt.trainer_profile.experience
                     }
                 })));
             } catch (error) {
@@ -64,24 +62,15 @@ const PtList: React.FC = () => {
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 body: JSON.stringify({ user_profile: {personal_trainer: ptProfileId} })
             });
-
-            // Get previous PT's clients, add current user to the list
-            const getPtResponse = await fetch(`http://127.0.0.1:8000/personal_trainer/${ptUserId}/`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (!getPtResponse.ok) throw new Error(`Failed to fetch PT info. Status: ${getPtResponse.status}`);
-            
-            const ptData: PT = await getPtResponse.json();
             
             // Create a chat room between the user and the PT
-            await addChatRoom(ptUserId, ptData.name);
+            const pt = pts.find(pt => pt.id === ptUserId) || null;
+            if (!pt) {
+                alert("could not find pt");
+                return;
+            }
+            await addChatRoom(ptUserId, pt.name);
             
-            // Update PT's clients list, with the new user added to the list
-            await fetch(`http://127.0.0.1:8000/personal_trainer/update/${ptUserId}/`, {
-                method: "PATCH",
-                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ trainer_profile: { clients: [...ptData.trainer_profile?.clients ?? [], Number(userId)] } })
-            });
         } catch (error) {
             console.error("Error updating PT selection:", error);
         }

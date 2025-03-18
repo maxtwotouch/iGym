@@ -54,6 +54,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userObjects = await userObjectsResponse.json();
+                console.log(userObjects);
                 setUsers(userObjects);
     
                 // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room

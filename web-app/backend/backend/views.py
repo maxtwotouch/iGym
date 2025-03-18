@@ -1,15 +1,15 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, ScheduledWorkout, PersonalTrainerProfile, UserProfile
-from rest_framework import generics
-from .serializers import UserSerializer, PersonalTrainerSerializer, WorkoutSerializer, PersonalTrainerProfileSerializer
+from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, PersonalTrainerProfile
+from django.contrib.auth.models import User
+from rest_framework import generics, serializers
+from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, MessageSerializer, ChatRoomCreateSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-
+from rest_framework.exceptions import ValidationError
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -18,11 +18,11 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class ListUserView(generics.ListAPIView):
-    serializer_class = UserSerializer
+    serializer_class = DefaultUserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.filter(user_profile__isnull=True)
+        return User.objects.all()
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -83,7 +83,6 @@ class CreateWorkoutView(generics.CreateAPIView):
         if serializer.is_valid():
             workout = serializer.save(author=user)  # Save first
             workout.owners.add(user)  # Ensure author is in owners
-
         else:
             print(serializer.errors)
 
@@ -98,9 +97,19 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
             print(serializer.errors)
 
 class CreateExerciseSessionView(generics.CreateAPIView):
-    queryset = ExerciseSession.objects.all()
     serializer_class = ExerciseSessionSerializer
     permission_classes = [IsAuthenticated]
+    
+    # Make sure that the exercise is contained in the workout
+    def perform_create(self, serializer):
+        exercise = serializer.validated_data["exercise"]
+        workout_session = serializer.validated_data["workout_session"]
+        
+        if not workout_session.workout.exercises.filter(id=exercise.id).exists():
+            raise serializers.ValidationError("This exercise is not a part of the workout")
+        
+        serializer.save()
+
 
 class CreateSetView(generics.CreateAPIView):
     queryset = Set.objects.all()
@@ -122,15 +131,9 @@ class WorkoutSessionListView(generics.ListAPIView):
     serializer_class = WorkoutSessionSerializer
     permission_classes = [IsAuthenticated]
     
-    queryset = WorkoutSession.objects.all()
-
-class UserWorkoutSessionListView(generics.ListAPIView):
-    serializer_class = WorkoutSessionSerializer
-    permission_classes = [IsAuthenticated]
-
     def get_queryset(self):
-        # Return only the sessions belonging to the current user
         return WorkoutSession.objects.filter(user=self.request.user)
+    
 
 class WorkoutDetailView(generics.RetrieveAPIView):
     serializer_class = WorkoutSerializer

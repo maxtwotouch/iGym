@@ -20,6 +20,7 @@ function NavBar() {
                     <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
                     <Link className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`} to="/calendar">Calendar</Link>
                     <Link className={`nav-link ${location.pathname === '/chat' ? 'active' : ''}`} to="/chat">Chat</Link>
+                    <Link className={`nav-link ${location.pathname === '/personalTrainers' ? 'active' : ''}`} to="/personalTrainers">Personal Trainers</Link>
 
                 </motion.div>
 
