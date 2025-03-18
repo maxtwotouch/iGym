@@ -1,10 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-<<<<<<< Updated upstream
-=======
 from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, ScheduledWorkout, PersonalTrainerProfile, UserProfile
 from rest_framework import generics
-from .serializers import UserSerializer, PeronsalTrainerSerializer, WorkoutSerializer, PersonalTrainerProfileSerializer
+from .serializers import UserSerializer, PersonalTrainerSerializer, WorkoutSerializer, PersonalTrainerProfileSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, MessageSerializer, ChatRoomCreateSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
