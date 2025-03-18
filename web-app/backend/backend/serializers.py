@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession, ScheduledWorkout
+from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
 from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 

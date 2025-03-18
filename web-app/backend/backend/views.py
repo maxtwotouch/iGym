@@ -1,11 +1,10 @@
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, PersonalTrainerProfile
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
-from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, MessageSerializer, ChatRoomCreateSerializer
+from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, UserProfileSerializer, PersonalTrainerProfileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.decorators import login_required
@@ -175,6 +174,7 @@ class ChatRoomRetrieveView(generics.RetrieveAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
     
+    # Can only retrieve chat rooms related to the current user
     def get_queryset(self):
         user = self.request.user
         return ChatRoom.objects.filter(participants=user)
@@ -184,11 +184,12 @@ class ChatRoomListView(generics.ListAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
     
+    # Get all chat rooms related to the current user
     def get_queryset(self):
         user = self.request.user
         return ChatRoom.objects.filter(participants=user)
 
-class ChatRoomCreateView(generics.CreateAPIView):
+class ChatRoomDeleteView(generics.DestroyAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
     
@@ -196,21 +197,7 @@ class ChatRoomCreateView(generics.CreateAPIView):
     def get_queryset(self): 
         user = self.request.user
         return ChatRoom.objects.filter(participants=user) 
-    
-    
+
 class ChatRoomCreateView(generics.CreateAPIView):
-    serializer_class = ChatRoomCreateSerializer
+    serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
-
-
-    
-class MessageListView(generics.ListAPIView):
-    serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
-    
-    # Get all messages related to the current chat room
-    def get_queryset(self):
-        chat_room_id = self.kwargs["pk"]
-        return Message.objects.filter(chat_room__id=chat_room_id).order_by("date_sent")
-    
-

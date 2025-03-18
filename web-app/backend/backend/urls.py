@@ -14,15 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.urls import path, include
 from django.contrib import admin
-<<<<<<< Updated upstream
-from django.urls import path
-from .views import hello_world
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/hello/', hello_world),
-=======
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
@@ -55,9 +48,13 @@ urlpatterns = [
     path("chat_room/<int:pk>/", ChatRoomRetrieveView.as_view(), name="chat_room-retrieve"),
     path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
     path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
-    path("chat_room/messages/<int:pk>/", MessageListView.as_view(), name="chat_room-messages"),
     path("chat_room/delete/<int:pk>/", ChatRoomDeleteView.as_view(), name="chat_room-delete"),
     path("users/", ListUserView.as_view(), name="user-list"),
+    path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
+    path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
+    path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
+    path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
+    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail")
 ]
 
 """
