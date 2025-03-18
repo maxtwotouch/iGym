@@ -51,6 +51,7 @@ const PtList: React.FC = () => {
         try {
             const token = localStorage.getItem("accessToken");
             const userId = localStorage.getItem("user_id");
+            const username = localStorage.getItem("username"); 
             if (!token) {
                 alert("Access token not found in localStorage");
                 navigate("/login");
@@ -60,8 +61,10 @@ const PtList: React.FC = () => {
             await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ user_profile: {personal_trainer: ptProfileId} })
+                body: JSON.stringify({ profile: {personal_trainer: ptProfileId} })
             });
+
+            console.log("personal trainer id: ", ptProfileId);
             
             // Create a chat room between the user and the PT
             const pt = pts.find(pt => pt.id === ptUserId) || null;

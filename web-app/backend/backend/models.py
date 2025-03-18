@@ -4,6 +4,14 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 
+# Model for personal trainers
+class PersonalTrainerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainer_profile')
+    
+    # Example attributes
+    experience = models.CharField(max_length=100, blank=True, default='none')  
+    role = models.CharField(max_length=20, default="trainer")
+
 # Model for normal users
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -13,15 +21,7 @@ class UserProfile(models.Model):
     height = models.PositiveIntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, default="user")
 
-    personal_trainer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
-
-# Model for personal trainers
-class PersonalTrainerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainer_profile')
-    
-    # Example attributes
-    experience = models.CharField(max_length=100, blank=True, default='none')  
-    role = models.CharField(max_length=20, default="trainer")
+    personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", blank=True, null=True)
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)

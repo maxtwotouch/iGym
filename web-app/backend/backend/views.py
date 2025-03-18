@@ -17,7 +17,7 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class ListUserView(generics.ListAPIView):
-    serializer_class = DefaultUserSerializer
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -124,6 +124,7 @@ class WorkoutListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Workout.objects.filter(owners=user)
+    
 
 
 class WorkoutSessionListView(generics.ListAPIView):

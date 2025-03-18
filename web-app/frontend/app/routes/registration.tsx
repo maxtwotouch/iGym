@@ -25,9 +25,10 @@ export default function RegistrationForm() {
 
     if (userType === "user") {
       url = url = `${backendUrl}/user/register/`;
-      payload.user_profile = {
+      payload.profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
+        personal_trainer: null,
       };
     } else if (userType === "trainer") {
       url = `${backendUrl}/personal_trainer/register/`;
