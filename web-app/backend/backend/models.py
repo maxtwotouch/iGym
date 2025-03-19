@@ -75,7 +75,7 @@ class Set(models.Model):
 class ChatRoom(models.Model):
     participants = models.ManyToManyField(User)
     date_created = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, blank=False, null=False)
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
@@ -87,7 +87,7 @@ class Message(models.Model):
 class WorkoutMessage(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     date_sent = models.DateTimeField(auto_now_add=True)
-    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="workout_messages")
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages")
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="workout_messages", blank=False, null=False)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages", blank=False, null=False)
 
 

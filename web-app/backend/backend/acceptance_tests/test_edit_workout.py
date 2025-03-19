@@ -12,6 +12,7 @@ from backend.models import UserProfile, Workout, Exercise
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
+import unittest
 
 
 class EditWorkoutTest(StaticLiveServerTestCase):
@@ -76,6 +77,7 @@ class EditWorkoutTest(StaticLiveServerTestCase):
         # Create a test workout
         self.test_workout = Workout.objects.create(author=self.test_user, name="Test Workout")
         self.test_workout.exercises.set(exercises[:2]) 
+        self.test_workout.owners.add(self.test_user)
 
         
         
@@ -109,7 +111,7 @@ class EditWorkoutTest(StaticLiveServerTestCase):
         
         time.sleep(5)
         
-        view_workout_button = WebDriverWait(self.browser, 5).until(
+        view_workout_button = WebDriverWait(self.browser, 10).until(
             EC.element_to_be_clickable((By.NAME, "viewWorkoutButton"))
         )
         view_workout_button.click()

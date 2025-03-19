@@ -8,6 +8,7 @@ import subprocess
 from django.conf import settings
 import os
 import time
+import unittest
 
 class SignInAndLogInTest(StaticLiveServerTestCase):
     @classmethod

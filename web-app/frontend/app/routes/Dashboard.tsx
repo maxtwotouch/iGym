@@ -23,7 +23,6 @@ interface Exercise {
   id: number;
 }
 
-
 const CustomerDashboard: React.FC = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([]); 
   const [username, setUsername] = useState<string>(""); 
@@ -179,6 +178,7 @@ const CustomerDashboard: React.FC = () => {
 
                   {/* Start workout session (logging) */}
                   <motion.button
+                    name="startWorkoutButton"
                     onClick={() => navigate(`/${workout.id}/workout/session/create`)}
                     className="mt-2 w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
                     whileHover={{ scale: 1.05 }}

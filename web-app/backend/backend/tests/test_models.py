@@ -4,6 +4,7 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
+from backend.models import ChatRoom, Message
 
 
 class UserProfileModelTest(TestCase):
@@ -241,6 +242,24 @@ class WorkoutSessionModelTest(TestCase):
         # Should raise an integrity error as calories burned should be a positive integer or default to null
         with self.assertRaises(ValidationError):
             workout_session.save()
+    
+    def test_delete_user_cascade(self):
+        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
+
+        # Deleting the user should also delete the workout session
+        self.user.delete()
+
+        # Make sure that the workout session was deleted
+        self.assertEqual(WorkoutSession.objects.count(), 0)
+    
+    def test_delete_workout_cascade(self):
+        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
+
+        # Deleting the workout should also delete the workout session
+        self.workout.delete()
+
+        # Make sure that the workout session was deleted
+        self.assertEqual(WorkoutSession.objects.count(), 0)
 
 
 class ExerciseSessionModelTest(TestCase):
@@ -275,6 +294,24 @@ class ExerciseSessionModelTest(TestCase):
         # Should raise an integrity error as workout session is a required field
         with self.assertRaises(IntegrityError):
             exercise_session.save()
+    
+    def test_delete_exercise_cascade(self):
+        exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
+
+        # Deleting the exercise should also delete the exercise session
+        self.exercise.delete()
+
+        # Make sure that the exercise session was deleted
+        self.assertEqual(ExerciseSession.objects.count(), 0)
+    
+    def test_delete_workout_session_cascade(self):
+        exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
+
+        # Deleting the workout session should also delete the exercise session
+        self.workout_session.delete()
+        
+        # Make sure that the exercise session was deleted
+        self.assertEqual(ExerciseSession.objects.count(), 0)
 
 
 class SetModelTest(TestCase):
@@ -327,13 +364,129 @@ class SetModelTest(TestCase):
         # Should raise an validation error as weight should be a positive decimal number
         with self.assertRaises(ValidationError):
             exercise_set.full_clean()
+    
+    def test_delete_exercise_session_cascade(self):
+        exercise_set = Set.objects.create(exercise_session=self.exercise_session, repetitions=self.repetitions, weight=self.weight)
+
+        # Deleting the exercise session should also delete the set
+        self.exercise_session.delete()
+
+        # Make sure that the set was deleted
+        self.assertEqual(Set.objects.count(), 0)
 
     # Visit later, should be tested against max digits and assigned decimal places
 
+class ChatRoomModelTest(TestCase):
+    def setUp(self):
+        self.first_user = User.objects.create_user(username="firstTestuser", password="password")
+        self.second_user = User.objects.create_user(username="secondTestuser", password="password")
     
-# Model tests that needs to be updated
-#  Userprofile - now contains a personal trainer field
-# Workout, now contains a owners field
-# All models with foreign key, make sure that  on cascade works
-# Message, chatroom
+    def test_create_chat_room_basic(self):
+        name = "test chat room"
+        chat_room = ChatRoom.objects.create(name=name)
+        
+        # Add the two users as participants
+        chat_room.participants.add(self.first_user, self.second_user)
+        
+        self.assertEqual(chat_room.name, name)
+        self.assertIn(self.first_user, chat_room.participants.all())
+        self.assertIn(self.second_user, chat_room.participants.all())
+        self.assertIsNotNone(chat_room.date_created)
+    
+    def test_create_chat_room_without_name(self):
+        chat_room = ChatRoom()
+        
+        with self.assertRaises(ValidationError):
+            chat_room.full_clean()  # Triggers Django's validation
+        
+    def test_create_chat_room_with_name_exceeding_max_length(self):
+        # Generate a name that is too long
+        name = "A" * 256
+        
+        chat_room = ChatRoom(name=name)
+        
+        # Should raise a validation error since the name exceeds max length
+        with self.assertRaises(ValidationError):
+            chat_room.full_clean()
+    
+    def test_create_chat_room_without_participants(self):
+        name = "test chat room"
+        chat_room = ChatRoom(name=name)
+        
+        # Should not raise an error as participants is not a required field
+        chat_room.save()
+
+class MessageModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.chat_room = ChatRoom.objects.create(name="test chat room")
+    
+    def test_create_message_basic(self):
+        content = "test message"
+        message = Message.objects.create(sender=self.user, content=content, chat_room=self.chat_room)
+        
+        self.assertEqual(message.sender, self.user)
+        self.assertEqual(message.content, content)
+        self.assertIsNotNone(message.date_sent)
+        self.assertEqual(message.chat_room, self.chat_room)
+    
+    def test_create_message_without_content(self):
+        message = Message(sender=self.user, chat_room=self.chat_room)
+        
+        # Should raise a validation error as content is a required field
+        with self.assertRaises(ValidationError):
+            message.full_clean()
+    
+    def test_create_message_without_chat_room(self):
+        content = "test message"
+        message = Message(sender=self.user, content=content)
+        
+        # Should raise a validation error as content is a required field
+        with self.assertRaises(IntegrityError):
+            message.save()
+    
+    def test_create_message_without_sender(self):
+        content = "test message"
+        message = Message(content=content, chat_room=self.chat_room)
+        
+        # Should raise a validation error as content is a required field
+        with self.assertRaises(IntegrityError):
+            message.save()
+    
+    def test_delete_chat_room_cascade(self):
+        message = Message.objects.create(sender=self.user, content="test message", chat_room=self.chat_room)
+        
+        # Deleting the chat room should also delete the message
+        self.chat_room.delete()
+        
+        # Make sure that the message was deleted
+        self.assertEqual(Message.objects.count(), 0)
+    
+    def test_delete_sender_cascade(self):
+        message = Message.objects.create(sender=self.user, content="test message", chat_room=self.chat_room)
+        
+        # Deleting the sender should also delete the message
+        self.user.delete()
+        
+        # Make sure that the message was deleted
+        self.assertEqual(Message.objects.count(), 0)
+    
+        
+        
+        
+        
+        
+        
+    
+
+    
+        
+        
+        
+        
+
+
+    
+# Model tests to be done
+# Workout message
 

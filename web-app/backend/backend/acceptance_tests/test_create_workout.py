@@ -12,6 +12,7 @@ from backend.models import UserProfile
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
+import unittest
 
 class CreateWorkoutTest(StaticLiveServerTestCase):
     @classmethod
@@ -63,7 +64,6 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         cls.frontend_process.terminate()
         super().tearDownClass()
     
-
     def test_create_workout(self):
         # Load exercises
         call_command("loaddata", "exercises.json")

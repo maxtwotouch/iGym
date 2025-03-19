@@ -5,6 +5,7 @@ import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import { create } from "motion/react-m";
 import { pre } from "motion/react-client";
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -38,7 +39,7 @@ const WorkoutSession: React.FC = () => {
             }
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
+                const response = await fetch(`${backendUrl}/workouts/${id}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -70,7 +71,7 @@ const WorkoutSession: React.FC = () => {
                 return;
             }
             try {
-                const response = await fetch("http://127.0.0.1:8000/exercises/", {
+                const response = await fetch(`${backendUrl}/exercises/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -165,7 +166,7 @@ const WorkoutSession: React.FC = () => {
 
     const createWorkoutSession = async (token: string, totalCalories: number): Promise<number | null> => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/workout/session/create/', {
+            const response = await fetch(`${backendUrl}/workout/session/create/`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -195,7 +196,7 @@ const WorkoutSession: React.FC = () => {
     const createSets = async (token: string, exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
         try {
             const requests = sets.map(set => {
-                return fetch(`http://127.0.0.1:8000/set/create/`, {
+                return fetch(`${backendUrl}/set/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -229,7 +230,7 @@ const WorkoutSession: React.FC = () => {
     const createExerciseSessions = async (token: string, workoutSessionId: number): Promise<number | null> => {
         try {
             const requests = workoutExerciseSessions.map(async session => {
-                const response = await fetch('http://127.0.0.1:8000/exercise/session/create/', {
+                const response = await fetch(`${backendUrl}/exercise/session/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -339,6 +340,7 @@ const WorkoutSession: React.FC = () => {
                     ) : (
                         workoutExerciseSessions.map(session => {
                             const exercise = availableExercises.find(ex => ex.id === session.exercise);
+                            const exerciseName = exercise ? exercise.name : "Unknown Exercise";
                             return (
                                 <motion.div 
                                     key={session.exercise} 
@@ -358,6 +360,7 @@ const WorkoutSession: React.FC = () => {
                                             </motion.h3>
                                             {/* Input for weight */}
                                             <input 
+                                                name={`weight-${exerciseName}-${index + 1}`}
                                                 type="string" 
                                                 placeholder="Weight (kg)" 
                                                 className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none" 
@@ -366,6 +369,7 @@ const WorkoutSession: React.FC = () => {
                                             />
                                             {/* Input for repetitions */}
                                             <input 
+                                                name={`reps-${exerciseName}-${index + 1}`}
                                                 type="string" 
                                                 placeholder="Repetitions" 
                                                 className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -384,6 +388,7 @@ const WorkoutSession: React.FC = () => {
                                     ))}
                                     {/* Add set Button */}
                                     <motion.button 
+                                        name={`addSet-${exerciseName}`} 
                                         type="button" 
                                         className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
                                         onClick={() => addSet(session.exercise)}
@@ -397,6 +402,7 @@ const WorkoutSession: React.FC = () => {
                     {/* Save Button */}
                     <motion.div className="w-full col-span-full flex justify-center mt-6">
                         <motion.button 
+                            name="saveButton"
                             type="submit"
                             className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
                             whileHover={{ scale: 1.05 }}
