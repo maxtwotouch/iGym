@@ -20,12 +20,10 @@ class DefaultUserSerializer(serializers.ModelSerializer):
 
 # Serializer for the user profile
 class UserProfileSerializer(serializers.ModelSerializer):
-    # Allow only users with a trainer profile to be set as personal trainers
-    personal_trainer = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(trainer_profile__isnull=False), required=False, allow_null=True)
     class Meta:
         model = UserProfile
         
-        fields = ["height", "weight", "personal_trainer"] 
+        fields = ["id", "height", "weight", "personal_trainer"] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
@@ -44,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         # Extract nested user_profile data (if any)
-        profile_data = validated_data.pop("user_profile", None)
+        profile_data = validated_data.pop("user_profile")
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
         if profile_data:
@@ -57,10 +55,10 @@ class UserSerializer(serializers.ModelSerializer):
     
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
-    clients = serializers.PrimaryKeyRelatedField(many=True, required=False, allow_null=True, read_only=True)
+    clients = UserProfileSerializer(many=True, read_only=True)
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["experience", "clients"]
+        fields = ["id", "experience", "clients"]
 
 # Nested serializer to connect with the personal trainer model
 class PersonalTrainerSerializer(serializers.ModelSerializer):

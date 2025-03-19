@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 type PT = {
     id: number;
     name: string;
     trainer_profile?: {
-        clients: number[];
+        id: number;
         experience: string;
     };
 };
@@ -35,8 +34,8 @@ const PtList: React.FC = () => {
                     id: pt.id, 
                     name: pt.username, 
                     trainer_profile: {
-                        experience: pt.trainer_profile.experience,
-                        clients: pt.trainer_profile.clients || []
+                        id: pt.trainer_profile.id,
+                        experience: pt.trainer_profile.experience
                     }
                 })));
             } catch (error) {
@@ -47,7 +46,7 @@ const PtList: React.FC = () => {
         fetchPts();
     }, []);
 
-    const newPt = async (ptId: number) => {
+    const newPt = async ( ptUserId: number, ptProfileId: number ) => {
         try {
             const token = localStorage.getItem("accessToken");
             const userId = localStorage.getItem("user_id");
@@ -55,21 +54,21 @@ const PtList: React.FC = () => {
                 alert("Access token not found in localStorage");
                 navigate("/login");
             }
-            
+
             // Update user's personal trainer field, assigned PT for user. Automatically assigns the user to the PT's clients list.
             await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ user_profile: {personal_trainer: ptId} })
+                body: JSON.stringify({ user_profile: {personal_trainer: ptProfileId} })
             });
 
             // Create a chat room between the user and the PT
-            const pt = pts.find(pt => pt.id === ptId) || null;
+            const pt = pts.find(pt => pt.id === ptUserId) || null;
             if (!pt) {
                 alert("Could not find PT with the given ID");
                 return;
             }
-            await createChatRoomWithPt(ptId, pt.name);
+            await createChatRoomWithPt(ptUserId, pt.name);
         } catch (error) {
             console.error("Error updating PT selection:", error);
         }
@@ -153,7 +152,7 @@ const PtList: React.FC = () => {
                         <motion.button
                             className="w-full py-2 mt-4 bg-blue-600 rounded hover:bg-blue-700 transition"
                             whileHover={{ scale: 1.05 }}
-                            onClick={() => newPt(selectedPt.id)}
+                            onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
                         >
                             Confirm PT
                         </motion.button>

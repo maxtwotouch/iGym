@@ -142,7 +142,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
             socketRef.current.close();
         }
 
-        const socket = new WebSocket(`wss://127.0.0.1:8000/wss/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
+        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
         socketRef.current = socket; 
 
         socketRef.current.onmessage = (event) => { // Listen for new messages

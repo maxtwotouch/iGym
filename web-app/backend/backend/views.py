@@ -21,7 +21,7 @@ class ListUserView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.filter(user_profile__isnull=True)
+        return User.objects.filter(user_profile__isnull=False)
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
