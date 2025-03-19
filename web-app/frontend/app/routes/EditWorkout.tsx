@@ -5,6 +5,8 @@ import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.css';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
+
 
 
 // Interface to define the structure of an exercise object
@@ -34,7 +36,7 @@ const EditWorkout: React.FC = () => {
 
     const fetchExercises = async () => {
       try {
-          const response = await fetch(`http://127.0.0.1:8000/exercises/`, {
+          const response = await fetch(`${backendUrl}/exercises/`, {
               headers: { Authorization: `Bearer ${token}` },
           });
       
@@ -52,7 +54,7 @@ const EditWorkout: React.FC = () => {
 
     const fetchWorkoutData = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/workouts/${id}/`, {
+        const response = await fetch(`${backendUrl}/workouts/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -97,7 +99,7 @@ const EditWorkout: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/workouts/update/${id}/`, {
+      const response = await fetch(`${backendUrl}/workouts/update/${id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -157,6 +159,7 @@ const EditWorkout: React.FC = () => {
         >
           <label className="block text-lg mb-2">Change Workout Name:</label>
           <input
+            name="workoutName"
             type="text"
             value={newWorkoutName}
             onChange={(e) => setNewWorkoutName(e.target.value)}
@@ -184,6 +187,7 @@ const EditWorkout: React.FC = () => {
 
                     {/* Delete exercise from Exercise List */}
                     <motion.button
+                      name="deleteExercise"
                       onClick={() => removeExerciseFromWorkout(exerciseId)}
                       className="btn btn-sm btn-danger ml-4"
                       whileHover={{ scale: 1.05 }}
@@ -198,6 +202,7 @@ const EditWorkout: React.FC = () => {
 
           {/* Add Exercise Button */}
           <motion.button
+            name="editExercises"
             type="button"
             onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/update/${id}/`, selectedExercises, newWorkoutName } })}
             className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
@@ -208,6 +213,7 @@ const EditWorkout: React.FC = () => {
 
           {/* Save Button */}
           <motion.button
+            name="saveWorkout"
             onClick={handleSaveWorkout}
             className="w-full py-2 mt-4 bg-green-600 hover:bg-green-700 rounded text-white"
             whileHover={{ scale: 1.05 }}

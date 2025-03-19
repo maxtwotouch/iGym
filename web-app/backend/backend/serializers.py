@@ -1,33 +1,33 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
-from .models import ExerciseSession, Set
+from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ["id", "username", "password"]
-#         extra_kwargs = {"password": {"write_only": True}}
+# should not be used
+
+class DefaultUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
         
-#     def create(self, validated_data):
-#         user = User.objects.create_user(**validated_data) 
-#         return user
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data) 
+        return user
 
 # Serializer for the user profile
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         
-        # Fields specified for the user profile
-        fields = ["height", "weight"] 
+        fields = ["id", "height", "weight", "personal_trainer"] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
-    
     class Meta:
         model = User
         fields = ["id", "username", "password", "profile"]
@@ -36,20 +36,39 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, **profile_data)
+        profile_data["user"] = user
+        UserProfile.objects.create(**profile_data)
         return user
     
-    
-    
+    def update(self, instance, validated_data):
+        print("instance is:", instance.profile.weight)
+        print("validated_data is:", validated_data)
+        # Extract nested user_profile data (if any)
+        profile_data = validated_data.pop("user_profile")
+        # Update the flat fields of the User model
+        instance = super().update(instance, validated_data)
+        print("instance is:", instance)
+        print("profile_data is:", profile_data)
+        
+        
+        if profile_data:
+            profile = instance.profile
+            # Update each attribute in UserProfile with the new values
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+                print("user profile update is", profile)
+            profile.save()
+        return instance
     
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
+    clients = UserProfileSerializer(many=True, read_only=True)
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["experience"]
+        fields = ["id", "experience"]
 
 # Nested serializer to connect with the personal trainer model
-class PeronsalTrainerSerializer(serializers.ModelSerializer):
+class PersonalTrainerSerializer(serializers.ModelSerializer):
     trainer_profile = PersonalTrainerProfileSerializer()
     class Meta:
         model = User
@@ -59,20 +78,21 @@ class PeronsalTrainerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         profile_data = validated_data.pop('trainer_profile')
         user = User.objects.create_user(**validated_data)
-        PersonalTrainerProfile.objects.create(user=user, **profile_data)
+        profile_data["user"] = user
+        PersonalTrainerProfile.objects.create(**profile_data)
         return user
-
+    
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = ["id", "name", "description", "muscle_group", "image", "calories"]
+        fields = ["id", "name", "description", "muscle_group", "image"]
         
 
 
 class WorkoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workout
-        fields = ["id", "author", "name", "date_created", "exercises"]
+        fields = ["id", "author", "owners", "name", "date_created", "exercises"]
         extra_kwargs = {"author": {"read_only": True}}
 
 class SetSerializer(serializers.ModelSerializer):
@@ -101,18 +121,44 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         user = self.user
         
+        data["id"] = user.id
         data["username"] = user.username
         
         if hasattr(user, "profile"):
             role = user.profile.role
-            username = user.username
-            data["profile"] = {"role": role}
+            data["profile"] = {
+                "role": role,
+                "weight": user.profile.weight
+            }
         
         elif hasattr(user, "trainer_profile"):
             role = user.trainer_profile.role
             data["trainer_profile"] = {"role": role}
         
         return data
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ["id", "sender", "content", "date_sent", "chat_room"]
+        
+
+class ChatRoomSerializer(serializers.ModelSerializer):
+    messages = MessageSerializer(many=True, read_only=True)
+    participants = serializers.SerializerMethodField()
+    class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "participants_display", "date_created", "name", "messages", "workout_messages"]
+
+    def get_participants(self, obj):
+        return obj.participants.values("id", "username")
+    
+
+class ChatRoomCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "date_created", "name"]
+    
     
         
         

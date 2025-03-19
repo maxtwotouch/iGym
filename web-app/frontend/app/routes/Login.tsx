@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+
 export default function LoginForm() {
   const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
@@ -9,32 +11,42 @@ export default function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+  
     try {
-      const response = await fetch("http://127.0.0.1:8000/token/", {
+      const response = await fetch(`${backendUrl}/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
-        // Store JWT tokens for subsequent authenticated requests.
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("username", data.username); // Store username for display
-        // Store user type  
-        if (data.profile?.role) {
-          localStorage.setItem("userType", data.profile.role);
-        }
-        console.log("Stored userType in localStorage:", data.profile.role);
-        navigate("/dashboard");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData);
-        alert("Login failed: " + (errorData.detail || "Unknown error"));
+      const data = await response.json();
+      if (!response.ok || !data.access) {
+        alert("Login failed: Incorrect username or password.");
+        return;
       }
+  
+      // Store JWT tokens for subsequent authenticated requests.
+      localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
+      localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
+      localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username);
+      localStorage.setItem("user_id", import.meta.env.VITE_USER_ID || data.id);
+      
+      console.log("User data:", data);
+      if (data.user_profile?.role) {
+        localStorage.setItem("userType", data.user_profile.role);
+      } 
+      else if (data.trainer_profile?.role) {
+
+        if (data.trainer_profile.role === "personal_trainer") { // This is a handling towards older registered trainers, where they were given wrong usertype. Can be safely removed after production.
+          localStorage.setItem("userType", "trainer"); 
+        }
+        else {
+          localStorage.setItem("userType", data.trainer_profile.role);
+        }
+
+      }
+  
+      navigate("/dashboard"); // Redirect to the dashboard after successful login.
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");
@@ -64,7 +76,8 @@ export default function LoginForm() {
         transition={{ duration: 0.5 }}
       >
         <input
-          type="username"
+          type="text"  // Changed from "username" to "text"
+          name="username"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -73,6 +86,7 @@ export default function LoginForm() {
         />
         <input
           type="password"
+          name="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -81,6 +95,7 @@ export default function LoginForm() {
         />
         <motion.button
           type="submit"
+          name="loginButton"
           className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
           whileHover={{ scale: 1.05 }}
         >

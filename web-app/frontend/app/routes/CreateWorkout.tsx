@@ -6,6 +6,7 @@ import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.css';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
 
 // Interface to define the structure of an exercise object
@@ -31,7 +32,7 @@ const CreateWorkout: React.FC = () => {
 
       const fetchExercises = async () => {
         try {
-            const response = await fetch("http://127.0.0.1:8000/exercises/", {
+            const response = await fetch(`${backendUrl}/exercises/`, {
             headers: { Authorization: `Bearer ${token}` },
             });
             if (!response.ok) {
@@ -63,7 +64,7 @@ const CreateWorkout: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/workouts/create/", { 
+      const response = await fetch(`${backendUrl}/workouts/create/`, { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,6 +119,7 @@ const CreateWorkout: React.FC = () => {
         >
           {/* Workout Name Input */}
           <input
+            name="workoutName"
             type="text"
             placeholder="Workout Name"
             value={newWorkoutName}
@@ -151,6 +153,7 @@ const CreateWorkout: React.FC = () => {
 
           {/* Add Exercise Button */}
           <motion.button
+            name="addExercisesButton"
             type="button"
             onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
             className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
@@ -161,6 +164,7 @@ const CreateWorkout: React.FC = () => {
 
           {/* Create Workout Button */}
           <motion.button
+            name="createWorkoutButton"
             type="submit"
             className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
             whileHover={{ scale: 1.05 }}
