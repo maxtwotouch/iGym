@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 function Footer() {
     return (
-        <motion.footer className="bg-dark text-white py-4">
+        <motion.footer className="bg-gray-800 text-white py-4">
             <motion.div className="container">
                 <motion.div className="row">
                     {/* Column 1 */}

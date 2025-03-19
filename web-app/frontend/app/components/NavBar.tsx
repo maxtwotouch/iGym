@@ -12,7 +12,7 @@ function NavBar() {
     };
 
     return (
-        <motion.nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <motion.nav className="navbar navbar-expand-lg bg-gray-800 text-white" data-bs-theme="dark">
             <motion.div className="container-fluid">
                 <Link className="navbar-brand" to="/dashboard">iGym</Link>
                 <motion.div className="navbar-nav me-auto"> 
