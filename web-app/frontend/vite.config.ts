@@ -15,9 +15,7 @@ export default defineConfig({
      * IMPORTANT: Set `ssr: true` so that the build includes
      * both client (build/client) and server (build/server) bundles.
      */
-    reactRouter({
-      ssr: true,
-    }),
+    reactRouter(),
     tsconfigPaths(),
   ],
 });

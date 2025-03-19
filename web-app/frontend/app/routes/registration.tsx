@@ -22,13 +22,13 @@ export default function RegistrationForm() {
     let payload: any = { username, password };
 
     if (userType === "user") {
-      url = "http://127.0.0.1:8000/user/register/";
+      url = "http://localhost:8000/user/register/";
       payload.profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
       };
     } else if (userType === "trainer") {
-      url = "http://127.0.0.1:8000/personal_trainer/register/";
+      url = "http://localhost:8000/personal_trainer/register/";
       payload.trainer_profile = {
         experience,
       };

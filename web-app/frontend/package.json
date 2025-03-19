@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -26,6 +26,7 @@
     "react-router-dom": "^7.1.5"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.14",
     "@types/node": "^20",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
