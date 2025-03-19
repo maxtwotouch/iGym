@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
-from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
+from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, PersonalTrainerDetailView, UserDetailView
 from .views import ClientsListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
