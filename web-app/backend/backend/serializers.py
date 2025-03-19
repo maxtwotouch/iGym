@@ -44,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
         print("instance is:", instance.profile.weight)
         print("validated_data is:", validated_data)
         # Extract nested user_profile data (if any)
-        profile_data = validated_data.pop("profile")
+        profile_data = validated_data.pop("user_profile")
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
         print("instance is:", instance)
@@ -62,6 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
     
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
+    clients = UserProfileSerializer(many=True, read_only=True)
     class Meta:
         model = PersonalTrainerProfile
         fields = ["id", "experience"]
@@ -81,7 +82,6 @@ class PersonalTrainerSerializer(serializers.ModelSerializer):
         PersonalTrainerProfile.objects.create(**profile_data)
         return user
     
-
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
