@@ -23,7 +23,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         
-        fields = ["id", "height", "weight"] 
+        fields = ["id", "height", "weight", "personal_trainer"] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
@@ -37,21 +37,26 @@ class UserSerializer(serializers.ModelSerializer):
         profile_data = validated_data.pop('profile')
         user = User.objects.create_user(**validated_data)
         profile_data["user"] = user
-        if "personal_trainer" not in validated_data:
-            profile_data["personal_trainer"] = None
         UserProfile.objects.create(**profile_data)
         return user
     
     def update(self, instance, validated_data):
+        print("instance is:", instance.profile.weight)
+        print("validated_data is:", validated_data)
         # Extract nested user_profile data (if any)
-        profile_data = validated_data.pop("profile", None)
+        profile_data = validated_data.pop("profile")
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
+        print("instance is:", instance)
+        print("profile_data is:", profile_data)
+        
+        
         if profile_data:
             profile = instance.profile
             # Update each attribute in UserProfile with the new values
             for attr, value in profile_data.items():
                 setattr(profile, attr, value)
+                print("user profile update is", profile)
             profile.save()
         return instance
     
