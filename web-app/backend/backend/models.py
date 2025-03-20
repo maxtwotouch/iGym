@@ -91,3 +91,12 @@ class WorkoutMessage(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages", blank=False, null=False)
 
 
+class ScheduledWorkout(models.Model):
+     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_workouts")
+     workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE)
+     scheduled_date = models.DateTimeField()
+     
+     def __str__(self):
+         return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
+
+

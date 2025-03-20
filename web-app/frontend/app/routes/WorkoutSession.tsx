@@ -3,10 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
-import { create } from "motion/react-m";
-import { pre } from "motion/react-client";
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
-
+import 'bootstrap/dist/css/bootstrap.css';
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
     name: string;

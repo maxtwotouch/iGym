@@ -1,14 +1,12 @@
-from rest_framework.response import Response
-from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, PersonalTrainerProfile
+
+from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
-from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, UserProfileSerializer, PersonalTrainerProfileSerializer
+from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth.decorators import login_required
-from rest_framework.exceptions import ValidationError
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -47,6 +45,8 @@ class PersonalTrainerDetailView(generics.RetrieveAPIView):
     serializer_class = PersonalTrainerSerializer
     permission_classes = [IsAuthenticated]
 
+
+# Fix: should not be able to change another user's profile
 class UpdateUserView(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -214,5 +214,16 @@ class ChatRoomCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-
-
+class CreateScheduledWorkoutView(generics.CreateAPIView):
+     serializer_class = ScheduledWorkoutSerializer
+     permission_classes = [IsAuthenticated]
+     
+     def perform_create(self, serializer):
+         serializer.save(user=self.request.user)
+         
+class ScheduledWorkoutListView(generics.ListAPIView):
+    serializer_class = ScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+     
+    def get_queryset(self):
+        return ScheduledWorkout.objects.filter(user=self.request.user)

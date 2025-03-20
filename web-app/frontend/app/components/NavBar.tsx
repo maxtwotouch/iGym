@@ -12,15 +12,12 @@ function NavBar() {
     };
 
     return (
-        <motion.nav className="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <motion.nav className="navbar navbar-expand-lg bg-gray-800 text-white" data-bs-theme="dark">
             <motion.div className="container-fluid">
                 <Link className="navbar-brand" to="/dashboard">iGym</Link>
                 <motion.div className="navbar-nav me-auto"> 
                     <Link className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`} to="/dashboard">Home</Link>
-                    <Link className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`} to="/exercises">Exercises</Link>
-                    <Link className={`nav-link ${location.pathname === '/calendar' ? 'active' : ''}`} to="/calendar">Calendar</Link>
                     <Link className={`nav-link ${location.pathname === '/chat' ? 'active' : ''}`} to="/chat">Chat</Link>
-                    <Link className={`nav-link ${location.pathname === '/personalTrainers' ? 'active' : ''}`} to="/personalTrainers">Personal Trainers</Link>
 
                 </motion.div>
 

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
-from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage
+from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, ScheduledWorkout
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
@@ -112,7 +112,8 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         model = WorkoutSession
         fields = ["id", "user", "workout", "start_time", "exercise_sessions", "calories_burned"]
         extra_kwargs = {"user": {"read_only": True}}
- 
+
+        
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -136,40 +137,41 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return data
 
-
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ["id", "sender", "content", "date_sent", "chat_room"]
-
-
-class WorkoutMessageSerializer(serializers.ModelSerializer):
-    workout = WorkoutSerializer()
-    class Meta:
-        model = WorkoutMessage
-        fields = ["id", "sender", "workout", "date_sent", "chat_room"]
         
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
-    workout_messages = WorkoutMessageSerializer(many=True, read_only=True)
-
-    # Storing the participants as a list of user objects (both user and pt)
-    participants = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), write_only=True)
-
-    # Separate field for returning both id and username when retrieving chat room
-    participants_display = serializers.SerializerMethodField(read_only=True)
-
+    participants = serializers.SerializerMethodField()
     class Meta:
         model = ChatRoom
         fields = ["id", "participants", "participants_display", "date_created", "name", "messages", "workout_messages"]
 
-    def get_participants_display(self, obj):
+    def get_participants(self, obj):
         return obj.participants.values("id", "username")
+    
+
+class ChatRoomCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "date_created", "name"]
 
 
+class ScheduledWorkoutSerializer(serializers.ModelSerializer):
+     workout_title = serializers.ReadOnlyField(source="workout_template.name")
+     
+     class Meta:
+        model = ScheduledWorkout
+        fields = ['id', 'user', 'workout_template', 'workout_title', 'scheduled_date']
+        extra_kwargs = {
+            'user': {'read_only': True},
+        }
+    
     
         
         
-
+    
     
