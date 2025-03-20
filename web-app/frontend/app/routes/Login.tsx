@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
 export default function LoginForm() {
   const [username, setUsername] = useState(""); 
@@ -19,32 +18,10 @@ export default function LoginForm() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
-
-        // Store JWT tokens
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("username", data.username);
-        localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
-        
-        // Store user type
-        if (data.profile?.role) {
-          localStorage.setItem("userType", data.profile.role);
-        }
-
-        // Store weight for user role
-        if (data.profile?.role === "user") {
-          console.log("storing the user's weight");
-          localStorage.setItem("weight", data.profile.weight ?? "unknown");
-        }
-
-        navigate("/dashboard");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData);
-        alert("Login failed: " + (errorData.detail || "Unknown error"));
+      const data = await response.json();
+      if (!response.ok || !data.access) {
+        alert("Login failed: Incorrect username or password.");
+        return;
       }
   
       // Store JWT tokens for subsequent authenticated requests.
@@ -74,6 +51,7 @@ export default function LoginForm() {
       alert("An error occurred during login. Please try again later.");
     }
   };
+  
 
   return (
     <motion.div
@@ -98,7 +76,7 @@ export default function LoginForm() {
         transition={{ duration: 0.5 }}
       >
         <input
-          type="text"  // Changed from "username" to "text"
+          type="username"
           name="username"
           placeholder="Username"
           value={username}
