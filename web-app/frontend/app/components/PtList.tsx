@@ -69,6 +69,8 @@ const PtList: React.FC = () => {
                 return;
             }
             await createChatRoomWithPt(ptUserId, pt.name);
+            alert("PT selection successful!");
+            navigate("/chat");
         } catch (error) {
             console.error("Error updating PT selection:", error);
         }

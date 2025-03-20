@@ -40,6 +40,16 @@ class PersonalTrainerListView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(trainer_profile__isnull=False)
+    
+
+class ClientsListView(generics.ListAPIView):
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        #  Retrieve all user profiles where personal_trainer is the current user's trainer profile
+        return User.objects.filter(user_profile__personal_trainer__user=user)
 
     
 class PersonalTrainerDetailView(generics.RetrieveAPIView):

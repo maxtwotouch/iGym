@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django_cryptography.fields import encrypt
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -73,11 +74,11 @@ class Set(models.Model):
 class ChatRoom(models.Model):
     participants = models.ManyToManyField(User)
     date_created = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=255, blank=False)
+    name = encrypt(models.CharField(max_length=255, blank=False))
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
-    content = models.TextField(blank=False, null=False)
+    content = encrypt(models.TextField(blank=False, null=False))
     date_sent = models.DateTimeField(auto_now_add=True)
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
 

@@ -55,38 +55,15 @@ function NavBar() {
                     });
                 } 
                 else if (userType === 'trainer') {
-                    const trainerResponse = await fetch(`http://127.0.0.1:8000/personal_trainer/${localStorage.getItem("user_id")}/`, {
+                    const clientsArrayResponse = await fetch(`http://127.0.0.1:8000/personal_trainer/clients/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });
-                    const trainerData = await trainerResponse.json();
+                    const clientsArrayData = await clientsArrayResponse.json();
 
-                    const clientArray = trainerData.trainer_profile.clients.map((client: any) => ({
-                        id: client.id,
-                        username: "", // Placeholder for now, clients field inside of trainer_profile does not contain username 
-                    }));
-
-                    // Translate from profile id to user id
-                    const clientsResponse = await fetch(`http://127.0.0.1:8000/users/`, {
-                        method: "GET",
-                        headers: { Authorization: `Bearer ${token}` },
+                    clientsArrayData.map((client: any) => {
+                        setClients((prevClients) => [...prevClients, { id: client.id, username: client.username }]);
                     });
-                    const clientsData = await clientsResponse.json();
-
-                    const newClients: User[] = [];
-
-                    clientArray.map((client: any) => {
-                        const clientData = clientsData.find((c: any) => {
-                            return c.user_profile && c.user_profile.id === client.id;
-                        });
-
-                        if (clientData) {
-                            newClients.push({ id: clientData.id, username: clientData.username });
-                        }
-                
-                    });
-
-                    setClients(newClients);
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);

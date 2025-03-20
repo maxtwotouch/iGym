@@ -22,6 +22,7 @@ from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, E
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, PersonalTrainerDetailView, UserDetailView
+from .views import ClientsListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -54,7 +55,8 @@ urlpatterns = [
     path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
     # path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
     path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
-    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail")
+    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
+    path("personal_trainer/clients/", ClientsListView.as_view(), name="clients-list")
 ]
 
 """

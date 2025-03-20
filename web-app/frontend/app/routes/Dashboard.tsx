@@ -5,7 +5,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import NavBar from "~/components/NavBar";
 import Footer from "~/components/Footer";
 import 'tailwindcss/tailwind.css';
-import 'bootstrap/dist/css/bootstrap.css';
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
 
