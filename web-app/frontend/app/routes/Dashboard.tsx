@@ -24,11 +24,33 @@ interface Exercise {
   id: number;
 }
 
+interface WorkoutSession {
+  id: number;
+  start_time: string;
+  workout: number;
+  calories_burned: number;
+  exercise_sessions: ExerciseSession[];
+}
+
+interface ExerciseSession {
+  id: number;
+  exercise: number;
+  sets: Set[];
+}
+
+interface Set {
+  id: number;
+  repetitions: number;
+  weight: number;
+}
+
+
+
 const CustomerDashboard: React.FC = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>([]); 
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [username, setUsername] = useState<string>("User"); 
-  const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
-  // const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
   const navigate = useNavigate();
 
   // Function to delete a workout
@@ -78,9 +100,28 @@ const CustomerDashboard: React.FC = () => {
           return;
         }
         const data = await response.json();
+        console.log("Fetched workout sessions:", data);
         setWorkoutSessions(data);
       } catch (error) {
         console.error("Error fetching workout sessions:", error);
+      }
+    };
+
+    // Fetch exercises from the backend
+    const fetchExercises = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/exercises/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch exercises");
+          return;
+        }
+        const data = await response.json();
+        setExercises(data);
+      }
+      catch (error) {
+        console.error("Error fetching exercises:", error);
       }
     };
 
@@ -104,6 +145,7 @@ const CustomerDashboard: React.FC = () => {
 
     fetchWorkoutSessions();
     fetchWorkouts();
+    fetchExercises();
 
   }, [navigate]);
 
@@ -136,33 +178,74 @@ const CustomerDashboard: React.FC = () => {
           </motion.button>         
         </motion.div>
 
-        {/* Middle Section: Feed */}
-        <motion.div 
-          className="flex-grow-2 d-flex flex-column align-items-center mx-4 p-4 bg-gray-800 rounded-lg shadow-md overflow-y-auto"
-          style={{ flexBasis: "50%"}}
-          >
-          <h2 className="text-2xl font-bold mb-4 text-center">Welcome, {username}!</h2>
-          <h3 className="text-lg font-semibold mb-2 text-center">Your recent workout sessions</h3>
-          {workoutSessions.length === 0 ? (
-            <p className="text-sm text-gray-400">No workout sessions found.</p>
-          ) : (
-            <ul className="space-y-2 w-100">
-              {workoutSessions
-              .sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime())
-              .map((session) => (
-                <li
-                  key={session.id}
-                  className="p-2 bg-gray-700 rounded hover:bg-gray-600"
-                >
-                  <p className="font-semibold">{session.name}</p>
-                  <p className="text-sm text-gray-400">
-                    Date: {new Date(session.date_created).toLocaleString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </motion.div>
+{/* Middle Section: Feed */}
+<motion.div className="w-100 mb-3">
+  <div className="w-100 mb-3">
+    <h3 className="text-lg font-semibold mb-2 text-center">Sessions Performed</h3>
+    {workoutSessions.length === 0 ? (
+      <p className="text-sm text-gray-400 text-center">No History</p>
+    ) : (
+      <ul className="space-y-2 w-100">
+        {workoutSessions.slice().reverse().map((session) => {
+          const workout = workouts.find((workout) => workout.id === session.workout);
+          const workoutName = workout ? workout.name : "Unknown Workout";
+
+          return (
+            <li
+              key={session.id}
+              className="p-2 bg-gray-700 rounded hover:bg-gray-600 d-flex flex-column"
+            >
+              {/* Display info about the session */}
+              <p className="font-semibold mb-0">💪 {workoutName}</p>
+              <div className="d-flex flex-column">
+                <p className="text-sm text-gray-400 mt-1">
+                  🔥 Calories Burned: <span className="font-semibold text-white">{session.calories_burned}</span>
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  📅 Date performed:{" "}
+                  <span className="font-semibold text-white">
+                    {new Date(session.start_time).toLocaleDateString("en-GB", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                    })}
+                  </span>
+                </p>
+              </div>
+
+              {/* Exercise Sessions */}
+              <div className="mt-3">
+                <ul className="mt-2">
+                  {session.exercise_sessions.map((exerciseSession) => {
+                    const exercise = exercises.find((ex) => ex.id === exerciseSession.exercise);
+                    const exerciseName = exercise ? exercise.name : "Unknown Exercise";
+
+                    return (
+                      <li key={exerciseSession.id} className="mb-2">
+                        <p className="text-white font-semibold">{exerciseName}</p>
+                        <ul className="ml-4 text-sm text-gray-400">
+                          {exerciseSession.sets.map((set, index) => (
+                            <li key={set.id} className="flex justify-between">
+                              <span>Set {index + 1}: </span>
+                              <span className="font-semibold text-white">{set.repetitions} reps</span>
+                              <span className="font-semibold text-white">{set.weight} kg</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </div>
+</motion.div>
+
         
         {/* Right Section: Quick Actions */}
         <motion.div 
