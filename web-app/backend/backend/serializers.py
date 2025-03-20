@@ -27,38 +27,44 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
-    user_profile = UserProfileSerializer()
+    profile = UserProfileSerializer()
     class Meta:
         model = User
-        fields = ["id", "username", "password", "user_profile"]
+        fields = ["id", "username", "password", "profile"]
         extra_kwargs = {"password": {"write_only": True}}
     
     def create(self, validated_data):
-        profile_data = validated_data.pop('user_profile')
+        profile_data = validated_data.pop('profile')
         user = User.objects.create_user(**validated_data)
         profile_data["user"] = user
         UserProfile.objects.create(**profile_data)
         return user
     
     def update(self, instance, validated_data):
+        print("instance is:", instance.profile.weight)
+        print("validated_data is:", validated_data)
         # Extract nested user_profile data (if any)
-        profile_data = validated_data.pop("user_profile")
+        profile_data = validated_data.pop("profile")
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
+        print("instance is:", instance)
+        print("profile_data is:", profile_data)
+        
+        
         if profile_data:
-            user_profile = instance.user_profile
+            profile = instance.profile
             # Update each attribute in UserProfile with the new values
             for attr, value in profile_data.items():
-                setattr(user_profile, attr, value)
-            user_profile.save()
+                setattr(profile, attr, value)
+                print("user profile update is", profile)
+            profile.save()
         return instance
     
 # Serializer for the personal trainer model
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
-    clients = UserProfileSerializer(many=True, read_only=True)
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["id", "experience", "clients"]
+        fields = ["id", "experience"]
 
 # Nested serializer to connect with the personal trainer model
 class PersonalTrainerSerializer(serializers.ModelSerializer):
@@ -75,11 +81,13 @@ class PersonalTrainerSerializer(serializers.ModelSerializer):
         PersonalTrainerProfile.objects.create(**profile_data)
         return user
     
+
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = ["id", "name", "description", "muscle_group", "image", "calories"]
-    
+        fields = ["id", "name", "description", "muscle_group", "image"]
+        
+
 
 class WorkoutSerializer(serializers.ModelSerializer):
     class Meta:
@@ -104,7 +112,8 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         model = WorkoutSession
         fields = ["id", "user", "workout", "start_time", "exercise_sessions", "calories_burned"]
         extra_kwargs = {"user": {"read_only": True}}
- 
+
+        
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -115,9 +124,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["id"] = user.id
         data["username"] = user.username
         
-        if hasattr(user, "user_profile"):
-            role = user.user_profile.role
-            data["user_profile"] = {"role": role}
+        if hasattr(user, "profile"):
+            role = user.profile.role
+            data["profile"] = {
+                "role": role,
+                "weight": user.profile.weight
+            }
         
         elif hasattr(user, "trainer_profile"):
             role = user.trainer_profile.role
@@ -125,49 +137,41 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return data
 
-
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ["id", "sender", "content", "date_sent", "chat_room"]
-
-
-class WorkoutMessageSerializer(serializers.ModelSerializer):
-    workout = WorkoutSerializer()
-    class Meta:
-        model = WorkoutMessage
-        fields = ["id", "sender", "workout", "date_sent", "chat_room"]
         
 
 class ChatRoomSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
-    workout_messages = WorkoutMessageSerializer(many=True, read_only=True)
-
-    # Storing the participants as a list of user objects (both user and pt)
-    participants = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), write_only=True)
-
-    # Separate field for returning both id and username when retrieving chat room
-    participants_display = serializers.SerializerMethodField(read_only=True)
-
+    participants = serializers.SerializerMethodField()
     class Meta:
         model = ChatRoom
         fields = ["id", "participants", "participants_display", "date_created", "name", "messages", "workout_messages"]
 
-    def get_participants_display(self, obj):
+    def get_participants(self, obj):
         return obj.participants.values("id", "username")
     
 
-class ScheduledWorkoutSerializer(serializers.ModelSerializer):
-    workout_title = serializers.ReadOnlyField(source="workout_template.name")
-    
+class ChatRoomCreateSerializer(serializers.ModelSerializer):
     class Meta:
+        model = ChatRoom
+        fields = ["id", "participants", "date_created", "name"]
+
+
+class ScheduledWorkoutSerializer(serializers.ModelSerializer):
+     workout_title = serializers.ReadOnlyField(source="workout_template.name")
+     
+     class Meta:
         model = ScheduledWorkout
         fields = ['id', 'user', 'workout_template', 'workout_title', 'scheduled_date']
         extra_kwargs = {
             'user': {'read_only': True},
-}
+        }
+    
     
         
         
-
+    
     

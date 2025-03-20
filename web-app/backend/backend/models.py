@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -10,17 +11,6 @@ class PersonalTrainerProfile(models.Model):
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
     role = models.CharField(max_length=20, default="trainer")
-
-# Model for normal users
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_profile')
-    
-    # Example attributes
-    weight = models.PositiveIntegerField(null=True, blank=True)
-    height = models.PositiveIntegerField(null=True, blank=True)
-    role = models.CharField(max_length=20, default="user")
-
-    personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
 
 # Model for normal users
 class UserProfile(models.Model):
@@ -108,11 +98,3 @@ class ScheduledWorkout(models.Model):
      
      def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
-
-class ScheduledWorkout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_workouts")
-    workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE)
-    scheduled_date = models.DateTimeField()
-    
-    def __str__(self):
-        return f"{self.workout_template.name} scheduled on {self.scheduled_date}"

@@ -9,17 +9,17 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV /home/kbenja/inf2900/INF-2900/web-app/backend
+setenv VIRTUAL_ENV /Users/mho251/Kode/react-test-vite/web-app/backend
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"
+setenv VIRTUAL_ENV_PROMPT backend
 
 
 set _OLD_VIRTUAL_PROMPT="$prompt"
 
 if (! "$?VIRTUAL_ENV_DISABLE_PROMPT") then
-    set prompt = '(backend) '"$prompt"
-    setenv VIRTUAL_ENV_PROMPT '(backend) '
+    set prompt = "("backend") $prompt:q"
 endif
 
 alias pydoc python -m pydoc
