@@ -19,27 +19,22 @@ export default function RegistrationForm() {
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
-  // URL and payload based on the user type
-  let url = "";
-  let payload: any = { username, password, profile: {} };
+    // URL based on the user type.
+    let url = "";
+    let payload: any = { username, password };
 
-  if (userType === "user") {
-    url = `${backendUrl}/user/register/`;
-    payload.profile = {
-      user_profile: {
+    if (userType === "user") {
+      url = url = `${backendUrl}/user/register/`;
+      payload.user_profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
-      },
-    };
-  } else if (userType === "trainer") {
-    url = `${backendUrl}/personal_trainer/register/`;
-    payload.profile = {
-      trainer_profile: {
+      };
+    } else if (userType === "trainer") {
+      url = `${backendUrl}/personal_trainer/register/`;
+      payload.trainer_profile = {
         experience,
-      },
-    };
-  }
-
+      };
+    }
 
     try {
       const response = await fetch(url, {

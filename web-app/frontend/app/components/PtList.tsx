@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 type PT = {
     id: number;
@@ -47,7 +46,7 @@ const PtList: React.FC = () => {
         fetchPts();
     }, []);
 
-    const newPt = async (ptUserId: number, ptProfileId: number) => {
+    const newPt = async ( ptUserId: number, ptProfileId: number ) => {
         try {
             const token = localStorage.getItem("accessToken");
             const userId = localStorage.getItem("user_id");
@@ -56,30 +55,27 @@ const PtList: React.FC = () => {
                 alert("Access token not found in localStorage");
                 navigate("/login");
             }
-            
-            // Update user's personal trainer field, assigned PT for user
+
+            // Update user's personal trainer field, assigned PT for user. Automatically assigns the user to the PT's clients list.
             await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 body: JSON.stringify({ profile: {personal_trainer: ptProfileId} })
             });
 
-            console.log("personal trainer id: ", ptProfileId);
-            
             // Create a chat room between the user and the PT
             const pt = pts.find(pt => pt.id === ptUserId) || null;
             if (!pt) {
-                alert("could not find pt");
+                alert("Could not find PT with the given ID");
                 return;
             }
-            await addChatRoom(ptUserId, pt.name);
-            
+            await createChatRoomWithPt(ptUserId, pt.name);
         } catch (error) {
             console.error("Error updating PT selection:", error);
         }
     };
 
-    const addChatRoom = async (ptId: number, ptName: string) => {
+    const createChatRoomWithPt = async (ptId: number, ptName: string) => {
         try {
             const token = localStorage.getItem("accessToken");
             await fetch("http://127.0.0.1:8000/chat_room/create/", {
@@ -166,35 +162,6 @@ const PtList: React.FC = () => {
             </motion.div>
         </motion.div>
     );
-
-    // return (
-    //     <motion.div className="flex flex-col w-full md:w-1/2 bg-gray-800 p-4 rounded-lg shadow-md" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-    //         <h2 className="text-xl font-bold text-white mb-4">Choose a PT</h2>
-    //         {pts.length === 0 ? <p className="text-gray-400">No PTs available.</p> : (
-    //             <div className="space-y-3">
-    //                 {pts.map((pt) => (
-    //                     <motion.div key={pt.id} className={`p-4 rounded-lg cursor-pointer flex justify-between items-center transition ${selectedPt?.id === pt.id ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"}`} whileHover={{ scale: 1.02 }} onClick={() => setSelectedPt(pt)}>
-    //                         <div>
-    //                             <h3 className="text-lg font-semibold">{pt.name}</h3>
-    //                             <p className="text-sm text-gray-300">🏆 Experience: {pt.trainer_profile?.experience} </p>
-    //                         </div>
-    //                         <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition" onClick={(e) => { e.stopPropagation(); setSelectedPt(pt); }}>Choose</button>
-    //                     </motion.div>
-    //                 ))}
-    //             </div>
-    //         )}
-    //         {selectedPt && (
-    //             <>
-    //                 <motion.div className="mt-4 p-4 bg-gray-700 rounded-lg">
-    //                     <h3 className="text-lg font-bold">Chosen PT:</h3>
-    //                     <p className="text-white">{selectedPt.name}</p>
-    //                     <p className="text-gray-400">{selectedPt.trainer_profile?.experience}</p>
-    //                 </motion.div>
-    //                 <motion.button className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" whileHover={{ scale: 1.05 }} onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}>Confirm new PT</motion.button>
-    //             </>
-    //         )}
-    //     </motion.div>
-    // );
 };
 
 export default PtList;

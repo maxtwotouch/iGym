@@ -7,8 +7,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import 'bootstrap/dist/css/bootstrap.css';
-import '@fullcalendar/bootstrap5';
+// import 'bootstrap/dist/css/bootstrap.css';
+// import '@fullcalendar/bootstrap5';
 
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
