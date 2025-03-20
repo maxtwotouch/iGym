@@ -15,4 +15,5 @@ export default [
   route(":id/workout/session/create", "routes/WorkoutSession.tsx"),
   route("chat", "routes/Chat.tsx"),
   route("personalTrainers", "routes/SelectPT.tsx"),
+  route("profile", "routes/ProfilePage.tsx"),
 ] satisfies RouteConfig;
