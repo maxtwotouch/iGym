@@ -21,7 +21,7 @@ class ListUserView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.all()
+        return User.objects.filter(user_profile__isnull=False)
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -52,10 +52,10 @@ class UpdateUserView(generics.UpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-class UpdatePersonalTrainerView(generics.UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = PersonalTrainerSerializer
-    permission_classes = [IsAuthenticated]
+# class UpdatePersonalTrainerView(generics.UpdateAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = PersonalTrainerSerializer
+#     permission_classes = [IsAuthenticated]
 
 class UpdateWorkoutView(generics.UpdateAPIView):
     serializer_class = WorkoutSerializer
