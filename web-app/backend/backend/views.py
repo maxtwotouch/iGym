@@ -14,17 +14,20 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+# Check this, may have to be edited to only  take
 class ListUserView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return User.objects.all()
+        return User.objects.filter(profile__isnull=False)
 
 class UserDetailView(generics.RetrieveAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Workout.objects.filter(profile__isnull=False)
 
 class CreatePersonalTrainerView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -39,23 +42,32 @@ class PersonalTrainerListView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.filter(trainer_profile__isnull=False)
 
-    
+# Again, maybe filter     
 class PersonalTrainerDetailView(generics.RetrieveAPIView):
-    queryset = User.objects.all()
     serializer_class = PersonalTrainerSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return User.objects.filter(trainer_profile__isnull=False)
 
 
 # Fix: should not be able to change another user's profile
 class UpdateUserView(generics.UpdateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    
+    # Only the user itself can update its profile
+    def get_queryset(self):
+        user = self.request.user
+        return User.objects.filter(id=user.id)
 
 class UpdatePersonalTrainerView(generics.UpdateAPIView):
-    queryset = User.objects.all()
     serializer_class = PersonalTrainerSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return User.objects.filter(id=user.id)
 
 class UpdateWorkoutView(generics.UpdateAPIView):
     serializer_class = WorkoutSerializer

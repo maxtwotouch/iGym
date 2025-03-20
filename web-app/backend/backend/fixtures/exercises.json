@@ -53,5 +53,50 @@
             "muscle_group": "Main muscles: Deltoids. Secondary muscles: Triceps",
             "image": "exercise_images/dumbbell_shoulder_press.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Barbell Bench Press",
+            "description": "Lying on the bench, your feet flat on the floor. Grasp the bar with a grip wider than shoulder width. Your forearms should be perpendicular to the floor. Execution: Unhook the bar and slowly lower it to the lower part of your chest. As you contract your pectorals, push the load upwards until your arms are almost straight.",
+            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltiods, triceps",
+            "image": "exercise_images/barbell_bench_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Incline Dumbbell Bench Press",
+            "description": "Starting position: Lying on the sloping bench, your feet flat on the ground, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. Execution: While contracting your pectorals, push the load upwards until your arms are almost straight, then return to the initial position.",
+            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids, triceps",
+            "image": "exercise_images/incline_dumbbell_bench_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Bent Over Row (Single Arm)",
+            "description": "Starting position: Place your left knee and left hand on the bench with your chest parallel to the floor. Keep your right foot on the ground and grasp the dumbbell still on the ground in your right hand in a neutral grip. Execution: Keeping your arm close to your body, lift the dumbbell as high as possible by raising your elbow and keeping your forearm perpendicular to the ground. Once your series is over, do the same with the other arm.",
+            "muscle_group": "Main muscles: Back. Secondary muscles: Hind Deltoids, biceps",
+            "image": "exercise_images/dumbbell_bent_over_row_single_arm.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Seated Calf Raise",
+            "description": "Starting position: Sitting on the machine with the front of the feet on the wedge and the lower thighs under the padded parts. Execution: While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves",
+            "muscle_group": "Calves",
+            "image": "exercise_images/seated_calf_raise.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Leg Extension",
+            "description": "Starting position: Adjust the leg extension so that when you sit down your knees are at the edge of the bench and your ankles are just below the footrest. Sit with your back firmly against the backrest, holding the handles on the sides. Execution: Extend your legs until they are fully extended. Hold the load for a moment by contracting your quadriceps, then return to the lowered position.",
+            "muscle_group": "Quadriceps",
+            "image": "exercise_images/leg_extension.png"
+        }
     }
 ]

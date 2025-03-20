@@ -41,22 +41,16 @@ class UserSerializer(serializers.ModelSerializer):
         return user
     
     def update(self, instance, validated_data):
-        print("instance is:", instance.profile.weight)
-        print("validated_data is:", validated_data)
         # Extract nested user_profile data (if any)
         profile_data = validated_data.pop("profile")
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
-        print("instance is:", instance)
-        print("profile_data is:", profile_data)
-        
         
         if profile_data:
             profile = instance.profile
             # Update each attribute in UserProfile with the new values
             for attr, value in profile_data.items():
                 setattr(profile, attr, value)
-                print("user profile update is", profile)
             profile.save()
         return instance
     
