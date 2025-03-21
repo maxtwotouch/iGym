@@ -22,7 +22,11 @@ function Footer() {
                         animate={{ y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h4 className="text-lg font-semibold mb-3">Contact Us</h4>
+                        <h4 
+                            className="text-lg font-semibold mb-3"
+                        >
+                            Contact Us
+                        </h4>
                         <ul className="text-gray-400 space-y-1">
                             <li>UiT The Arctic University of Norway</li>
                             <li>Hansine Hansens veg 18</li>
