@@ -98,3 +98,5 @@ class ScheduledWorkout(models.Model):
      
      def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
+
+
