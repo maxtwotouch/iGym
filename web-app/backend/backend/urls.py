@@ -22,7 +22,7 @@ from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, E
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
-from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView
+from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, CurrentUserView, UpdateCurrentUserView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -32,6 +32,7 @@ urlpatterns = [
     # Personal trainer and normal users have their own endpoints for registration (may have to be fixed)
     path("user/register/", CreateUserView.as_view(), name="register_user"),
     path("personal_trainer/register/", CreatePersonalTrainerView.as_view(), name="register_personal_trainer"),
+    path("user/me", CurrentUserView.as_view(), name="current-user"),
     path("token/", CustomTokenObtainPairView.as_view(), name="get_token"),
     path("user/refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("auth/", include("rest_framework.urls")),
@@ -59,6 +60,7 @@ urlpatterns = [
     path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
     path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+    path("user/me/update/", UpdateCurrentUserView.as_view(), name="current-user-update"),
 ]
 
 """

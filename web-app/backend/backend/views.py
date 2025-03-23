@@ -6,7 +6,7 @@ from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, Response
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -239,3 +239,37 @@ class ScheduledWorkoutListView(generics.ListAPIView):
      
     def get_queryset(self):
         return ScheduledWorkout.objects.filter(user=self.request.user)
+    
+class CurrentUserView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
+
+    def get_object(self):
+        return self.request.user
+
+class UpdateCurrentUserView(generics.UpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+    def partial_update(self, request, *args, **kwargs):
+        user = self.get_object()
+        
+        # Top-level fields from form-data
+        new_weight = request.data.get("weight")
+        new_height = request.data.get("height")
+        # If you eventually handle images:
+        # new_image = request.FILES.get("profile_image", None)
+        
+        # Assign them to user.profile
+        if new_weight is not None:
+            user.profile.weight = new_weight
+        if new_height is not None:
+            user.profile.height = new_height
+        
+        user.profile.save()
+        # user.save() if you changed anything on user object itself
+        
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)

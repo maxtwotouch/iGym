@@ -15,14 +15,14 @@ class PersonalTrainerProfile(models.Model):
 # Model for normal users
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    
-    # Example attributes
     weight = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
+
     role = models.CharField(max_length=20, default="user")
-
-    personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", blank=True, null=True)
-
+    personal_trainer = models.ForeignKey(
+        PersonalTrainerProfile, on_delete=models.SET_NULL, 
+        related_name="clients", blank=True, null=True
+    )
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
     

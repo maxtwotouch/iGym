@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+
 export default function RegistrationForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState("user"); 
+  const [userType, setUserType] = useState("user");
 
   // Fields for normal user
   const [weight, setWeight] = useState("");
@@ -17,27 +18,24 @@ export default function RegistrationForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 
-  // URL and payload based on the user type
-  let url = "";
-  let payload: any = { username, password, profile: {} };
+    // URL and payload based on the user type
+    let url = "";
+    let payload: any = { username, password, profile: {} };
 
-  if (userType === "user") {
-    url = `${backendUrl}/user/register/`;
-    payload.profile = {
-      user_profile: {
+    if (userType === "user") {
+      url = `${backendUrl}/user/register/`;
+      // Send profile data directly, without an extra nesting
+      payload.profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
-      },
-    };
-  } else if (userType === "trainer") {
-    url = `${backendUrl}/personal_trainer/register/`;
-    payload.trainer_profile = {
-      experience
-    };
-  }
-
+      };
+    } else if (userType === "trainer") {
+      url = `${backendUrl}/personal_trainer/register/`;
+      payload.trainer_profile = { experience };
+    }
 
     try {
       const response = await fetch(url, {
@@ -86,7 +84,7 @@ export default function RegistrationForm() {
           <label className="block mb-1">Username:</label>
           <input
             type="text"
-            name = "username"
+            name="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-2 rounded bg-gray-700 text-white"
@@ -141,17 +139,15 @@ export default function RegistrationForm() {
           </>
         )}
         {userType === "trainer" && (
-          <>
-            <div className="mb-4">
-              <label className="block mb-1">Experience:</label>
-              <input
-                type="text"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                className="w-full p-2 rounded bg-gray-700 text-white"
-              />
-            </div>
-          </>
+          <div className="mb-4">
+            <label className="block mb-1">Experience:</label>
+            <input
+              type="text"
+              value={experience}
+              onChange={(e) => setExperience(e.target.value)}
+              className="w-full p-2 rounded bg-gray-700 text-white"
+            />
+          </div>
         )}
         <motion.button
           type="submit"
