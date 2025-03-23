@@ -78,14 +78,14 @@ class ChatRoom(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
 
 class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages", blank=False, null=False)
     content = models.TextField(blank=False, null=False)
     date_sent = models.DateTimeField(auto_now_add=True)
-    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages", blank=False, null=False)
     
 
 class WorkoutMessage(models.Model):
-    workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
+    workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     date_sent = models.DateTimeField(auto_now_add=True)
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="workout_messages", blank=False, null=False)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages", blank=False, null=False)
