@@ -23,7 +23,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         
-        fields = ["id", "height", "weight", "personal_trainer"] 
+        fields = ["id", "height", "weight", "personal_trainer",  'profile_picture',] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):

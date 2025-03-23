@@ -23,6 +23,11 @@ class UserProfile(models.Model):
         PersonalTrainerProfile, on_delete=models.SET_NULL, 
         related_name="clients", blank=True, null=True
     )
+    profile_picture = models.ImageField(
+        upload_to='profile_pictures/', 
+        null=True, 
+        blank=True
+    )
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
     

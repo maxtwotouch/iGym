@@ -12,7 +12,7 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
 interface UserProfile {
   username: string;
   email?: string;
-  profile_image?: string;
+  profile_image?: string;  // URL of the existing profile image
   profile?: {
     weight?: number;
     height?: number;
@@ -22,7 +22,7 @@ interface UserProfile {
 /**
  * ProfilePage:
  * - Fetches user info (username, height, weight).
- * - Lets users edit height/weight (and optionally upload profile image later).
+ * - Lets users edit height/weight (and optionally upload profile image).
  */
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -33,20 +33,20 @@ export default function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Reference to hidden file input (in case we upload images later)
+  // Reference to hidden file input (for uploading images)
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form fields for weight & height, filled in once we fetch profile
+  // The local form fields for weight & height
   const [formData, setFormData] = useState({
     weight: "",
     height: ""
   });
 
-  // Fetch user profile from backend on mount
+  // 1) Fetch user profile on mount
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.log("No access token found, redirecting to /login");
+      console.log("No access token found; redirecting to /login");
       navigate("/login");
       return;
     }
@@ -67,7 +67,7 @@ export default function ProfilePage() {
 
         setProfile(data);
 
-        // Pre-fill the local state from data.profile
+        // Initialize form fields from data.profile
         setFormData({
           weight: data.profile?.weight?.toString() || "",
           height: data.profile?.height?.toString() || ""
@@ -83,26 +83,24 @@ export default function ProfilePage() {
     fetchProfile();
   }, [navigate]);
 
-  // Handle changes to the weight & height <input> fields
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // 2) Handle weight/height changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle file input change -> set a preview if desired
+  // 3) Handle file input -> preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate image
+    // Validate the file is an image
     if (!file.type.match('image.*')) {
       setError("Please select an image file");
       return;
     }
 
-    // Generate preview for user
+    // Generate a local preview
     const reader = new FileReader();
     reader.onload = (event) => {
       setPreviewImage(event.target?.result as string);
@@ -110,7 +108,7 @@ export default function ProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  // Submit updates (weight, height, and possibly profile_image)
+  // 4) Submit updates -> PATCH request
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -118,17 +116,16 @@ export default function ProfilePage() {
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.log("No access token found during submit, redirecting to /login");
+      console.log("No access token found, redirecting to /login");
       navigate("/login");
       return;
     }
 
     try {
-      // We'll still use FormData so we can eventually handle images
+      // We'll use FormData for possible image upload
       const submitData = new FormData();
 
-      // Append weight & height
-      // (Your Django view must handle these as top-level fields in request.data)
+      // If you store weight & height at the top-level in your partial_update
       if (formData.weight) {
         submitData.append("weight", formData.weight);
       }
@@ -136,18 +133,16 @@ export default function ProfilePage() {
         submitData.append("height", formData.height);
       }
 
-      // Append image if provided (but not mandatory to fill in)
+      // If an image file is selected
       if (fileInputRef.current?.files?.[0]) {
         submitData.append("profile_image", fileInputRef.current.files[0]);
       }
 
-      // Send a PATCH to user/me/update
       const response = await fetch(`${backendUrl}/user/me/update/`, {
         method: "PATCH",
         headers: {
+          // Let the browser set the boundary for multipart
           Authorization: `Bearer ${token}`
-          // Not including Content-Type: "multipart/form-data" 
-          // because the browser sets it automatically when using FormData
         },
         body: submitData
       });
@@ -162,7 +157,7 @@ export default function ProfilePage() {
       setProfile(updatedProfile);
       setIsEditing(false);
       setSuccessMessage("Profile updated successfully!");
-      setPreviewImage(null);  // Clear the local image preview
+      setPreviewImage(null);  // clear local preview
     } catch (err: any) {
       console.error("Error updating profile:", err);
       setError(err.message || "Failed to update profile");
@@ -185,7 +180,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <NavBar />
 
-      <motion.div 
+      <motion.div
         className="flex-grow container mx-auto px-4 py-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -199,15 +194,15 @@ export default function ProfilePage() {
               <div className="relative mb-6">
                 <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500">
                   {previewImage ? (
-                    <img 
-                      src={previewImage} 
-                      alt="Profile preview" 
+                    <img
+                      src={previewImage}
+                      alt="Profile preview"
                       className="w-full h-full object-cover"
                     />
                   ) : profile?.profile_image ? (
-                    <img 
-                      src={profile.profile_image} 
-                      alt={profile.username} 
+                    <img
+                      src={profile.profile_image}
+                      alt={profile.username}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -226,15 +221,21 @@ export default function ProfilePage() {
                     className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2"
                   >
                     {/* Simple "upload" icon */}
-                    <svg xmlns="http://www.w3.org/2000/svg" 
-                         className="h-5 w-5" viewBox="0 0 20 20" 
-                         fill="currentColor">
-                      <path 
-                        fillRule="evenodd" 
-                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" 
-                        clipRule="evenodd" 
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 
+                        2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 
+                        12H4V5h12v10z"
+                        clipRule="evenodd"
                       />
-                      <path d="M7 9a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" />
+                      <path d="M7 9a1 1 0 011-1h4a1 
+                      1 0 110 2H8a1 1 0 01-1-1z" />
                     </svg>
                   </button>
                 )}
@@ -276,7 +277,7 @@ export default function ProfilePage() {
               )}
 
               <form onSubmit={handleSubmit}>
-                {/* Hidden file input (optional) */}
+                {/* Hidden file input (if user chooses an image) */}
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -297,7 +298,8 @@ export default function ProfilePage() {
                         name="weight"
                         value={formData.weight}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
+                          focus:outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-white">
@@ -317,7 +319,8 @@ export default function ProfilePage() {
                         name="height"
                         value={formData.height}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
+                          focus:outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-white">
