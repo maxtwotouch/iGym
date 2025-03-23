@@ -33,13 +33,12 @@ export default function RegistrationForm() {
     };
   } else if (userType === "trainer") {
     url = `${backendUrl}/personal_trainer/register/`;
-    payload.profile = {
+    payload.trainer_profile = {
       trainer_profile: {
-        experience,
+        experience: experience,
       },
     };
   }
-
 
     try {
       const response = await fetch(url, {

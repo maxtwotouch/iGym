@@ -14,7 +14,6 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
-# Check this, may have to be edited to only  take
 class ListUserView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -22,7 +21,6 @@ class ListUserView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.filter(profile__isnull=False)
 
-##
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
@@ -43,7 +41,7 @@ class PersonalTrainerListView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.filter(trainer_profile__isnull=False)
 
-##    
+
 class PersonalTrainerDetailView(generics.RetrieveAPIView):
     serializer_class = PersonalTrainerSerializer
     permission_classes = [IsAuthenticated]

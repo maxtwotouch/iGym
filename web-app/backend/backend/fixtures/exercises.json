@@ -98,5 +98,41 @@
             "muscle_group": "Quadriceps",
             "image": "exercise_images/leg_extension.png"
         }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Pull Up",
+            "description": "Starting position: Grasp the pull bar using a pronated grip, head slightly up, hands wider than shoulders width apart, and elbows slightly bent. Execution: Do a pull up by pulling your chin towards the bar. Then come back slowly to the starting position. Your segments’ length, your strength, and your shoulders’ mobility will determine how high you can pull yourself up.",
+            "muscle_group": "Main muscles: Back. Secondary muscles: Biceps",
+            "image": "exercise_images/pull_up.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Lying Triceps Extension",
+            "description": "Starting position: Lying on the bench, your feet flat on the floor or on the bench. Hold the EZ bar above your chest, pronated grip, hands slightly tighter than shoulder width. Execution: Slowly bend your forearms without spreading your elbows too far apart, bringing the bar to the top of your head. Then return to the initial position.",
+            "muscle_group": "Main muscles: Triceps",
+            "image": "exercise_images/lying_triceps_extension.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Cable Crossover",
+            "description": "Starting position: Grasp the handles attached to the ends of each rope and stand in the middle between the pulleys. Bend your chest slightly forward and keep your elbows slightly bent. Execution: Slowly tighten your arms in front of your chest in an arc. Keep your elbows slightly bent during the movement. When your hands come together, hold the position for a moment, contracting your chest. Then slowly return to the original position.",
+            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids",
+            "image": "exercise_images/cable_crossover.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Plank",
+            "description": "Starting position: Lying face down on the floor. Balance yourself on your forearms and toes, keeping your shoulders and buttocks at the same height. Execution: Hold this position for the desired length of time while contracting your abs.",
+            "muscle_group": "Main muscles: Abs",
+            "image": "exercise_images/plank.png"
+        }
     }
 ]

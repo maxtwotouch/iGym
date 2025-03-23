@@ -1160,6 +1160,104 @@ class TestListPersonalTrainerView(APITestCase):
         self.assertEqual(len(response.data), len(self.trainers))
         self.assertNotIn(user.username, [trainer['username'] for trainer in response.data])
         
+
+class TestUserDetailView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="testuser", password="password")
+        self.user_profile = UserProfile.objects.create(user=self.user, height=180, weight=75)
+        
+        self.url = reverse("user-detail", kwargs={"pk": self.user.id})
+    
+    def test_user_detail_basic(self):
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        serializer = UserSerializer(self.user)
+        self.assertEqual(response.data, serializer.data)
+    
+    def test_user_detail_of_other_user(self):
+        second_user = User.objects.create(username="secondTestuser", password="password")
+        second_user_profile = UserProfile.objects.create(user=second_user, height=200, weight=100)
+        
+        self.client.force_authenticate(user=second_user)
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Make sure it was the details of the first user that was retrieved
+        serializer = UserSerializer(self.user)
+        self.assertEqual(response.data, serializer.data)
+    
+    def test_user_detail_non_existent_user(self):
+        url = reverse("user-detail", kwargs={"pk": 100})
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(url)
+        
+        # Should not find the user
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_unauthenticated_user_do_not_have_access(self):
+        # Remove the authentication
+        self.client.force_authenticate(user=None)
+        
+        # Make a GET request to the list view
+        response = self.client.get(self.url)
+        # Check that the response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+
+class TestPersonalTrainerDetailView(APITestCase):
+    def setUp(self):
+        self.trainer = User.objects.create(username="testTrainer", password="password")
+        self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer, experience="5 years")
+        
+        self.url = reverse("personal_trainer-detail", kwargs={"pk": self.trainer.id})
+    
+    def test_personal_trainer_detail_basic(self):
+        self.client.force_authenticate(user=self.trainer)
+        
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        serializer = PersonalTrainerSerializer(self.trainer)
+        self.assertEqual(response.data, serializer.data)
+    
+    def test_user_see_detail_of_other_trainer(self):
+        self.user = User.objects.create(username="testuser", password="password")
+        self.user_profile = UserProfile.objects.create(user=self.user, height=180, weight=75)
+        
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(self.url)
+        
+        serializer = PersonalTrainerSerializer(self.trainer)
+        self.assertEqual(response.data, serializer.data)
+    
+    def test_personal_trainer_detail_non_existent_trainer(self):
+        url = reverse("personal_trainer-detail", kwargs={"pk": 100})
+        self.client.force_authenticate(user=self.trainer)
+        
+        response = self.client.get(url)
+        
+        # Should not find the user
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_unauthenticated_user_do_not_have_access(self):
+        # Remove the authentication
+        self.client.force_authenticate(user=None)
+        
+        response = self.client.get(self.url)
+        # Check that the response status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        
+        
         
         
         
