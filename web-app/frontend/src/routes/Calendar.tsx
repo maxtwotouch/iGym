@@ -7,38 +7,26 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-// import 'bootstrap/dist/css/bootstrap.css';
-// import '@fullcalendar/bootstrap5';
-
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000";
-
 
 export default function Calendar() {
   const navigate = useNavigate();
 
-  // For storing scheduled workouts
-  const [workouts, setWorkouts] = useState<any[]>([]);
-  
-  // For storing workout templates
+  // Store calendar events (both scheduled workouts and workout sessions)
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [availableWorkouts, setAvailableWorkouts] = useState<any[]>([]);
-
-  // UI state
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // For the “view details” modal
+  // For modals & scheduling
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
-
-  // For the “schedule new workout” modal
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
-
-  // <-- This is the main difference: we store a string for date/time
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
 
-  // Load scheduled workouts
+  // Fetch both scheduled workouts and workout sessions
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -46,10 +34,9 @@ export default function Calendar() {
       return;
     }
 
-    // Example: fetch scheduled workouts
+    // Fetch scheduled workouts (for future appointments)
     const fetchScheduledWorkouts = async () => {
       try {
-        setIsLoading(true);
         const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -57,27 +44,58 @@ export default function Calendar() {
           throw new Error("Failed to fetch scheduled workouts");
         }
         const data = await response.json();
-        
-        // Convert to FullCalendar event objects
-        const formatted = data.map((item: any) => ({
-          id: item.id,
+        return data.map((item: any) => ({
+          id: `scheduled-${item.id}`,
           title: item.workout_title,
           start: item.scheduled_date,
+          // Here we assume a default duration of 1 hour for scheduled workouts
           end: new Date(new Date(item.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
         }));
-        setWorkouts(formatted);
       } catch (err: any) {
         console.error(err);
         setError(err.message || "Failed to load scheduled workouts");
-      } finally {
-        setIsLoading(false);
+        return [];
       }
     };
 
-    fetchScheduledWorkouts();
+    // Fetch workout sessions (actual sessions with start times)
+    const fetchWorkoutSessions = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/workouts_sessions/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch workout sessions");
+        }
+        const data = await response.json();
+        return data.map((session: any) => ({
+          id: `session-${session.id}`,
+          // Use the workout name if available; otherwise, a generic title
+          title: session.workout?.name || "Workout Session",
+          start: session.start_time,
+          // Default session duration: 1 hour (adjust if you have a duration field)
+          end: new Date(new Date(session.start_time).getTime() + 60 * 60 * 1000).toISOString()
+        }));
+      } catch (err: any) {
+        console.error(err);
+        // Optionally set an error for sessions if needed
+        return [];
+      }
+    };
+
+    const loadEvents = async () => {
+      setIsLoading(true);
+      const scheduledEvents = await fetchScheduledWorkouts();
+      const sessionEvents = await fetchWorkoutSessions();
+      // Merge both arrays into one event list
+      setCalendarEvents([...scheduledEvents, ...sessionEvents]);
+      setIsLoading(false);
+    };
+
+    loadEvents();
   }, [navigate]);
 
-  // Load available workout templates
+  // Load available workout templates for scheduling
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
@@ -91,7 +109,6 @@ export default function Calendar() {
           throw new Error("Failed to fetch available workouts");
         }
         const data = await response.json();
-
         setAvailableWorkouts(
           data.map((w: any) => ({
             id: w.id,
@@ -108,17 +125,11 @@ export default function Calendar() {
 
   // When user clicks a date on the calendar
   const handleDateClick = (arg: any) => {
-    // FullCalendar's arg.date is a JS date object with date + time (often midnight if you are in dayGridMonth).
-    // We can create an ISO string suitable for <input type="datetime-local" /> but must slice off seconds & decimals.
-    
-    const dateObj = arg.date; // a JS date
-    // Convert to "YYYY-MM-DDTHH:MM" string
-    // Note: toISOString() => "YYYY-MM-DDTHH:MM:SS.sssZ"
-    // We'll drop the last part for a local input:
-    const localDateTime = new Date(dateObj.getTime() - dateObj.getTimezoneOffset()*60000)
+    const dateObj = arg.date;
+    // Convert to local "YYYY-MM-DDTHH:MM" format for the datetime-local input
+    const localDateTime = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000)
       .toISOString()
-      .slice(0, 16); // "YYYY-MM-DDTHH:MM"
-
+      .slice(0, 16);
     setSelectedDateTime(localDateTime);
     setShowScheduleModal(true);
   };
@@ -128,16 +139,11 @@ export default function Calendar() {
     const token = localStorage.getItem("accessToken");
     if (!token || !selectedWorkoutId || !selectedDateTime) return;
 
-    // Convert the user-chosen local date/time to full ISO:
-    // If the user is in a certain timezone, <input type="datetime-local" />
-    // does not store the offset. We can parse it manually.
+    // Convert local date/time from input to full ISO string
     const fullDate = new Date(selectedDateTime);
-    // Convert to UTC ISO string:
     const isoDateTime = fullDate.toISOString();
 
     const postData = {
-      // The key must match your serializer's field:
-      // `workout_template = models.ForeignKey(...)`
       workout_template: selectedWorkoutId,
       scheduled_date: isoDateTime
     };
@@ -156,17 +162,17 @@ export default function Calendar() {
         throw new Error("Failed to schedule workout");
       }
       const newSession = await response.json();
-      
-      // Add the new event to our local array
+
       const newEvent = {
-        id: newSession.id,
+        id: `scheduled-${newSession.id}`,
         title: newSession.workout_title,
         start: newSession.scheduled_date,
         end: new Date(new Date(newSession.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
       };
-      setWorkouts((prev) => [...prev, newEvent]);
 
-      // Reset
+      setCalendarEvents((prev) => [...prev, newEvent]);
+
+      // Reset modal state
       setShowScheduleModal(false);
       setSelectedWorkoutId(null);
       setSelectedDateTime("");
@@ -176,9 +182,9 @@ export default function Calendar() {
     }
   };
 
-  // View details modal
+  // Show event details when clicked
   const handleEventClick = (info: any) => {
-    const event = workouts.find((w) => w.id.toString() === info.event.id);
+    const event = calendarEvents.find((w) => w.id.toString() === info.event.id);
     if (event) {
       setSelectedEvent(event);
       setShowModal(true);
@@ -202,7 +208,6 @@ export default function Calendar() {
         >
           <h1 className="text-center mb-4">Workout Calendar</h1>
           {error && <div className="alert alert-danger">{error}</div>}
-
           <div className="calendar-container bg-dark text-white">
             {isLoading ? (
               <div className="d-flex justify-content-center p-5">
@@ -219,14 +224,10 @@ export default function Calendar() {
                   center: "title",
                   right: "dayGridMonth,timeGridWeek,timeGridDay"
                 }}
-                events={workouts}
+                events={calendarEvents}
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
-                // for time selection via drag, you can enable "selectable: true," and use "select" event
-                // selectable={true}
-                // select={handleSelect}
                 height="auto"
-                themeSystem="bootstrap5"
               />
             )}
           </div>
@@ -238,26 +239,25 @@ export default function Calendar() {
                 <div className="modal-content bg-dark text-white">
                   <div className="modal-header">
                     <h5 className="modal-title">{selectedEvent.title}</h5>
-                    <button type="button" className="btn-close btn-close-white"
-                            onClick={() => setShowModal(false)}></button>
+                    <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
                   </div>
                   <div className="modal-body">
-                    <p><strong>Date:</strong> {new Date(selectedEvent.start).toLocaleDateString()}</p>
-                    <p><strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()} - 
-                      {new Date(selectedEvent.end).toLocaleTimeString()}</p>
+                    <p>
+                      <strong>Date:</strong> {new Date(selectedEvent.start).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()} -{" "}
+                      {new Date(selectedEvent.end).toLocaleTimeString()}
+                    </p>
                   </div>
                   <div className="modal-footer">
-                    <button 
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowModal(false)}
-                    >
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                       Close
                     </button>
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={() => navigate(`/workouts/update/${selectedEvent.id}`)}
+                      onClick={() => navigate(`/workouts/update/${selectedEvent.id.split("-")[1]}`)}
                     >
                       View Workout Details
                     </button>
@@ -274,11 +274,7 @@ export default function Calendar() {
                 <div className="modal-content bg-dark text-white">
                   <div className="modal-header">
                     <h5 className="modal-title">Schedule Workout</h5>
-                    <button
-                      type="button"
-                      className="btn-close btn-close-white"
-                      onClick={() => setShowScheduleModal(false)}
-                    ></button>
+                    <button type="button" className="btn-close btn-close-white" onClick={() => setShowScheduleModal(false)}></button>
                   </div>
                   <div className="modal-body">
                     <label htmlFor="workoutSelect" className="form-label">
@@ -298,7 +294,6 @@ export default function Calendar() {
                       ))}
                     </select>
 
-                    {/* Input for date+time */}
                     <label htmlFor="dateTimeInput" className="form-label">
                       Pick Date &amp; Time:
                     </label>
@@ -311,18 +306,10 @@ export default function Calendar() {
                     />
                   </div>
                   <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowScheduleModal(false)}
-                    >
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowScheduleModal(false)}>
                       Cancel
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={handleScheduleWorkout}
-                    >
+                    <button type="button" className="btn btn-primary" onClick={handleScheduleWorkout}>
                       Schedule
                     </button>
                   </div>

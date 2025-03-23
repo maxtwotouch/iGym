@@ -33,10 +33,8 @@ export default function RegistrationForm() {
     };
   } else if (userType === "trainer") {
     url = `${backendUrl}/personal_trainer/register/`;
-    payload.profile = {
-      trainer_profile: {
-        experience,
-      },
+    payload.trainer_profile = {
+      experience
     };
   }
 

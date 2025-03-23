@@ -156,7 +156,7 @@ const CustomerDashboard: React.FC = () => {
                 >
                   <p className="font-semibold">{session.name}</p>
                   <p className="text-sm text-gray-400">
-                    Date: {new Date(session.date_created).toLocaleString()}
+                    Date: {new Date(session.start_time).toLocaleString()}
                   </p>
                 </li>
               ))}
