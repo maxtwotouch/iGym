@@ -557,5 +557,5 @@ class WorkoutMessageModelTest(TestCase):
 
     
 # Model tests to be done
-# Workout message
+# duration field in workout session
 

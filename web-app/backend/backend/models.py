@@ -51,6 +51,7 @@ class WorkoutSession(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     start_time = models.DateTimeField(auto_now_add=True)
     calories_burned = models.FloatField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True)
 
     # Total number of calories burned in the workout
     def save(self, *args, **kwargs):

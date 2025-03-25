@@ -35,70 +35,132 @@ export default function Calendar() {
     }
 
     // Fetch scheduled workouts (for future appointments)
-    const fetchScheduledWorkouts = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch scheduled workouts");
-        }
-        const data = await response.json();
-        return data.map((item: any) => ({
-          id: `scheduled-${item.id}`,
-          title: item.workout_title,
-          start: item.scheduled_date,
-          // Here we assume a default duration of 1 hour for scheduled workouts
-          end: new Date(new Date(item.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
-        }));
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to load scheduled workouts");
-        return [];
-      }
-    };
-
-    // Fetch workout sessions (actual sessions with start times)
-const mapWorkoutSessions = async () => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) {
-    navigate("/login");
-    return [];
-  }
-
+// Fetch scheduled workouts (for future appointments)
+const fetchScheduledWorkouts = async () => {
   try {
-    // Fetch both workouts and workout sessions in parallel
-    const [workoutsRes, sessionsRes] = await Promise.all([
-      fetch(`${backendUrl}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${backendUrl}/workouts_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
-    ]);
+    const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch scheduled workouts");
+    }
 
-    // Convert responses to JSON
-    const [workouts, workoutSessions] = await Promise.all([
-      workoutsRes.json(),
-      sessionsRes.json(),
-    ]);
+    const data = await response.json();
+    const now = new Date();
 
-    console.log("Fetched Workouts:", workouts);
-    console.log("Fetched Workout Sessions:", workoutSessions);
+    // Array to hold delete promises
+    const deletePromises = [];
 
-    // Map workout ID to its name for quick lookup
-    const workoutMap = new Map(workouts.map((workout: any) => [workout.id, workout.name]));
+    for (const item of data) {
+      if (new Date(item.scheduled_date) < now) {
+        try {
+          // Hold the promise for the delete operation
+          const deletePromise = fetch(`${backendUrl}/scheduled_workout/delete/${item.id}/`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          deletePromises.push(deletePromise); // Keep track of delete promises
+        } catch (err) {
+          console.error(`Failed to delete past scheduled workout ${item.id}:`, err);
+        }
+      }
+    }
 
-    // Map workout sessions to calendar events
-    const sessionEvents = workoutSessions.map((session: any) => ({
-      id: `session-${session.id}`,
-      title: workoutMap.get(session.workout) || "Workout Session",
-      start: session.start_time,
-      end: new Date(new Date(session.start_time).getTime() + 60 * 60 * 1000).toISOString(),
+    // Wait for all delete promises to resolve
+    await Promise.all(deletePromises);
+
+    // Now, fetch the updated list of scheduled workouts
+    const updatedResponse = await fetch(`${backendUrl}/scheduled_workouts/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!updatedResponse.ok) {
+      throw new Error("Failed to fetch scheduled workouts after deletion");
+    }
+
+    const updatedData = await updatedResponse.json(); // Get updated data
+
+    return updatedData.map((item: any) => ({
+      id: `scheduled-${item.id}`,
+      workout_id: item.workout_template,
+      title: item.workout_title,
+      start: item.scheduled_date,
     }));
 
-    return sessionEvents;
-  } catch (error) {
-    console.error("Error fetching data:", error);
+  } catch (err: any) {
+    console.error(err);
+    setError(err.message || "Failed to load scheduled workouts");
     return [];
   }
 };
+
+
+    // Fetch workout sessions (actual sessions with start times)
+    const mapWorkoutSessions = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        navigate("/login");
+        return [];
+      }
+    
+      try {
+        // Fetch both workouts and workout sessions in parallel
+        const [workoutsRes, sessionsRes] = await Promise.all([
+          fetch(`${backendUrl}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${backendUrl}/workouts_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+    
+        // Convert responses to JSON
+        const [workouts, workoutSessions] = await Promise.all([
+          workoutsRes.json(),
+          sessionsRes.json(),
+        ]);
+    
+        console.log("Fetched Workouts:", workouts);
+        console.log("Fetched Workout Sessions:", workoutSessions);
+    
+        // Map workout ID to its name for quick lookup
+        const workoutMap = new Map(workouts.map((workout: any) => [workout.id, workout.name]));
+    
+        // Map workout sessions to calendar events
+        const sessionEvents = workoutSessions.map((session: any) => {
+          const startTime = new Date(session.start_time);
+          let durationMs;
+          if (!session.duration) {
+            durationMs = 0; // Return 0 milliseconds for invalid duration
+          }
+
+          else {
+            const parts = session.duration.split(":");
+
+            // Parse hours, minutes, and seconds
+            const hours = parseInt(parts[0], 10) || 0; // Default to 0 if NaN
+            const minutes = parseInt(parts[1], 10) || 0; // Default to 0 if NaN
+            const seconds = parseInt(parts[2], 10) || 0; // Default to 0 if NaN
+
+            durationMs = (hours * 3600000) + (minutes * 60000) + (seconds * 1000);
+          }
+          // Calculate end time
+          const endTime = new Date(startTime.getTime() + durationMs);
+    
+          return {
+            id: `session-${session.id}`,
+            workout_id: session.workout,
+            title: workoutMap.get(session.workout) || "Workout Session",
+            start: startTime.toISOString(),
+            end: endTime.toISOString(),
+            duration: session.duration,
+          };
+        });
+    
+        return sessionEvents;
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        return [];
+      }
+    };
+    
 
     const loadEvents = async () => {
       setIsLoading(true);
@@ -160,6 +222,13 @@ const mapWorkoutSessions = async () => {
     const fullDate = new Date(selectedDateTime);
     const isoDateTime = fullDate.toISOString();
 
+    // Check if the selected date is in the past
+    const now = new Date();
+    if (fullDate < now) {
+      alert("You cannot schedule a workout in the past."); // Set error message
+      return;
+    }
+
     const postData = {
       workout_template: selectedWorkoutId,
       scheduled_date: isoDateTime
@@ -182,9 +251,9 @@ const mapWorkoutSessions = async () => {
 
       const newEvent = {
         id: `scheduled-${newSession.id}`,
+        workout_id: newSession.workout_template,
         title: newSession.workout_title,
         start: newSession.scheduled_date,
-        end: new Date(new Date(newSession.scheduled_date).getTime() + 60 * 60 * 1000).toISOString()
       };
 
       setCalendarEvents((prev) => [...prev, newEvent]);
@@ -263,9 +332,15 @@ const mapWorkoutSessions = async () => {
                       <strong>Date:</strong> {new Date(selectedEvent.start).toLocaleDateString()}
                     </p>
                     <p>
-                      <strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()} -{" "}
-                      {new Date(selectedEvent.end).toLocaleTimeString()}
+                      <strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()}
+                      {selectedEvent.end && !isNaN(new Date(selectedEvent.end).getTime()) ? ` - ${new Date(selectedEvent.end).toLocaleTimeString()}` : ""}
                     </p>
+                    {selectedEvent.duration && (
+                      <p>
+                        <strong>Duration:</strong> {selectedEvent.duration}
+                      </p>
+                    )}
+
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
@@ -274,7 +349,7 @@ const mapWorkoutSessions = async () => {
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={() => navigate(`/workouts/update/${selectedEvent.id.split("-")[1]}`)}
+                      onClick={() => navigate(`/workouts/update/${selectedEvent.workout_id}`)}
                     >
                       View Workout Details
                     </button>

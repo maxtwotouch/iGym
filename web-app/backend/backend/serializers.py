@@ -104,7 +104,7 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
     exercise_sessions = ExerciseSessionSerializer(many=True, read_only=True)  # Include related exercise sessions
     class Meta:
         model = WorkoutSession
-        fields = ["id", "user", "workout", "start_time", "exercise_sessions", "calories_burned"]
+        fields = ["id", "user", "workout", "start_time", "exercise_sessions", "calories_burned", "duration"]
         extra_kwargs = {"user": {"read_only": True}}
 
         

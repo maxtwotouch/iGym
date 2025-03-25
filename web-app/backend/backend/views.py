@@ -223,6 +223,16 @@ class ChatRoomDeleteView(generics.DestroyAPIView):
         user = self.request.user
         return ChatRoom.objects.filter(participants=user) 
 
+class SchedulesWorkoutDeleteView(generics.DestroyAPIView):
+    serializer_class = ScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return ScheduledWorkout.objects.filter(user=user)
+        
+    
+
 ##
 class ChatRoomCreateView(generics.CreateAPIView):
     serializer_class = ChatRoomSerializer
