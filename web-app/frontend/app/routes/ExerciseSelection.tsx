@@ -18,7 +18,7 @@ interface Exercise {
 
 const ExerciseSelection: React.FC = () => {
     const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
-    const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
     const [newWorkoutName, setNewWorkoutName] = useState<string>("");
     const [fromPage, setFromPage] = useState<string>(``);
     const [searchQuery, setSearchQuery] = useState<string>("");
@@ -67,12 +67,12 @@ const ExerciseSelection: React.FC = () => {
         exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleSelectExercise = (exerciseId: number) => {
+    const handleSelectExercise = (exercise: Exercise) => {
         setSelectedExercises((prevSelectedExercises) => {
-            if (prevSelectedExercises.includes(exerciseId)) {
-                return prevSelectedExercises.filter((id) => id !== exerciseId);
+            if (prevSelectedExercises.includes(exercise)) {
+                return prevSelectedExercises.filter((e) => e.id !== exercise.id);
             } else {
-                return [...prevSelectedExercises, exerciseId];
+                return [...prevSelectedExercises, exercise];
             }
         });
     };
@@ -118,13 +118,13 @@ const ExerciseSelection: React.FC = () => {
                                     key={exercise.id}
                                     data-id={exercise.id}
                                     className={`cursor-pointer p-2 rounded-md mb-2 text-left transition ${
-                                        selectedExercises.includes(exercise.id) 
+                                        selectedExercises.includes(exercise) 
                                             ? "bg-blue-500 text-white" // Highlighted when selected
                                             : "bg-gray-700 hover:bg-gray-600 text-gray-300"
                                     }`}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleSelectExercise(exercise.id)}
+                                    onClick={() => handleSelectExercise(exercise)}
                                 >
                                     {exercise.name}
                                 </motion.li>

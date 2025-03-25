@@ -18,8 +18,7 @@ interface Exercise {
 
 const CreateWorkout: React.FC = () => {
     const [newWorkoutName, setNewWorkoutName] = useState<string>(""); 
-    const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
-    const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
+    const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -29,29 +28,10 @@ const CreateWorkout: React.FC = () => {
         navigate("/login");
         return;
       }
-
-      const fetchExercises = async () => {
-        try {
-            const response = await fetch(`${backendUrl}/exercises/`, {
-            headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!response.ok) {
-            console.error("Failed to fetch exercises");
-            return;
-            }
-            const data = await response.json();
-            setAvailableExercises(data); 
-        } catch (error) {
-            console.error("Error fetching exercises:", error);
-          }
-      };
-
       if (location.state) {
         setSelectedExercises(location.state.selectedExercises);
         setNewWorkoutName(location.state.newWorkoutName);
       }
-
-      fetchExercises();
     }, [navigate]);
 
   const handleAddWorkout = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -63,6 +43,8 @@ const CreateWorkout: React.FC = () => {
       return;
     }
 
+    const exercises = selectedExercises.map((exercise) => exercise.id);
+
     try {
       const response = await fetch(`${backendUrl}/workouts/create/`, { 
         method: "POST",
@@ -72,7 +54,7 @@ const CreateWorkout: React.FC = () => {
         },
         body: JSON.stringify({
           name: newWorkoutName,
-          exercises: selectedExercises,
+          exercises: exercises,
         }),
       });
 
@@ -134,11 +116,10 @@ const CreateWorkout: React.FC = () => {
             <p className="text-gray-400 mb-4">No exercises selected.</p>
           ) : (
             <ul className="list-disc list-inside mb-4">
-              {selectedExercises.map((exerciseId) => {
-                const exercise = availableExercises.find((ex) => ex.id === exerciseId);
+              {selectedExercises.map((exercise) => {
                 return (
                   <motion.li
-                    key={exerciseId}
+                    key={exercise.id}
                     className="text-gray-300"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}

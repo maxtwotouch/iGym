@@ -117,9 +117,6 @@ const fetchScheduledWorkouts = async () => {
           sessionsRes.json(),
         ]);
     
-        console.log("Fetched Workouts:", workouts);
-        console.log("Fetched Workout Sessions:", workoutSessions);
-    
         // Map workout ID to its name for quick lookup
         const workoutMap = new Map(workouts.map((workout: any) => [workout.id, workout.name]));
     

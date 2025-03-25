@@ -108,6 +108,18 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
         else:
             print(serializer.errors)
 
+# Test this view
+class ListExercisesInWorkoutView(generics.ListAPIView):
+    serializer_class = ExerciseSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        workout_id = self.kwargs["pk"]
+        workout_object = Workout.objects.get(id=workout_id)
+        return workout_object.exercises.all()
+                
+        
+
 class CreateExerciseSessionView(generics.CreateAPIView):
     serializer_class = ExerciseSessionSerializer
     permission_classes = [IsAuthenticated]
