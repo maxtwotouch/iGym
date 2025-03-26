@@ -99,7 +99,13 @@ function NavBar() {
                     transition={{ duration: 0.5 }}
                 >
                     <Link className={`hover:text-blue-400 ${location.pathname === '/dashboard' && 'text-blue-400'}`} to="/dashboard">Home</Link>
-                    <Link className={`hover:text-blue-400 ${location.pathname === '/exercises' && 'text-blue-400'}`} to="/exercises">Exercises</Link>
+                    <Link 
+                        className={`hover:text-blue-400 ${location.pathname === '/exercises' ? 'text-blue-400' : ''}`} 
+                        to="/exercises"
+                        data-name="Exercises Page"
+                        >
+                        Exercises
+                    </Link>
                     <Link className={`hover:text-blue-400 ${location.pathname === '/calendar' && 'text-blue-400'}`} to="/calendar">Calendar</Link>
                     <Link className={`hover:text-blue-400 ${location.pathname === '/chat' && 'text-blue-400'}`} to="/chat">Chat</Link>
                     

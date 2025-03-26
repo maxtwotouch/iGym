@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         # Extract nested user_profile data (if any)
-        profile_data = validated_data.pop("profile")
+        profile_data = validated_data.pop("profile", None)
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
         

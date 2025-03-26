@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import {useParams, useNavigate} from "react-router-dom";
 import React, { useState, useEffect } from "react";
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
 // Interface to define the structure of an exercise object
   interface Exercise {
@@ -25,7 +26,7 @@ function Exercise() {
 
         const fetchExerciseData = async () => {
             try {
-              const response = await fetch(`http://127.0.0.1:8000/exercises/${id}/`, {
+              const response = await fetch(`${backendUrl}/exercises/${id}/`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (!response.ok) {

@@ -134,5 +134,41 @@
             "muscle_group": "Main muscles: Abs",
             "image": "exercise_images/plank.png"
         }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Rope Cable Curl",
+            "description": "Starting position: Standing in front of the pulley, knees slightly bent, grasp the rope with both hands, in neutral grip, arms relaxed along the body. Execution: Without making a bust movement, bend your forearms, bringing your hands as close as possible to your shoulders, without bringing your elbows too far forward. Contract your biceps in a high position, then slowly return to the initial position.",
+            "muscle_group": "Main muscles: Biceps",
+            "image": "exercise_images/rope_cable_curl.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "T-Bar Rows",
+            "description": "Starting position: Use a T-Bar machine (or place a barbell in the corner of a room). Stand with feet either side of the bar, bend your knees, and bow forward so that your chest is directly over the plate on the barbell. Grab the handle in both hands. Execution: Keeping your posture still, pull the handles so that the plate rises towards your chest. Pause just before it touches, and then slowly lower it back down.",
+            "muscle_group": "Main muscles: Back muscles. Secondary muscles: Rear deltiods, biceps",
+            "image": "exercise_images/t_bar_rows.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Leg Press",
+            "description": "Starting position: Sitting on the press bench, feet flat on the platen, shoulder width apart. Execution: Release the manual safety catch and slowly lower the load by bringing your knees towards your chest. When your knees are at a 90° angle, pause for a moment and then slowly raise the load. To protect your knees, stop the movement just before your legs are fully extended. During the movement, do not lift your buttocks off the bench.",
+            "muscle_group": "Main muscles: Thigh and buttock muscles",
+            "image": "exercise_images/leg_press.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Bent-Over Lateral Raise",
+            "description": "Starting position: Standing with knees slightly bent, bust bent forward, almost parallel to the ground, keeping your back straight and your head in line with your spine. Hold a dumbbell in each hand, palms facing each other. Execution: Slowly lift and move the dumbbells away from each side of your body in an arc with your arms. Contract for a moment in the raised position before returning to the initial position.",
+            "muscle_group": "Main muscles: Deltoids muscles (mainly the posterior bundle). Secondary muscles: Trapezius muscles",
+            "image": "bent_over_lateral_raise.png"
+        }
     }
 ]

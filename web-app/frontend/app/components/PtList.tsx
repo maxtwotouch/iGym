@@ -59,7 +59,7 @@ const PtList: React.FC = () => {
             await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ user_profile: {personal_trainer: ptProfileId} })
+                body: JSON.stringify({ profile: {personal_trainer: ptProfileId} })
             });
 
             // Create a chat room between the user and the PT

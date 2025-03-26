@@ -1255,6 +1255,83 @@ class TestPersonalTrainerDetailView(APITestCase):
         response = self.client.get(self.url)
         # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class TestUpdateUserView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="testuser", password="password")
+        self.user_profile = UserProfile.objects.create(user=self.user, height=180, weight=75)
+        
+        self.url = reverse("user-update", kwargs={"pk": self.user.id})
+    
+    def test_update_user_basic(self):
+        self.client.force_authenticate(user=self.user)
+        
+        # Only update some fields
+        new_data = {
+            "profile": {
+                "height": 185,
+                "weight": 80
+            }
+        }
+        
+        response = self.client.patch(self.url, data=new_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        updated_user = UserProfile.objects.get(id=self.user_profile.id)
+        
+        self.assertEqual(updated_user.height, 185)
+        self.assertEqual(updated_user.weight, 80)
+
+    def test_update_other_user(self):
+        second_user = User.objects.create(username="secondUser", password="password")
+        
+        self.client.force_authenticate(user=second_user)
+        
+        new_data = {
+            "profile": {
+                "height": 185,
+                "weight": 80
+            }
+        }
+        
+        response = self.client.patch(self.url, data=new_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        original_user = UserProfile.objects.get(id=self.user_profile.id)
+        
+        # Check that the attributes have not been updated
+        self.assertEqual(original_user.height, 180)
+        self.assertEqual(original_user.weight, 75)
+    
+    def test_update_password(self):
+        self.client.force_authenticate(user=self.user)
+        
+        new_data = {
+            "password": "newPassword"
+        }
+        
+        response = self.client.patch(self.url, data=new_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_user = User.objects.get(id=self.user.id)
+        self.assertEqual(updated_user.password, "newPassword")
+    
+    def test_unauthenticated_user_do_not_have_access(self):
+        new_data = {
+            "profile": {
+                "height": 185,
+                "weight": 80
+            }
+        }
+        response = self.client.patch(self.url, data=new_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+
+                
+        
+    
         
         
         

@@ -49,7 +49,6 @@ class PersonalTrainerDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return User.objects.filter(trainer_profile__isnull=False)
 
-##
 class UpdateUserView(generics.UpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
