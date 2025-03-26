@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["id", "experience"]
+        fields = ["id", "experience", "pt_type"]
 
 # Nested serializer to connect with the personal trainer model
 class PersonalTrainerSerializer(serializers.ModelSerializer):

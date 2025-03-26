@@ -6,11 +6,20 @@ from django.core.exceptions import ValidationError
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
+    PT_TYPES = [
+        ("general", "General Fitness Trainer"),
+        ("strength", "Strength and Conditioning Trainer"),
+        ("functional", "Functional Training Coach"),
+        ("bodybuilding", "Bodybuilding Coach"),
+        ("physio", "Physical Therapist"),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainer_profile')
     
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
     role = models.CharField(max_length=20, default="trainer")
+    pt_type = models.CharField(max_length=20, choices=PT_TYPES, default="general")
 
 # Model for normal users
 class UserProfile(models.Model):
