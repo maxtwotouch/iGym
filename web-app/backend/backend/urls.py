@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, ExerciseListView, CreateWorkoutView
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
-from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, PersonalTrainerDetailView, UserDetailView
-from .views import ClientsListView
+from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
+from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -39,6 +39,7 @@ urlpatterns = [
     path("exercises/", ExerciseListView.as_view(), name="exercise-list"),
     path("workouts/create/", CreateWorkoutView.as_view(), name="workout-create"),
     path("workouts/delete/<int:pk>/", WorkoutDeleteView.as_view(), name="workout-delete"),
+    path("workout/<int:pk>/exercises/", ListExercisesInWorkoutView.as_view(), name="workout-exercises"),
     path("workouts/update/<int:pk>/", UpdateWorkoutView.as_view(), name="workout-update"),
     path("workouts/<int:pk>/", WorkoutDetailView.as_view(), name="get-workout"),
     path("exercises/<int:pk>/", ExerciseDetailView.as_view(), name="get-exercise"),
@@ -53,10 +54,13 @@ urlpatterns = [
     path("users/", ListUserView.as_view(), name="user-list"),
     path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
     path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
-    # path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
+    path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
     path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
     path("personal_trainer/clients/", ClientsListView.as_view(), name="clients-list"),
-    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail")
+    path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
+    path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
+    path("scheduled_workout/delete/<int:pk>/", SchedulesWorkoutDeleteView.as_view(), name="scheduled_workout-delete"),
+    path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
 ]
 
 """

@@ -8,6 +8,7 @@ import subprocess
 from django.conf import settings
 import os
 import time
+import unittest
 
 class SignInAndLogInTest(StaticLiveServerTestCase):
     @classmethod
@@ -25,7 +26,14 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         cls.frontend_process = subprocess.Popen(
             ["npm", "run", "dev"],
             cwd=str(frontend_dir),
-            env={**os.environ, "VITE_BACKEND_URL": cls.live_server_url},
+            env={
+                **os.environ,
+                "VITE_BACKEND_URL": cls.live_server_url,
+                "VITE_ACCESS_TOKEN": "", 
+                "VITE_REFRESH_TOKEN": "",  
+                "VITE_USERNAME": "",       
+                "VITE_USER_TYPE": "",     
+            },
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -52,7 +60,6 @@ class SignInAndLogInTest(StaticLiveServerTestCase):
         cls.frontend_process.terminate()
         super().tearDownClass()
     
-
     def test_sign_in_and_login(self):
         self.browser.get("http://localhost:5173")
 

@@ -18,6 +18,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
 # Make the application support multiple protocols
 
+application = get_asgi_application()
+
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
