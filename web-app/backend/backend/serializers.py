@@ -75,6 +75,19 @@ class PersonalTrainerSerializer(serializers.ModelSerializer):
         PersonalTrainerProfile.objects.create(**profile_data)
         return user
     
+    def update(self, instance, validated_data):
+        trainer_profile_data = validated_data.pop("trainer_profile", None)
+        
+        instance = super().update(instance, validated_data)
+        
+        if trainer_profile_data:
+            trainer_profile = instance.trainer_profile
+            
+            for attr, value in trainer_profile_data.items():
+                setattr(trainer_profile, attr, value)
+            trainer_profile.save()
+        return instance
+    
 
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -144,21 +157,9 @@ class WorkoutMessageSerializer(serializers.ModelSerializer):
         
 
 class ChatRoomSerializer(serializers.ModelSerializer):
-    messages = MessageSerializer(many=True, read_only=True)
-    workout_messages = WorkoutMessageSerializer(many=True, read_only=True)
-
-    # Storing the participants as a list of user objects (both user and pt)
-    participants = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), write_only=True)
-
-    # Separate field for returning both id and username when retrieving chat room
-    participants_display = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = ChatRoom
-        fields = ["id", "participants", "participants_display", "date_created", "name", "messages", "workout_messages"]
-
-    def get_participants_display(self, obj):
-        return obj.participants.values("id", "username")
+        fields = ["id", "participants", "date_created", "name", "messages", "workout_messages"]
     
 
 class ChatRoomCreateSerializer(serializers.ModelSerializer):

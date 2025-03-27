@@ -1258,7 +1258,7 @@ class TestPersonalTrainerDetailView(APITestCase):
 
 class TestUpdateUserView(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(username="testuser", password="password")
+        self.user = User.objects.create_user(username="testuser", password="password")
         self.user_profile = UserProfile.objects.create(user=self.user, height=180, weight=75)
         
         self.url = reverse("user-update", kwargs={"pk": self.user.id})
@@ -1327,6 +1327,62 @@ class TestUpdateUserView(APITestCase):
         }
         response = self.client.patch(self.url, data=new_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class TestUpdatePersonalTrainerView(APITestCase):
+    def setUp(self):
+        self.trainer = User.objects.create_user(username="testtrainer", password="password")
+        self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer, experience="5 years")
+        
+        self.url = reverse("personal_trainer-update", kwargs={"pk": self.trainer.id})
+    
+    def test_update_personal_trainer_basic(self):
+        self.client.force_authenticate(user=self.trainer)
+        
+        new_data = {
+            "trainer_profile": {
+                "experience": "7 years"
+            }
+        }
+        
+        response = self.client.patch(self.url, data=new_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        updated_trainer = PersonalTrainerProfile.objects.get(id=self.trainer_profile.id)
+        
+        self.assertEqual(updated_trainer.experience, "7 years")
+    
+    def test_update_other_personal_trainer(self):
+        second_trainer = User.objects.create(username="secondTrainer", password="password")
+        
+        self.client.force_authenticate(user=second_trainer)
+        
+        new_data = {
+            "trainer_profile": {
+                "experience": "7 years"
+            }
+        }
+        
+        response = self.client.patch(self.url, data=new_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
+        original_trainer = PersonalTrainerProfile.objects.get(id=self.trainer_profile.id)
+        
+        self.assertEqual(original_trainer.experience, "5 years")
+    
+    def test_unauthenticated_trainer_do_not_have_access(self):
+        new_data = {
+            "trainer_profile": {
+                "experience": "7 years"
+            }
+        }
+        response = self.client.patch(self.url, data=new_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        
+        
+
         
 
                 

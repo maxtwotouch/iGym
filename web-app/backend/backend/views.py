@@ -1,10 +1,11 @@
 
-from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout
+from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
+from .serializers import MessageSerializer, WorkoutMessageSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -58,7 +59,6 @@ class UpdateUserView(generics.UpdateAPIView):
         user = self.request.user
         return User.objects.filter(id=user.id)
 
-##
 class UpdatePersonalTrainerView(generics.UpdateAPIView):
     serializer_class = PersonalTrainerSerializer
     permission_classes = [IsAuthenticated]
@@ -107,7 +107,7 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
         else:
             print(serializer.errors)
 
-# Test this view
+##
 class ListExercisesInWorkoutView(generics.ListAPIView):
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
@@ -242,13 +242,39 @@ class SchedulesWorkoutDeleteView(generics.DestroyAPIView):
         user = self.request.user
         return ScheduledWorkout.objects.filter(user=user)
         
-    
-
 ##
 class ChatRoomCreateView(generics.CreateAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
 
+
+##
+class ListParticipantsInChatRoomView(generics.ListAPIView):
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        chat_room_id = self.kwargs["pk"]
+        chat_room_object = ChatRoom.objects.get(id=chat_room_id)
+        return chat_room_object.participants.all()
+
+##
+class ListMessagesInChatRoomView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        chat_room_id = self.kwargs["pk"]
+        return Message.objects.filter(chat_room=chat_room_id)
+
+##
+class ListWorkoutMessagesInChatRoomView(generics.ListAPIView):
+    serializer_class = WorkoutMessageSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        chat_room_id = self.kwargs["pk"]
+        return WorkoutMessage.objects.filter(chat_room=chat_room_id)
 ##
 class CreateScheduledWorkoutView(generics.CreateAPIView):
      serializer_class = ScheduledWorkoutSerializer

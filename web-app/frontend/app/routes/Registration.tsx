@@ -26,17 +26,13 @@ export default function RegistrationForm() {
   if (userType === "user") {
     url = `${backendUrl}/user/register/`;
     payload.profile = {
-      user_profile: {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
-      },
     };
   } else if (userType === "trainer") {
     url = `${backendUrl}/personal_trainer/register/`;
     payload.trainer_profile = {
-      trainer_profile: {
-        experience: experience,
-      },
+      experience: experience,
     };
   }
 

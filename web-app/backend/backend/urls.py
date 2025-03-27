@@ -22,7 +22,8 @@ from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, E
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
-from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView
+from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView, ListParticipantsInChatRoomView
+from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -51,6 +52,9 @@ urlpatterns = [
     path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
     path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
     path("chat_room/delete/<int:pk>/", ChatRoomDeleteView.as_view(), name="chat_room-delete"),
+    path("chat_room/<int:pk>/participants/", ListParticipantsInChatRoomView.as_view(), name="chat_room-participants"),
+    path("chat_room/<int:pk>/messages/", ListMessagesInChatRoomView.as_view(), name="chat_room-messages"),
+    path("chat_room/<int:pk>/workout_messages/", ListWorkoutMessagesInChatRoomView.as_view(), name="chat_room-workout_messages"),
     path("users/", ListUserView.as_view(), name="user-list"),
     path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
     path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),

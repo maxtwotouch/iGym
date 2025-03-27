@@ -58,52 +58,22 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const currentChat = await currentChatResponse.json();
-
-                // Set the normal messages of the chat room
-                setMessages(currentChat.messages.map((
-                    message: { 
-                        type: "message"; 
-                        content: string; 
-                        sender: number; 
-                        date_sent: string 
-                    }) => ({ 
-                        type: "message", 
-                        content: message.content, 
-                        sender: message.sender, 
-                        date_sent: message.date_sent 
-                    }))
-                );
-                
-                // Set the workout messages of the chat room
-                setChatWorkouts(
-                    currentChat.workout_messages.map((workoutMessage: { 
-                        id: number; 
-                        sender: number; 
-                        date_sent: string; 
-                        workout: { 
-                            id: number; 
-                            owners: number[]; 
-                            name: string; 
-                        } 
-                    }) => ({
-                        type: "workout",
-                        id: workoutMessage.workout.id,
-                        owners: workoutMessage.workout.owners,
-                        name: workoutMessage.workout.name,
-                        sender: workoutMessage.sender,
-                        date_sent: workoutMessage.date_sent,
-                    }))
-                );
-                
-                // Set the users of the chat room, both their ID and username
-                setUsers(currentChat.participants_display.map((user: any) => ({
-                    id: user.id,
-                    username: user.username
-                })));
-
                 setRoomName(currentChat.name);
             } catch (error) {
                 console.error("Error fetching users:", error);
+            }
+        }
+
+        const fetchParticipants = async () => {
+            try {
+                const participantsResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/participants/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const participants = await participantsResponse.json();
+                setUsers(participants);
+            
+            } catch (error) {
+                console.error("Error fetching participants:", error);
             }
         }
 
@@ -125,8 +95,65 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 console.error("Error fetching workouts:", error);
             }
         }
+
+        const fetchMessages = async () => {
+            try {
+                const messagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/messages/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const messages = await messagesResponse.json();
+                setMessages(messages.map((
+                    message: { 
+                        type: "message"; 
+                        content: string; 
+                        sender: number; 
+                        date_sent: string 
+                    }) => ({ 
+                        type: "message", 
+                        content: message.content, 
+                        sender: message.sender, 
+                        date_sent: message.date_sent 
+                    }))
+                );
+            } catch (error) {
+                console.error("Error fetching messages:", error);
+            }
+        }
+
+        const fetchWorkoutMessages = async () => {
+            try {
+                const workoutMessagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/workout_messages/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const workoutMessages = await workoutMessagesResponse.json();
+                setChatWorkouts(
+                    workoutMessages.map((workoutMessage:{
+                        id: number; 
+                        sender: number; 
+                        date_sent: string; 
+                        workout: { 
+                            id: number; 
+                            owners: number[]; 
+                            name: string; 
+                        } 
+                    }) => ({
+                        type: "workout",
+                        id: workoutMessage.workout.id,
+                        owners: workoutMessage.workout.owners,
+                        name: workoutMessage.workout.name,
+                        sender: workoutMessage.sender,
+                        date_sent: workoutMessage.date_sent,
+                    }))
+                );
+            } catch (error) {
+                console.error("Error fetching workout messages:", error);
+            }
+        }
         
         fetchChat();
+        fetchParticipants();
+        fetchMessages();
+        fetchWorkoutMessages();
         fetchUserWorkouts();
     }, [chatRoomId]); 
 
