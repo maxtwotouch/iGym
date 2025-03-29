@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
-from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage
+from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, Notification
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
@@ -23,7 +23,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         
-        fields = ["id", "height", "weight", "personal_trainer"] 
+        fields = ["id", "height", "weight", "personal_trainer", "pt_chatroom"] 
 
 # Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
@@ -156,7 +156,11 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     def get_participants_display(self, obj):
         return obj.participants.values("id", "username")
 
-
+class NotificationSerializer(serializers.ModelSerializer):
+    workout_message = WorkoutSerializer()
+    class Meta:
+        model = Notification
+        fields = ["id", "sender", "chat_room_id", "chat_room_name", "date_sent", "message", "workout_message"]
     
         
         

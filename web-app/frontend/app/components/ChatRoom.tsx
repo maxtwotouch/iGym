@@ -33,6 +33,16 @@ type Message = {
     date_sent: string;
 };
 
+type Notification = {
+    id: number;
+    sender: number;
+    chat_room_id: number;
+    chat_room_name: string;
+    date_sent: Date;
+    message: string | null;
+    workout_message: string | null;
+};
+
 const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -42,6 +52,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
     const [selectedWorkout, setSelectedWorkout] = useState<Workout>();
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [chatWorkouts, setChatWorkouts] = useState<ChatWorkout[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isWorkoutsVisible, setIsWorkoutsVisible] = useState(false);
     const navigate = useNavigate();
 
@@ -125,10 +136,54 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 console.error("Error fetching workouts:", error);
             }
         }
+
+        const notificationsList = async () => {
+			try {
+				const notificationsUserResponse = await fetch(`http://127.0.0.1:8000/notifications/`, {
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				const notificationsUserData = await notificationsUserResponse.json();
+				notificationsUserData.map((notification: any) => {
+					setNotifications((prev) => [...prev, {
+						id: notification.id,
+						sender: notification.sender,
+						chat_room_id: notification.chat_room_id,
+						chat_room_name: notification.chat_room_name,
+						date_sent: new Date(notification.date_sent),
+						message: notification.message || null,
+						workout_message: notification.workout_message?.name || null,
+					}]);
+				});
+				console.log("Fetched notifications:", notificationsUserData);
+			} catch (error) {
+				console.error("Error fetching notifications:", error);
+			}
+		}
         
         fetchChat();
         fetchUserWorkouts();
+        notificationsList();
     }, [chatRoomId]); 
+
+    useEffect(() => {
+        const deleteNotificationsChat = async () => {
+            try {
+                // Deleting every notification from the chat room for the current user
+                notifications.forEach(async (notification) => {
+                    if (notification.chat_room_id === chatRoomId) {
+                        await fetch(`http://127.0.0.1:8000/notification/delete/${notification.id}/`, {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error("Error deleting notifications:", error);
+            }
+        }
+
+        deleteNotificationsChat();
+    }, [notifications]);
 
     // Connect to the WebSocket, listen for new messages, and close the connection when the user leaves the chat room
     useEffect(() => {
@@ -148,7 +203,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
         socketRef.current.onmessage = (event) => { // Listen for new messages
             const message = JSON.parse(event.data); 
 
-            if (message.type === "message") { // Handle normal text messages
+            if (message.type === "notification") { // No notification list inside the chat room
+                console.log("Received notification:", message);
+                return;
+            }
+            else if (message.type === "message") { // Handle normal text messages
+                console.log("Received message:", message);
                 const newMessage: Message = { 
                     type: "message", 
                     content: String(message.content), 
@@ -183,7 +243,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
             }
         };
-
+    
         return () => {
             if (socketRef.current) {socketRef.current.close();} // Close the WebSocket connection when the user leaves the chat room
         }
@@ -194,6 +254,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
         if (!socketRef.current) return; // Not allow for sending messages if the socket is not connected
 
         socketRef.current.send(JSON.stringify({  
+            type: "message",
             message: newMessage, 
         }));
         setNewMessage("");

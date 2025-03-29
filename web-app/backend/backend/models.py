@@ -22,6 +22,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, default="user")
 
     personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", null=True, blank=True)
+    pt_chatroom = models.ForeignKey('ChatRoom', on_delete=models.SET_NULL, related_name="pt_chatroom", null=True, blank=True)
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
@@ -90,3 +91,12 @@ class WorkoutMessage(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workout_messages")
 
 
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    sender = models.CharField(max_length=255, blank=False, null=False)
+    chat_room_id = models.IntegerField(blank=False, null=False)
+    chat_room_name = encrypt(models.CharField(max_length=255, blank=False, null=False))
+    date_sent = models.DateTimeField(auto_now_add=True)
+    message = encrypt(models.TextField(blank=True, null=True))
+    # Need Workout model for getting the latest name of the workout
+    workout_message = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)

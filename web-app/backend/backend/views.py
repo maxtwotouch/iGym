@@ -1,9 +1,11 @@
 from rest_framework.response import Response
 from .models import Workout, Exercise, ExerciseSession, WorkoutSession, Set, ChatRoom, Message, PersonalTrainerProfile, UserProfile
+from .models import Notification
 from rest_framework import generics
 from .serializers import UserSerializer, PersonalTrainerSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
-from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, UserProfileSerializer, PersonalTrainerProfileSerializer
+from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, UserProfileSerializer
+from .serializers import NotificationSerializer, PersonalTrainerProfileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.decorators import login_required
@@ -16,12 +18,20 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
+# Check this, may have to be edited to only  take
 class ListUserView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return User.objects.filter(user_profile__isnull=False)
+    
+class ListPtAndUserView(generics.ListAPIView):
+    serializer_class = DefaultUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter()
 
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all()
@@ -100,11 +110,15 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
     serializer_class = WorkoutSessionSerializer
     permission_classes = [IsAuthenticated]
     
+    # Don't need to validate, as CreateAPIView does this already 
+    # def perform_create(self, serializer):
+    #     if serializer.is_valid():
+    #         serializer.save(user=self.request.user)
+    #     else:
+    #         print(serializer.errors)
+
     def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(user=self.request.user)
-        else:
-            print(serializer.errors)
+        serializer.save(user=self.request.user)
 
 class CreateExerciseSessionView(generics.CreateAPIView):
     queryset = ExerciseSession.objects.all()
@@ -189,6 +203,7 @@ class ChatRoomListView(generics.ListAPIView):
         user = self.request.user
         return ChatRoom.objects.filter(participants=user)
 
+# FIX: Should we allow someone to delete a chat room, that includes deleting the chat room for everybody else, instead of removing themself as a participant ... 
 class ChatRoomDeleteView(generics.DestroyAPIView):
     serializer_class = ChatRoomSerializer
     permission_classes = [IsAuthenticated]
@@ -203,5 +218,21 @@ class ChatRoomCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Get all notifications related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Notification.objects.filter(user=user).order_by("-date_sent")
 
 
+class NotificationDeleteView(generics.DestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only delete notifications related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        return Notification.objects.filter(user=user)
