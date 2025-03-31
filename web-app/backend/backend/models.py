@@ -51,13 +51,17 @@ class WorkoutSession(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     start_time = models.DateTimeField(auto_now_add=True)
     calories_burned = models.FloatField(null=True, blank=True)
-    duration = models.DurationField(null=True, blank=True)
+    duration = models.DurationField(null=False, blank=False)
 
     # Total number of calories burned in the workout
     def save(self, *args, **kwargs):
         if self.calories_burned is not None and self.calories_burned < 0:
             raise ValidationError("Calories burned cannot be negative.")
+        
+        if self.duration is not None and self.duration.total_seconds() < 0:
+            raise ValidationError("Duration cannot be negative")
         super().save(*args, **kwargs)
+        
 
 # Represents a single exercise being performed in a workout session
 class ExerciseSession(models.Model):

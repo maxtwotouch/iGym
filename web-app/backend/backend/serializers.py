@@ -159,12 +159,6 @@ class WorkoutMessageSerializer(serializers.ModelSerializer):
 class ChatRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatRoom
-        fields = ["id", "participants", "date_created", "name", "messages", "workout_messages"]
-    
-
-class ChatRoomCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChatRoom
         fields = ["id", "participants", "date_created", "name"]
 
 

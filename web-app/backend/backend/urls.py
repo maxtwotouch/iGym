@@ -23,7 +23,7 @@ from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailVi
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
 from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView, ListParticipantsInChatRoomView
-from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView
+from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView, ListScheduledWorkoutsOfClientView, ListWorkoutSessionsOfClientsView, ListWorkoutsOfClientsListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -61,6 +61,9 @@ urlpatterns = [
     path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
     path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
     path("personal_trainer/clients/", ClientsListView.as_view(), name="clients-list"),
+    path("personal_trainer/client/<int:pk>/scheduled_workouts/", ListScheduledWorkoutsOfClientView.as_view(), name="client-scheduled_workouts-list"),
+    path("personal_trainer/client/<int:pk>/workout_sessions/", ListWorkoutSessionsOfClientsView.as_view(), name="client-workout_sessions-list"),
+    path("personal_trainer/client/<int:pk>/workouts/", ListWorkoutsOfClientsListView.as_view(), name="client-workouts-list"),
     path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
     path("scheduled_workout/delete/<int:pk>/", SchedulesWorkoutDeleteView.as_view(), name="scheduled_workout-delete"),

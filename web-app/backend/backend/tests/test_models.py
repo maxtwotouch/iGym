@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
 from backend.models import ChatRoom, Message, WorkoutMessage
+from datetime import timedelta
+
 
 
 class UserProfileModelTest(TestCase):
@@ -210,11 +212,14 @@ class WorkoutSessionModelTest(TestCase):
         # Add calories burned to the workout session
         calories_burned = 0.5
         
-        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=calories_burned)
+        duration = timedelta(hours=1, minutes=30, seconds=0)
+        
+        workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=calories_burned, duration=duration)
 
         self.assertEqual(workout_session.user, self.user)
         self.assertEqual(workout_session.workout, self.workout)
         self.assertEqual(workout_session.calories_burned, calories_burned)
+        self.assertEqual(workout_session.duration, duration)
 
         # Ensure that the start time was set automatically
         self.assertIsNotNone(workout_session.start_time)
@@ -243,6 +248,15 @@ class WorkoutSessionModelTest(TestCase):
         with self.assertRaises(ValidationError):
             workout_session.save()
     
+    def test_create_workout_session_with_negative_duration(self):
+        calories_burned = 0.5
+        duration = timedelta(hours=-1, minutes=30, seconds=0)
+        
+        workout_session = WorkoutSession(user=self.user, workout=self.workout, calories_burned=calories_burned, duration=duration)
+        
+        with self.assertRaises(ValidationError):
+            workout_session.save()
+    
     def test_delete_user_cascade(self):
         workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout)
 
@@ -260,6 +274,7 @@ class WorkoutSessionModelTest(TestCase):
 
         # Make sure that the workout session was deleted
         self.assertEqual(WorkoutSession.objects.count(), 0)
+        
 
 
 class ExerciseSessionModelTest(TestCase):

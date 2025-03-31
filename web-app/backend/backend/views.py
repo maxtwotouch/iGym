@@ -8,6 +8,7 @@ from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerialize
 from .serializers import MessageSerializer, WorkoutMessageSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.shortcuts import get_object_or_404
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -107,17 +108,21 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
         else:
             print(serializer.errors)
 
-##
 class ListExercisesInWorkoutView(generics.ListAPIView):
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        user = self.request.user
         workout_id = self.kwargs["pk"]
-        workout_object = Workout.objects.get(id=workout_id)
-        return workout_object.exercises.all()
-                
+        workout_object = get_object_or_404(Workout, id=workout_id)
         
+        # Make sure that the user is a owner of the workout or is a personal trainer
+        if not workout_object.owners.filter(id=user.id).exists() and user.trainer_profile is None:
+            print("hei")
+            raise serializers.ValidationError("Cannot request exercises of a workout that you are not a owner of, or if you are not a personal trainer")
+       
+        return workout_object.exercises.all()
 
 class CreateExerciseSessionView(generics.CreateAPIView):
     serializer_class = ExerciseSessionSerializer
@@ -149,15 +154,14 @@ class WorkoutListView(generics.ListAPIView):
         user = self.request.user
         return Workout.objects.filter(owners=user)
 
-##
 class ClientsListView(generics.ListAPIView):
     serializer_class = DefaultUserSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        user = self.request.user
+        trainer = self.request.user
         #  Retrieve all user profiles where personal_trainer is the current user's trainer profile
-        return User.objects.filter(profile__personal_trainer__user=user)
+        return User.objects.filter(profile__personal_trainer__user=trainer)
     
 ##
 class WorkoutSessionListView(generics.ListAPIView):
@@ -257,6 +261,54 @@ class ListParticipantsInChatRoomView(generics.ListAPIView):
         chat_room_id = self.kwargs["pk"]
         chat_room_object = ChatRoom.objects.get(id=chat_room_id)
         return chat_room_object.participants.all()
+
+##
+class ListScheduledWorkoutsOfClientView(generics.ListAPIView):
+    serializer_class = ScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        client_id = self.kwargs["pk"]
+        client = get_object_or_404(User, id=client_id)
+        
+        trainer = self.request.user
+        
+        # Check that the client has this user as personal trainer
+        if not client.profile.personal_trainer == trainer.trainer_profile:
+            raise serializers.ValidationError("You are not the personal trainer for this user")
+        
+        return ScheduledWorkout.objects.filter(user=client)
+  
+##          
+class ListWorkoutSessionsOfClientsView(generics.ListAPIView):
+    serializer_class = WorkoutSessionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        client_id = self.kwargs["pk"]
+        client = get_object_or_404(User, id=client_id)
+        
+        trainer = self.request.user
+        
+        if not client.profile.personal_trainer == trainer.trainer_profile:
+            raise serializers.ValidationError("You are not the personal trainer for this user")
+
+        return WorkoutSession.objects.filter(user=client)    
+
+class ListWorkoutsOfClientsListView(generics.ListAPIView):
+    serializer_class = WorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        client_id = self.kwargs["pk"]
+        client = get_object_or_404(User, id=client_id)
+        
+        trainer = self.request.user
+        
+        if not client.profile.personal_trainer == trainer.trainer_profile:
+            raise serializers.ValidationError("You are not the personal trainer for this user")
+        
+        return Workout.objects.filter(owners=client)
 
 ##
 class ListMessagesInChatRoomView(generics.ListAPIView):

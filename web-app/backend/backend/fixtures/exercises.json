@@ -168,7 +168,79 @@
             "name": "Bent-Over Lateral Raise",
             "description": "Starting position: Standing with knees slightly bent, bust bent forward, almost parallel to the ground, keeping your back straight and your head in line with your spine. Hold a dumbbell in each hand, palms facing each other. Execution: Slowly lift and move the dumbbells away from each side of your body in an arc with your arms. Contract for a moment in the raised position before returning to the initial position.",
             "muscle_group": "Main muscles: Deltoids muscles (mainly the posterior bundle). Secondary muscles: Trapezius muscles",
-            "image": "bent_over_lateral_raise.png"
+            "image": "exercise_images/bent_over_lateral_raise.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Bench Press",
+            "description": "Starting position: Lying on the bench, your feet flat on the floor, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. Execution: By contracting your pectorals, push the load against upwards until your arms are almost extended, then return to the initial position. During the entire movement: Keep your elbows on the outside to put maximum stress on your pectorals and minimum stress on your anterior deltoids and triceps. Keep your shoulders flat against the bench.",
+            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids, triceps",
+            "image": "exercise_images/dumbbell_bench_press.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Overhead Tricpes Extension",
+            "description": "Starting position: Sitting on a bench, back straight, grasping a dumbbell with both hands, palms against the inside of a disc (see picture). Position the dumbbell above your head, arms outstretched, triceps well contracted. Execution: Lower your forearms behind your head until your elbows form a 90° angle. Then extend the forearms, returning to the initial position.",
+            "muscle_group":  "Main muscles: Triceps",
+            "image": "exercise_images/dumbbell_overhead_triceps_extension.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Standing Calf Raise",
+            "description": "Starting position: Standing with the front of the feet on the wedge and the shoulders under the padded parts of the aircraft. Execution: While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves.",
+            "muscle_group": "Main muscles: Calves",
+            "image": "exercise_images/standing_calf_raise.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Barbell Row",
+            "description": "Starting position: Standing with slightly bent knees, grasping the bar with hands in pronation, grip wider than shoulder width. Bust bent forward, keep the back straight, the chest rounded. Execution: Pull the load towards your abdomen. Tighten your back at the end of the movement, shoulders and elbows back. Then slowly return to the initial position.",
+            "muscle_group": "Main muscles: Back. Secondary muscles: Hind deltoids, biceps",
+            "image": "exercise_images/barbell_row.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Incline Dumbbell Curl",
+            "description":  "Starting position: Sitting on a bench with the backrest tilted at an angle of 40 to 60 degrees. Let your arms hang down towards the floor. Hold a dumbbell in each hand in supination. Execution: Keeping your back well against the backrest, raise a dumbbell by bending your forearm towards your shoulder. Contract your biceps in the high position, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
+            "muscle_group": "Main muscles: Biceps",
+            "image": "exercise_images/incline_dumbbell_curl.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Crunch",
+            "description": "Starting position: Lying on the ground on your back with bent knees and feet flat on the ground. You can put your hands behind your head or on your chest. Execution: Contract your abs by raising your shoulders and upper back towards your knees. Keep your lower back firmly on the ground. Stay in the upright position for a second, then slowly return to the original position.",
+            "muscle_group": "Main muscles: Abs",
+            "image": "exercise_images/crunch.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Barbell Upright Row",
+            "description": "Starting position: Standing, holding the bar in front of you, pronation grip, hands shoulder-width apart. Execution: Lift the bar vertically to chest height. Contract for a moment, then return to the starting position. During the whole movement, keep the bar close to the body and the elbows higher than the wrists.",
+            "muscle_group": "Main muscles: Deltoids, trapezius muscles. Secondary muscles: Biceps and forearms",
+            "image": "exercise_images/barbell_upright_row.png" 
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Lying Leg Curl",
+            "description": "Starting position: Lie on your stomach on the leg curl lying down machine with the back of your ankles pressed against the footrest. Grasp the handles. Execution: Leaning firmly on the bench, bend your legs as far as possible. Hold the load for a moment in the high position by contracting your ischial muscles, then slowly return to the low position.",
+            "muscle_group": "Main muscles: Hamstrings. Secondary muscles: Calves",
+            "image": "exercise_images/lying_leg_curl.png"
         }
     }
 ]

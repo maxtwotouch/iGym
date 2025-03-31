@@ -34,8 +34,8 @@ export default function Calendar() {
       return;
     }
 
-    // Fetch scheduled workouts (for future appointments)
-// Fetch scheduled workouts (for future appointments)
+
+// Fetch scheduled workouts (
 const fetchScheduledWorkouts = async () => {
   try {
     const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
@@ -96,7 +96,7 @@ const fetchScheduledWorkouts = async () => {
 };
 
 
-    // Fetch workout sessions (actual sessions with start times)
+    // Fetch workout sessions 
     const mapWorkoutSessions = async () => {
       const token = localStorage.getItem("accessToken");
       if (!token) {

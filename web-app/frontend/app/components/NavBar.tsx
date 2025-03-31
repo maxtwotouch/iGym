@@ -143,7 +143,7 @@ function NavBar() {
                                     <li key={client.id}>
                                         <Link
                                             className="block px-4 py-1 hover:bg-gray-700 transition"
-                                            to={`/user/${client.id}`}
+                                            to={`/clients/${client.id}`}
                                         >
                                             {client.username}
                                         </Link>

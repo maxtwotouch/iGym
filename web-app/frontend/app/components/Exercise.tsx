@@ -49,7 +49,6 @@ function Exercise() {
     if (!exercise) {
         return <p>Loading exercise data...</p>;
     }
-    {console.log("Exercise picture URL:", exercise.image)}
     return (
         <div className="exercise-container">
           <motion.h1
