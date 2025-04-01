@@ -24,6 +24,8 @@ class UserProfile(models.Model):
     personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", blank=True, null=True)
     
     pt_chatroom = models.ForeignKey('ChatRoom', on_delete=models.SET_NULL, related_name="pt_chatroom", null=True, blank=True)
+    
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)

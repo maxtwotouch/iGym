@@ -17,4 +17,5 @@ export default [
   route("chat/:id", "routes/ChatRoomPage.tsx"), 
   route("personalTrainers", "routes/SelectPT.tsx"),
   route("clients/:id", "routes/Client.tsx"),
+  route("profile", "routes/Profile.tsx"),
 ] satisfies RouteConfig;
