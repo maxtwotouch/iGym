@@ -1,11 +1,11 @@
 
-from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage
+from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage, Notification
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
-from .serializers import MessageSerializer, WorkoutMessageSerializer
+from .serializers import MessageSerializer, WorkoutMessageSerializer, NotificationSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
@@ -22,6 +22,14 @@ class ListUserView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(profile__isnull=False)
+
+##
+class ListPtAndUserView(generics.ListAPIView):
+     serializer_class = DefaultUserSerializer
+     permission_classes = [IsAuthenticated]
+ 
+     def get_queryset(self):
+         return User.objects.all()
 
 class UserDetailView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
@@ -102,6 +110,7 @@ class CreateWorkoutSessionView(generics.CreateAPIView):
     serializer_class = WorkoutSessionSerializer
     permission_classes = [IsAuthenticated]
     
+    # Set the user to the request user, since this is a read-only field
     def perform_create(self, serializer):
         if serializer.is_valid():
             serializer.save(user=self.request.user)
@@ -342,3 +351,23 @@ class ScheduledWorkoutListView(generics.ListAPIView):
      
     def get_queryset(self):
         return ScheduledWorkout.objects.filter(user=self.request.user)
+
+##
+class NotificationListView(generics.ListAPIView):
+     serializer_class = NotificationSerializer
+     permission_classes = [IsAuthenticated]
+     
+     # Get all notifications related to the current user
+     def get_queryset(self):
+         user = self.request.user
+         return Notification.objects.filter(user=user).order_by("-date_sent")
+
+##    
+class NotificationDeleteView(generics.DestroyAPIView):
+     serializer_class = NotificationSerializer
+     permission_classes = [IsAuthenticated]
+     
+     # Can only delete notifications related to the current user
+     def get_queryset(self):
+         user = self.request.user
+         return Notification.objects.filter(user=user)

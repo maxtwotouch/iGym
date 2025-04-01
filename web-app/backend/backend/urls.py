@@ -24,6 +24,7 @@ from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSe
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
 from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView, ListParticipantsInChatRoomView
 from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView, ListScheduledWorkoutsOfClientView, ListWorkoutSessionsOfClientsView, ListWorkoutsOfClientsListView
+from .views import NotificationListView, NotificationDeleteView, ListPtAndUserView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -56,6 +57,7 @@ urlpatterns = [
     path("chat_room/<int:pk>/messages/", ListMessagesInChatRoomView.as_view(), name="chat_room-messages"),
     path("chat_room/<int:pk>/workout_messages/", ListWorkoutMessagesInChatRoomView.as_view(), name="chat_room-workout_messages"),
     path("users/", ListUserView.as_view(), name="user-list"),
+     path("users-pts/", ListPtAndUserView.as_view(), name="user-pt-list"),
     path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
     path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
     path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
@@ -68,6 +70,8 @@ urlpatterns = [
     path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
     path("scheduled_workout/delete/<int:pk>/", SchedulesWorkoutDeleteView.as_view(), name="scheduled_workout-delete"),
     path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+    path("notifications/", NotificationListView.as_view(), name="notification-list"),
+    path("notification/delete/<int:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
 ]
 
 """

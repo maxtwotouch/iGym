@@ -68,9 +68,16 @@ const PtList: React.FC = () => {
                 alert("Could not find PT with the given ID");
                 return;
             }
-            await createChatRoomWithPt(ptUserId, pt.name);
+            const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
+             
+            // Update user's pt_chatroom field
+            await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ profile: {pt_chatroom: chatRoomId} })
+            });
             alert("PT selection successful!");
-            navigate("/chat");
+            navigate("/chat/" + chatRoomId);
         } catch (error) {
             console.error("Error updating PT selection:", error);
         }
@@ -79,7 +86,7 @@ const PtList: React.FC = () => {
     const createChatRoomWithPt = async (ptId: number, ptName: string) => {
         try {
             const token = localStorage.getItem("accessToken");
-            await fetch("http://127.0.0.1:8000/chat_room/create/", {
+            const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_room/create/", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`, "Content-Type": "application/json",
@@ -89,6 +96,9 @@ const PtList: React.FC = () => {
                     participants: [Number(localStorage.getItem("user_id")), ptId]
                 })
             });
+
+            const chatRoomData = await chatRoomResponse.json();
+            return chatRoomData.id;
         } catch (error) {
             console.error("Error creating chat room:", error);
         }
