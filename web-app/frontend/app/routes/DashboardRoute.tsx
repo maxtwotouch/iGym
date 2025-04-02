@@ -54,9 +54,6 @@ export const clientLoader = async ({
       const workouts = await fetchWorkouts(token);
       const exercises = await fetchExercises(token);
 
-      // Wait for a few seconds to simulate loading (remove this in production)
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
-
       return { workoutSessions, workouts, exercises, userType };
   } catch (error) {
       console.error("Error loading data:", error);

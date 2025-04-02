@@ -1,5 +1,5 @@
-import type { Route } from "./+types/CreateWorkoutRoute";
-import { CreateWorkout } from "../pages/CreateWorkout";
+import type { Route } from "./+types/ProfileRoute";
+import { ProfilePage } from "../pages/Profile";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {
@@ -9,10 +9,10 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-const CreateWorkoutRoute = ({
+const ProfileRoute = ({
   loaderData,
 }: Route.ComponentProps) => {
-  return <CreateWorkout/>;
+  return <ProfilePage/>;
 }
 
 export const clientLoader = async ({
@@ -38,4 +38,4 @@ export const HydrateFallback = () => {
   );
 }
 
-export default CreateWorkoutRoute;
+export default ProfileRoute;

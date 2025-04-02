@@ -1,5 +1,5 @@
 import Footer from "~/components/common/Footer";
-import NavBar from "~/components/common/NavBar";
+import { NavBar } from "~/components/common/NavBar";
 
 import { Outlet } from "react-router";
 import { motion } from "framer-motion";
