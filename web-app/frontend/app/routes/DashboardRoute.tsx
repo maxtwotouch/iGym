@@ -21,14 +21,19 @@ const DashboardRoute = ({
 }: Route.ComponentProps) => {
   const userType = loaderData?.userType;
 
-  console.log(loaderData);
+  let routeToLogin = false;
+
+  if (!userType) {
+    routeToLogin = true;
+    return <HydrateFallback />; // Show loading spinner if userType is not available  
+  }
 
   useEffect(() => {
-      if (!userType) {
+      if (routeToLogin) {
         const navigate = useNavigate();
         navigate("/login");
       }
-    }, [userType]);
+  }, [userType]);
 
   return <Dashboard userType={userType} />;
 }

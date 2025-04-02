@@ -32,7 +32,7 @@ export const deleteWorkout = async (token: string | null, workoutId: number): Pr
 
 
  // Fetch workouts from the backend
-export const fetchWorkouts = async (token: string | null): Promise<Workout | null> => {
+export const fetchWorkouts = async (token: string | null): Promise<Workout[] | null> => {
     if (!token) {
         console.error("Could not fetch workouts: No access token found");
         return null;

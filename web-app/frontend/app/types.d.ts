@@ -34,3 +34,6 @@ export interface ExerciseSession {
     exercise: number;
     sets: ExcerciseSet[];
 }
+
+
+// Interface to define the structure of a scheduled workout object

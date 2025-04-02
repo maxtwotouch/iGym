@@ -2,7 +2,7 @@ import { backendUrl } from '~/config'; // Import backendUrl from config
 import type { WorkoutSession } from "~/types"; // Import type for workout sessions
 
 // Fetch workout sessions from the backend
-export const fetchWorkoutSessions = async (token: string | null): Promise<WorkoutSession | null> => {
+export const fetchWorkoutSessions = async (token: string | null): Promise<WorkoutSession[] | null> => {
     if (!token) {
         console.error("Could not fetch workout sessions: No access token found");
         return null;

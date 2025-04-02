@@ -11,5 +11,6 @@ export default [
     layout("./layouts/MainLayout.tsx", [
         route("dashboard", "routes/DashboardRoute.tsx"),
         route("about", "routes/AboutRoute.tsx"),
+        route("calendar", "routes/CalendarRoute.tsx"),
     ]),
 ] satisfies RouteConfig;
