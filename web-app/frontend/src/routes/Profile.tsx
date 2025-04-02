@@ -13,25 +13,17 @@ interface UserProfile {
   id: number;  
   username: string;
   email: string;
-  // For regular users:
   profile?: {
     weight?: number;
     height?: number;
     profile_picture: string;
   };
-  // For personal trainers:
-  trainer_profile?: {
-    weight?: number;
-    height?: number;
-    profile_picture: string;
-    experience: string;
-  };
 }
 
 /**
  * ProfilePage:
- * - Fetches user info for both regular users and personal trainers.
- * - Lets users edit username, password, height, weight, and upload a profile image.
+ * - Fetches user info (username, email, height, weight).
+ * - Lets users edit username, password (with confirmation), height, weight, and upload a profile image.
  */
 export default function ProfilePage() {
   const [id, setID] = useState<string | null>(null);  
@@ -55,20 +47,6 @@ export default function ProfilePage() {
     confirmPassword: ""
   });
 
-  // Determine user type from localStorage (expected values: "user" or "trainer")
-  const userType = localStorage.getItem("userType") || "user";
-
-  // Construct endpoints based on user type
-  const userId = localStorage.getItem("user_id");
-  const profileEndpoint =
-    userType === "trainer"
-      ? `${backendUrl}/personal_trainer/${userId}/`
-      : `${backendUrl}/user/${userId}/`;
-  const updateEndpoint =
-    userType === "trainer"
-      ? `${backendUrl}/personal_trainer/update/${userId}/`
-      : `${backendUrl}/user/update/${userId}/`;
-
   // 1) Fetch user profile on mount
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -78,12 +56,13 @@ export default function ProfilePage() {
       return;
     }
 
-    setID(userId);
+    const id = localStorage.getItem("user_id");
+    setID(id);
 
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(profileEndpoint, {
+        const response = await fetch(`${backendUrl}/user/${id}/`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -93,13 +72,14 @@ export default function ProfilePage() {
 
         const data = await response.json();
         console.log("Profile data received:", data);
+
         setProfile(data);
 
-        // Initialize form fields using data from either "profile" or "trainer_profile"
+        // Initialize form fields from fetched data
         setFormData({
           username: data.username || "",
-          weight: (data.profile ? data.profile.weight : data.trainer_profile?.weight)?.toString() || "",
-          height: (data.profile ? data.profile.height : data.trainer_profile?.height)?.toString() || "",
+          weight: data.profile?.weight?.toString() || "",
+          height: data.profile?.height?.toString() || "",
           password: "",
           confirmPassword: ""
         });
@@ -112,7 +92,7 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
-  }, [navigate, profileEndpoint, userId]);
+  }, [navigate]);
 
   // 2) Handle changes for any input field
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,11 +105,13 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate that the file is an image
     if (!file.type.match('image.*')) {
       setError("Please select an image file");
       return;
     }
 
+    // Generate a local preview
     const reader = new FileReader();
     reader.onload = (event) => {
       setPreviewImage(event.target?.result as string);
@@ -143,6 +125,7 @@ export default function ProfilePage() {
     setError(null);
     setSuccessMessage(null);
 
+    // If the user is updating the password, check that the two fields match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -157,26 +140,33 @@ export default function ProfilePage() {
 
     try {
       const submitData = new FormData();
+
+      // Append username (top-level field)
       if (formData.username) {
         submitData.append("username", formData.username);
       }
+      // Append new password if provided
       if (formData.password) {
         submitData.append("password", formData.password);
       }
+      // Append weight and height inside the "profile" structure
       if (formData.weight) {
         submitData.append("profile.weight", formData.weight);
       }
       if (formData.height) {
         submitData.append("profile.height", formData.height);
       }
+      // Append image file if selected
       if (fileInputRef.current?.files?.[0]) {
         submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
       }
 
-      const response = await fetch(updateEndpoint, {
+      const response = await fetch(`${backendUrl}/user/update/${id}/`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-        body: submitData
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+        body: submitData, 
       });
 
       if (!response.ok) {
@@ -185,10 +175,11 @@ export default function ProfilePage() {
 
       const updatedProfile = await response.json();
       console.log("Profile updated successfully:", updatedProfile);
+
       setProfile(updatedProfile);
       setIsEditing(false);
       setSuccessMessage("Profile updated successfully!");
-      setPreviewImage(null);
+      setPreviewImage(null);  // Clear local preview
     } catch (err: any) {
       console.error("Error updating profile:", err);
       setError(err.message || "Failed to update profile");
@@ -210,6 +201,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <NavBar />
+
       <motion.div
         className="flex-grow container mx-auto px-4 py-8"
         initial={{ opacity: 0 }}
@@ -218,6 +210,7 @@ export default function ProfilePage() {
       >
         <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
           <div className="md:flex">
+
             {/* Profile Image Section */}
             <div className="md:w-1/3 bg-gray-700 p-8 flex flex-col items-center justify-center">
               <div className="relative mb-6">
@@ -228,10 +221,10 @@ export default function ProfilePage() {
                       alt="Profile preview"
                       className="w-full h-full object-cover"
                     />
-                  ) : (profile?.profile?.profile_picture || profile?.trainer_profile?.profile_picture) ? (
+                  ) : profile?.profile?.profile_picture ? (
                     <img
-                      src={profile?.profile?.profile_picture || profile?.trainer_profile?.profile_picture}
-                      alt={profile?.username}
+                      src={profile.profile.profile_picture}
+                      alt={profile.username}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -242,6 +235,7 @@ export default function ProfilePage() {
                     />
                   )}
                 </div>
+
                 {isEditing && (
                   <button
                     type="button"
@@ -265,8 +259,13 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <h2 className="text-xl font-bold text-white mt-4">{profile?.username}</h2>
-              {profile?.email && <p className="text-gray-300 mt-1">{profile.email}</p>}
+              <h2 className="text-xl font-bold text-white mt-4">
+                {profile?.username}
+              </h2>
+              {profile?.email && (
+                <p className="text-gray-300 mt-1">{profile.email}</p>
+              )}
+
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -282,18 +281,21 @@ export default function ProfilePage() {
               <h3 className="text-2xl font-bold text-white border-b border-gray-700 pb-4 mb-6">
                 {isEditing ? "Edit Profile" : "Profile Details"}
               </h3>
+
               {error && (
                 <div className="bg-red-900/50 border border-red-700 text-red-100 px-4 py-3 rounded mb-4">
                   {error}
                 </div>
               )}
+
               {successMessage && (
                 <div className="bg-green-900/50 border border-green-700 text-green-100 px-4 py-3 rounded mb-4">
                   {successMessage}
                 </div>
               )}
+
               <form onSubmit={handleSubmit}>
-                {/* Hidden file input */}
+                {/* Hidden file input for image uploads */}
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -301,6 +303,7 @@ export default function ProfilePage() {
                   accept="image/*"
                   className="hidden"
                 />
+
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Username */}
                   <div className="mb-4">
@@ -317,31 +320,37 @@ export default function ProfilePage() {
                       <p className="text-white">{profile?.username}</p>
                     )}
                   </div>
-                  {/* Render password fields only if editing */}
+
+                  {/* New Password */}
+                  <div className="mb-4">
+                    <label className="block text-gray-300 mb-2">New Password</label>
+                    {isEditing ? (
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                      />
+                    ) : (
+                      <p className="text-white">******</p>
+                    )}
+                  </div>
+
+                  {/* Confirm New Password */}
                   {isEditing && (
-                    <>
-                      <div className="mb-4">
-                        <label className="block text-gray-300 mb-2">New Password</label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-gray-300 mb-2">Confirm New Password</label>
-                        <input
-                          type="password"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
-                        />
-                      </div>
-                    </>
+                    <div className="mb-4">
+                      <label className="block text-gray-300 mb-2">Confirm New Password</label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   )}
+
                   {/* Weight */}
                   <div className="mb-4">
                     <label className="block text-gray-300 mb-2">Weight (kg)</label>
@@ -355,10 +364,11 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <p className="text-white">
-                        {(profile?.profile?.weight || profile?.trainer_profile?.weight) ?? "Not specified"}
+                        {profile?.profile?.weight ?? "Not specified"}
                       </p>
                     )}
                   </div>
+
                   {/* Height */}
                   <div className="mb-4">
                     <label className="block text-gray-300 mb-2">Height (cm)</label>
@@ -372,11 +382,13 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <p className="text-white">
-                        {(profile?.profile?.height || profile?.trainer_profile?.height) ?? "Not specified"}
+                        {profile?.profile?.height ?? "Not specified"}
                       </p>
                     )}
                   </div>
                 </div>
+
+                {/* Save/Cancel buttons */}
                 {isEditing && (
                   <div className="flex justify-end space-x-4 mt-6">
                     <button
@@ -402,6 +414,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </motion.div>
+
       <Footer />
     </div>
   );
