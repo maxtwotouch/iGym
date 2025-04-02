@@ -16,7 +16,7 @@ import Calendar from "./routes/Calendar";
 import WorkoutSession from "./routes/WorkoutSession";
 import Chat from "./routes/Chat";
 import SelectPT from "./routes/SelectPT";
-import Profile from "./routes/ProfilePage";
+import Profile from "./routes/Profile";
 
 function App() {
   return (

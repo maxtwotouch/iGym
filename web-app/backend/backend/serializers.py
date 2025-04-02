@@ -44,9 +44,14 @@ class UserSerializer(serializers.ModelSerializer):
         print("validated data:", validated_data)
         # Extract nested user_profile data (if any)
         profile_data = validated_data.pop("profile", None)
+        password = validated_data.pop("password", None)
+        
         # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
-        
+        if password:
+            instance.set_password(password)
+            instance.save()
+            
         if profile_data:
             profile = instance.profile
             # Update each attribute in UserProfile with the new values
@@ -59,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["id", "experience"]
+        fields = ["id", "experience",  "profile_picture"]
 
 # Nested serializer to connect with the personal trainer model
 class PersonalTrainerSerializer(serializers.ModelSerializer):

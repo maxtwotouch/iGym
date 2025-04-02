@@ -11,6 +11,7 @@ class PersonalTrainerProfile(models.Model):
     # Example attributes
     experience = models.CharField(max_length=100, blank=True, default='none')  
     role = models.CharField(max_length=20, default="trainer")
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
 
 # Model for normal users
 class UserProfile(models.Model):

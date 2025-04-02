@@ -1,7 +1,7 @@
 import React from 'react';
- import NavBar from "~/components/NavBar";
- import Footer from '~/components/Footer';
- import ChatRoom from '~/components/ChatRoom';
+ import NavBar from "../components/NavBar";
+ import Footer from '../components/Footer';
+ import ChatRoom from '../components/ChatRoom';
  import { motion } from 'framer-motion';
  import { useParams } from 'react-router-dom';
  import { useNavigate } from 'react-router-dom';

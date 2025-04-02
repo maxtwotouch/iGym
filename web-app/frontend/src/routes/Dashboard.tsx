@@ -67,10 +67,10 @@ type chatRoom = {
 
 
 const CustomerDashboard: React.FC = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>([]); 
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [username, setUsername] = useState<string>("User"); 
-  const [workoutSessions, setWorkoutSessions] = useState<any[]>([]);
-  // const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
   const navigate = useNavigate();
   const [trainer, setTrainer] = useState<User | null>(null);
   const [roomId, setRoomId] = useState<number | null>(null);
@@ -126,9 +126,28 @@ const CustomerDashboard: React.FC = () => {
           return;
         }
         const data = await response.json();
+        console.log("Fetched workout sessions:", data);
         setWorkoutSessions(data);
       } catch (error) {
         console.error("Error fetching workout sessions:", error);
+      }
+    };
+
+    // Fetch exercises from the backend
+    const fetchExercises = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/exercises/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) {
+          console.error("Failed to fetch exercises");
+          return;
+        }
+        const data = await response.json();
+        setExercises(data);
+      }
+      catch (error) {
+        console.error("Error fetching exercises:", error);
       }
     };
 
@@ -786,8 +805,7 @@ const Dashboard: React.FC = () => {
       navigate("/login");
       return;
     }
-    const type = localStorage.getItem("userType") || "user"; // default to "user"
-    setUserType(type);
+    setUserType(localStorage.getItem("userType"));
   }, [navigate]);
 
   if (!userType) {
