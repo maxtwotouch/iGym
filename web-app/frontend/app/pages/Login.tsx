@@ -29,9 +29,15 @@ export const LoginForm = () => {
         localStorage.setItem("username", data.username);
         localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
         
+        console.log(data);
+
         // Store user type
         if (data.profile?.role) {
           localStorage.setItem("userType", data.profile.role);
+        } else if (data.trainer_profile?.role) {
+          if (data.trainer_profile.role === "personal_trainer") {
+            localStorage.setItem("userType", "trainer");
+          }
         }
 
         // Store weight for user role

@@ -12,5 +12,4 @@ export default [
         route("dashboard", "routes/DashboardRoute.tsx"),
         route("about", "routes/AboutRoute.tsx"),
     ]),
-    
 ] satisfies RouteConfig;

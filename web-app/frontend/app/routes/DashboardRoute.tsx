@@ -7,6 +7,7 @@ import { fetchWorkouts, deleteWorkout } from "~/utils/api/workouts"; // Import t
 import { fetchExercises } from "~/utils/api/exercises"; // Import the function to fetch exercises
 
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,11 +21,14 @@ const DashboardRoute = ({
 }: Route.ComponentProps) => {
   const userType = loaderData?.userType;
 
-  if (!userType) {
-    const navigate = useNavigate();
-    navigate("/login");
-    return null;
-  }
+  console.log(loaderData);
+
+  useEffect(() => {
+      if (!userType) {
+        const navigate = useNavigate();
+        navigate("/login");
+      }
+    }, [userType]);
 
   return <Dashboard userType={userType} />;
 }
@@ -37,6 +41,8 @@ export const clientLoader = async ({
       return null;
   }
   try {
+    console.log(localStorage)
+
       const userType = localStorage.getItem("userType");
 
       const workoutSessions = await fetchWorkoutSessions(token);
