@@ -25,7 +25,7 @@ function Exercise() {
 
         const fetchExerciseData = async () => {
             try {
-              const response = await fetch(`http://127.0.0.1:8000/exercises/${id}/`, {
+              const response = await fetch(`${backendUrl}/exercises/${id}/`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (!response.ok) {
@@ -48,7 +48,6 @@ function Exercise() {
     if (!exercise) {
         return <p>Loading exercise data...</p>;
     }
-    {console.log("Exercise picture URL:", exercise.image)}
     return (
         <div className="exercise-container">
           <motion.h1

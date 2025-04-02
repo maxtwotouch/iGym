@@ -164,6 +164,13 @@ const WorkoutSession: React.FC = () => {
 
     const createWorkoutSession = async (token: string, totalCalories: number): Promise<number | null> => {
         try {
+            // Convert timer (seconds) to HH:MM:SS format
+            const hours = Math.floor(timer / 3600);
+            const minutes = Math.floor((timer % 3600) / 60);
+            const seconds = timer % 60;
+            const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes
+            .toString()
+            .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             const response = await fetch(`${backendUrl}/workout/session/create/`, {
                 method: "POST",
                 headers: {
@@ -172,7 +179,8 @@ const WorkoutSession: React.FC = () => {
                 },
                 body: JSON.stringify({ 
                     workout: id,
-                    calories_burned: totalCalories
+                    calories_burned: totalCalories,
+                    duration: formattedDuration
                 }),
         });
 

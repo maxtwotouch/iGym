@@ -30,9 +30,8 @@ export default function LoginForm() {
       localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username);
       localStorage.setItem("user_id", import.meta.env.VITE_USER_ID || data.id);
       
-      console.log("User data:", data);
-      if (data.user_profile?.role) {
-        localStorage.setItem("userType", data.user_profile.role);
+      if (data.profile?.role) {
+        localStorage.setItem("userType", data.profile.role);
       } 
       else if (data.trainer_profile?.role) {
 

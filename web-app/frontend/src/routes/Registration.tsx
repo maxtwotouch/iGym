@@ -25,17 +25,18 @@ export default function RegistrationForm() {
     let url = "";
     let payload: any = { username, password, profile: {} };
 
-    if (userType === "user") {
-      url = `${backendUrl}/user/register/`;
-      // Send profile data directly, without an extra nesting
-      payload.profile = {
+  if (userType === "user") {
+    url = `${backendUrl}/user/register/`;
+    payload.profile = {
         weight: weight ? parseInt(weight) : null,
         height: height ? parseInt(height) : null,
-      };
-    } else if (userType === "trainer") {
-      url = `${backendUrl}/personal_trainer/register/`;
-      payload.trainer_profile = { experience };
-    }
+    };
+  } else if (userType === "trainer") {
+    url = `${backendUrl}/personal_trainer/register/`;
+    payload.trainer_profile = {
+      experience: experience,
+    };
+  }
 
     try {
       const response = await fetch(url, {

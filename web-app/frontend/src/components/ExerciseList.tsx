@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
   // Interface to define the structure of an exercise object
   interface Exercise {
@@ -21,7 +22,7 @@ function ExerciseList() {
         // Fetch available exercises from the backend
         const fetchExercises = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/exercises/", {
+                const response = await fetch(`${backendUrl}/exercises/`, {
                 headers: { Authorization: `Bearer ${token}` }, // Include JWT token for authentication so the backend can verify the user's identity
                 });
                 if (!response.ok) {
@@ -56,6 +57,7 @@ function ExerciseList() {
                 <input
                     type="text"
                     placeholder="Search exercises..."
+                    name="searchBar"
                     value={searchQuery}
                     onChange={handleSearchChange}
                     className="w-full max-w-lg p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
@@ -68,6 +70,7 @@ function ExerciseList() {
                     filteredexercises.map((exercise) => (
                         <li
                             key={exercise.id}
+                            data-id={exercise.id}
                             className="cursor-pointer p-2 bg-gray-600 rounded-md mb-2 text-left hover:bg-gray-500 transition"
                             onClick={() => setSelectedexercise(exercise.id === selectedExercise ? null : exercise.id)}
                         >
@@ -77,6 +80,7 @@ function ExerciseList() {
                                 <div className="mt-2">
                                     <motion.button
                                         onClick={() => navigate(`/exercises/${exercise.id}`)}
+                                        name="moreInfoButton"
                                         className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
                                         whileHover={{ scale: 1.05 }}
                                     >

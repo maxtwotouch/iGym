@@ -20,8 +20,7 @@ interface Exercise {
 
 const EditWorkout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
-  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
   const [newWorkoutName, setNewWorkoutName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ const EditWorkout: React.FC = () => {
 
     const fetchExercises = async () => {
       try {
-          const response = await fetch(`${backendUrl}/exercises/`, {
+          const response = await fetch(`${backendUrl}/workout/${id}/exercises/`, {
               headers: { Authorization: `Bearer ${token}` },
           });
       
@@ -46,7 +45,7 @@ const EditWorkout: React.FC = () => {
           }
 
           const data = await response.json();
-          setAvailableExercises(data);
+          setSelectedExercises(data);
       } catch (error) {
           console.error("Error fetching exercises:", error);
       }
@@ -66,7 +65,6 @@ const EditWorkout: React.FC = () => {
         
         if (!location.state) {
           setNewWorkoutName(data.name);
-          setSelectedExercises(data.exercises);
         }
 
       } catch (error) {
@@ -98,6 +96,8 @@ const EditWorkout: React.FC = () => {
       return;
     }
 
+    const exercises = selectedExercises.map((exercise) => exercise.id);
+
     try {
       const response = await fetch(`${backendUrl}/workouts/update/${id}/`, {
         method: "PUT",
@@ -107,7 +107,7 @@ const EditWorkout: React.FC = () => {
         },
         body: JSON.stringify({
           name: newWorkoutName,
-          exercises: selectedExercises,
+          exercises: exercises,
         }),
       });
 
@@ -126,7 +126,7 @@ const EditWorkout: React.FC = () => {
 
   const removeExerciseFromWorkout = (exerciseId: number) => {
     setSelectedExercises((prevSelectedExercises) => {
-      return prevSelectedExercises.filter((id) => id !== exerciseId);
+      return prevSelectedExercises.filter((exercise) => exercise.id !== exerciseId);
     });
   };
 
@@ -173,11 +173,10 @@ const EditWorkout: React.FC = () => {
             <p className="text-gray-400 mb-4">No exercises selected.</p>
           ) : (
             <ul className="list-disc list-inside mb-4">
-              {selectedExercises.map((exerciseId) => {
-                const exercise = availableExercises.find((ex) => ex.id === exerciseId);
+              {selectedExercises.map((exercise) => {
                 return (
                   <motion.li
-                    key={exerciseId}
+                    key={exercise.id}
                     className="text-gray-300 flex justify-between items-center p-2 bg-gray-700 rounded-md mb-2"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
@@ -188,7 +187,7 @@ const EditWorkout: React.FC = () => {
                     {/* Delete exercise from Exercise List */}
                     <motion.button
                       name="deleteExercise"
-                      onClick={() => removeExerciseFromWorkout(exerciseId)}
+                      onClick={() => removeExerciseFromWorkout(exercise.id)}
                       className="btn btn-sm btn-danger ml-4"
                       whileHover={{ scale: 1.05 }}
                     >
