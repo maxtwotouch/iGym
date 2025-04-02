@@ -31,6 +31,10 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, default="user")
 
     personal_trainer = models.ForeignKey(PersonalTrainerProfile, on_delete=models.SET_NULL, related_name="clients", blank=True, null=True)
+    
+    pt_chatroom = models.ForeignKey('ChatRoom', on_delete=models.SET_NULL, related_name="pt_chatroom", null=True, blank=True)
+    
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
 
 class Exercise(models.Model):
     name = models.CharField(max_length=255, blank=False)
@@ -60,13 +64,17 @@ class WorkoutSession(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     start_time = models.DateTimeField(auto_now_add=True)
     calories_burned = models.FloatField(null=True, blank=True)
-    duration = models.DurationField(null=True, blank=True)
+    duration = models.DurationField(null=False, blank=False)
 
     # Total number of calories burned in the workout
     def save(self, *args, **kwargs):
         if self.calories_burned is not None and self.calories_burned < 0:
             raise ValidationError("Calories burned cannot be negative.")
+        
+        if self.duration is not None and self.duration.total_seconds() < 0:
+            raise ValidationError("Duration cannot be negative")
         super().save(*args, **kwargs)
+        
 
 # Represents a single exercise being performed in a workout session
 class ExerciseSession(models.Model):
@@ -108,5 +116,15 @@ class ScheduledWorkout(models.Model):
      
      def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
+
+class Notification(models.Model):
+     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+     sender = models.CharField(max_length=255, blank=False, null=False)
+     chat_room_id = models.IntegerField(blank=False, null=False)
+     chat_room_name = models.CharField(max_length=255, blank=False, null=False)
+     date_sent = models.DateTimeField(auto_now_add=True)
+     message = models.TextField(blank=True, null=True)
+     # Need Workout model for getting the latest name of the workout
+     workout_message = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)
 
 

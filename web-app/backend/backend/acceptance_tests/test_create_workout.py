@@ -25,6 +25,9 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         # Set environment variable in frontend
         with open(env_path, "w") as f:
             f.write(f"VITE_BACKEND_URL={cls.live_server_url}\n")
+        
+        # Run npm install to ensure all dependencies are installed
+        subprocess.run(["npm", "install"], cwd=str(frontend_dir), check=True)
 
         # Start frontend
         cls.frontend_process = subprocess.Popen(
@@ -33,10 +36,10 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
             env={
                 **os.environ,
                 "VITE_BACKEND_URL": cls.live_server_url,
-                "VITE_ACCESS_TOKEN": "",  # Initially empty, set later
-                "VITE_REFRESH_TOKEN": "",  # Initially empty, set later
-                "VITE_USERNAME": "",       # Initially empty, set later
-                "VITE_USER_TYPE": "",      # Initially empty, set later
+                "VITE_ACCESS_TOKEN": "", 
+                "VITE_REFRESH_TOKEN": "",  
+                "VITE_USERNAME": "",       
+                "VITE_USER_TYPE": "",     
             },
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -50,6 +53,16 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         options.headless = False
         
         cls.browser = webdriver.Firefox(options=options)
+
+    @classmethod
+    def check_and_install_node(cls):
+        # Check the installed version of Node.js
+        version_check = subprocess.run(["node", "-v"], capture_output=True, text=True)
+        node_version = version_check.stdout.strip()
+
+        # Check if the version is less than 20
+        if version_check.returncode != 0 or not node_version.startswith("v20."):
+            print("Node.js version is not sufficient. Downloading Node.js 20...")
     
     @classmethod
     def tearDownClass(cls):
@@ -80,12 +93,12 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         os.environ["VITE_ACCESS_TOKEN"] = self.access_token
         os.environ["VITE_REFRESH_TOKEN"] = self.refresh_token
         os.environ["VITE_USERNAME"] = self.test_user.username
-        os.environ["VITE_USER_TYPE"] = str(self.test_profile.role)  
+        os.environ["VITE_USER_TYPE"] = str(self.test_profile.role) 
         
         # Navigate to app and login
         self.browser.refresh()
         self.browser.get("http://localhost:5173")
-        
+
         login_button = WebDriverWait(self.browser, 10).until(
             EC.element_to_be_clickable((By.NAME, "loginButton"))
         )
