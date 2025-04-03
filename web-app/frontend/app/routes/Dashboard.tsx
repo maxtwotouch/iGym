@@ -590,6 +590,7 @@ const CustomerDashboard: React.FC = () => {
 					{/* Create workout button */}
 					<motion.button
 						onClick={() => navigate("/workouts/create")}
+            name="createWorkoutButton"
 						className="w-3/4 mb-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
 						whileHover={{ scale: 1.05 }}
 					>

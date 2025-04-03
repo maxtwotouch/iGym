@@ -221,7 +221,14 @@ function NavBar() {
                         Exercises
                     </Link>
                     <Link className={`hover:text-blue-400 ${location.pathname === '/calendar' && 'text-blue-400'}`} to="/calendar">Calendar</Link>
-                    <Link className={`hover:text-blue-400 ${location.pathname === '/chat' && 'text-blue-400'}`} to="/chat">Chat</Link>
+                    
+                    <Link 
+                        className={`hover:text-blue-400 ${location.pathname === '/chat' && 'text-blue-400'}`}
+                        to="/chat"
+                        data-name="Chat Page"
+                        >
+                        Chat
+                    </Link>
                     
                     {/* Selecting PT only for User */}
                     {userType === "user" && (

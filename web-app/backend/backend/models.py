@@ -55,7 +55,7 @@ class WorkoutSession(models.Model):
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
     start_time = models.DateTimeField(auto_now_add=True)
     calories_burned = models.FloatField(null=True, blank=True)
-    duration = models.DurationField(null=False, blank=False)
+    duration = models.DurationField(null=True, blank=True)
 
     # Total number of calories burned in the workout
     def save(self, *args, **kwargs):
@@ -101,9 +101,9 @@ class WorkoutMessage(models.Model):
 
 
 class ScheduledWorkout(models.Model):
-     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_workouts")
-     workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE)
-     scheduled_date = models.DateTimeField()
+     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_workouts", blank=False, null=False)
+     workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
+     scheduled_date = models.DateTimeField(blank=False, null=False)
      
      def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"

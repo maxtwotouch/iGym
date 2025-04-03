@@ -4,8 +4,9 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
-from backend.models import ChatRoom, Message, WorkoutMessage
+from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout
 from datetime import timedelta
+from django.utils.timezone import now
 
 
 
@@ -24,6 +25,8 @@ class UserProfileModelTest(TestCase):
         self.assertEqual(profile.weight, weight)
         self.assertEqual(profile.height, height)
         self.assertEqual(profile.personal_trainer, None)
+        self.assertEqual(profile.pt_chatroom, None)
+        self.assertEqual(profile.profile_picture, None)
     
     def test_create_user_without_weight_and_height(self):
         user = User.objects.create_user(username="testuser", password="password")
@@ -551,26 +554,77 @@ class WorkoutMessageModelTest(TestCase):
         
         # Make sure that the workout message was deleted
         self.assertEqual(WorkoutMessage.objects.count(), 0)
+
+class ScheduledWorkoutModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.scheduled_date = now() + timedelta(days=1)
+    
+    def test_create_scheduled_workout_basic(self):
+        # Schedule the workout for the same time tomorrow
+        scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.assertEqual(scheduled_workout.user, self.user)
+        self.assertEqual(scheduled_workout.workout_template, self.workout)
+        self.assertEqual(scheduled_workout.scheduled_date, self.scheduled_date)
+
+    def test_create_scheduled_workout_with_empty_workout(self):
+        scheduled_workout = ScheduledWorkout(user=self.user, scheduled_date=self.scheduled_date)
+        
+        # Should raise an integrity error as it is a required field
+        with self.assertRaises(IntegrityError):
+            scheduled_workout.save()
+    
+    def test_create_scheduled_workout_with_empty_user(self):
+        scheduled_workout = ScheduledWorkout(workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        with self.assertRaises(IntegrityError):
+            scheduled_workout.save()
+    
+    def test_create_scheduked_workout_with_empty_scheduled_date(self):
+        scheduled_workout = ScheduledWorkout(user=self.user, workout_template=self.workout)
+        
+        with self.assertRaises(IntegrityError):
+            scheduled_workout.save()
+    
+    def test_str_method(self):
+        workout_name = self.workout.name
+        string = f"{workout_name} scheduled on {self.scheduled_date}"
+        scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+       
+        self.assertEqual(string, str(scheduled_workout))
+    
+    def test_delete_user_cascade(self):
+        scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.user.delete()
+        
+        # Make sure the scheduled workout was deleted
+        self.assertEqual(ScheduledWorkout.objects.count(), 0)
+    
+    def test_delete_workout_template_cascade(self):
+        scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.workout.delete()
+        
+        self.assertEqual(ScheduledWorkout.objects.count(), 0)
+        
+    
+    
+    
+        
     
     
         
-    
         
-        
-        
-        
-        
-        
-    
+
+
+## Models to test: 
+# Notification
+# ScheduledWorkout
+
 
     
-        
-        
-        
-        
 
-
-    
-# Model tests to be done
-# duration field in workout session
 

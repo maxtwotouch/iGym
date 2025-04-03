@@ -41,7 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
     
     def update(self, instance, validated_data):
-        print("validated data:", validated_data)
         # Extract nested user_profile data (if any)
         profile_data = validated_data.pop("profile", None)
         # Update the flat fields of the User model

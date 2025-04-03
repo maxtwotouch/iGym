@@ -3,6 +3,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Select from 'react-select';
 
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+const socketUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/chat/'
+
 type ChatRoomProps = {
     chatRoomId: number;
 };
@@ -65,7 +69,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchChat = async () => {
             try {
-                const currentChatResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/`, {
+                const currentChatResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const currentChat = await currentChatResponse.json();
@@ -77,7 +81,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchParticipants = async () => {
             try {
-                const participantsResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/participants/`, {
+                const participantsResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/participants/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const participants = await participantsResponse.json();
@@ -90,7 +94,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchUserWorkouts = async () => {
             try {
-                const userWorkoutsResponse = await fetch(`http://127.0.0.1:8000/workouts/`, {
+                const userWorkoutsResponse = await fetch(`${backendUrl}/workouts/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userWorkouts = await userWorkoutsResponse.json();
@@ -109,7 +113,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchMessages = async () => {
             try {
-                const messagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/messages/`, {
+                const messagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const messages = await messagesResponse.json();
@@ -133,7 +137,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchWorkoutMessages = async () => {
             try {
-                const workoutMessagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/workout_messages/`, {
+                const workoutMessagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/workout_messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const workoutMessages = await workoutMessagesResponse.json();
@@ -163,7 +167,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const notificationsList = async () => {
             try {
-                const notificationsUserResponse = await fetch(`http://127.0.0.1:8000/notifications/`, {
+                const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const notificationsUserData = await notificationsUserResponse.json();
@@ -203,8 +207,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
         if (socketRef.current) { // Close the existing WebSocket connection
             socketRef.current.close();
         }
-
-        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
+        console.log("socket url:", socketUrl);
+        const socket = new WebSocket(`${socketUrl}${chatRoomId}/?token=${token}`)
         socketRef.current = socket; 
 
         socketRef.current.onmessage = (event) => { // Listen for new messages
@@ -262,7 +266,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 // Deleting every notification from the chat room for the current user
                 notifications.forEach(async (notification) => {
                     if (notification.chat_room_id === chatRoomId) {
-                        await fetch(`http://127.0.0.1:8000/notification/delete/${notification.id}/`, {
+                        await fetch(`${backendUrl}/notification/delete/${notification.id}/`, {
                             method: "DELETE",
                             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
                         });
@@ -446,6 +450,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                     {/* Biceps button to toggle dropdown */}
                     <motion.button
                         onClick={() => setIsWorkoutsVisible(!isWorkoutsVisible)}
+                        name="workoutButton"
                         className="text-4xl cursor-pointer"
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
@@ -500,6 +505,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                             {/* Send Workout Button */}
                             <motion.button
                                 onClick={sendWorkout}
+                                name="sendWorkout"
                                 className="p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
                                 whileHover={{ scale: 1.05 }}
                             >
@@ -512,6 +518,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 {/* Input field New Message */}
                 <input
                     type="text"
+                    name="messageField"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
@@ -527,6 +534,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 {/* Send Message Button */}
                 <motion.button
                     onClick={sendMessage}
+                    name="sendMessage"
                     className="ml-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
                     whileHover={{ scale: 1.05 }}
                 >

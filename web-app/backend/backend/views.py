@@ -23,7 +23,6 @@ class ListUserView(generics.ListAPIView):
     def get_queryset(self):
         return User.objects.filter(profile__isnull=False)
 
-##
 class ListPtAndUserView(generics.ListAPIView):
      serializer_class = DefaultUserSerializer
      permission_classes = [IsAuthenticated]
@@ -127,8 +126,7 @@ class ListExercisesInWorkoutView(generics.ListAPIView):
         workout_object = get_object_or_404(Workout, id=workout_id)
         
         # Make sure that the user is a owner of the workout or is a personal trainer
-        if not workout_object.owners.filter(id=user.id).exists() and user.trainer_profile is None:
-            print("hei")
+        if not workout_object.owners.filter(id=user.id).exists() and not hasattr(user, "trainer_profile"):
             raise serializers.ValidationError("Cannot request exercises of a workout that you are not a owner of, or if you are not a personal trainer")
        
         return workout_object.exercises.all()
@@ -172,7 +170,6 @@ class ClientsListView(generics.ListAPIView):
         #  Retrieve all user profiles where personal_trainer is the current user's trainer profile
         return User.objects.filter(profile__personal_trainer__user=trainer)
     
-##
 class WorkoutSessionListView(generics.ListAPIView):
     serializer_class = WorkoutSessionSerializer
     permission_classes = [IsAuthenticated]
@@ -189,7 +186,6 @@ class WorkoutDetailView(generics.RetrieveAPIView):
         user = self.request.user
         return Workout.objects.filter(owners=user)
 
-##
 class ExerciseDetailView(generics.RetrieveAPIView):
     serializer_class = ExerciseSerializer
     permission_classes = [IsAuthenticated]

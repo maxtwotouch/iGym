@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Select from 'react-select';
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+
 type User = {
     id: number;
     username: string;
@@ -31,7 +33,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         }
         
         try {
-            const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_rooms/", {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat_rooms/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const chatRoom = await chatRoomResponse.json();
@@ -50,7 +52,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     
         const fetchUsers = async () => {
             try {
-                const userObjectsResponse = await fetch("http://127.0.0.1:8000/users/", {
+                const userObjectsResponse = await fetch(`${backendUrl}/users/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userObjects = await userObjectsResponse.json();
@@ -83,7 +85,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await fetch("http://127.0.0.1:8000/chat_room/create/", {
+            const response = await fetch(`${backendUrl}/chat_room/create/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -110,7 +112,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     };
 
     const deleteChatRoom = async (chatRoomId: number) => {
-        const response = await fetch(`http://127.0.0.1:8000/chat_room/delete/${chatRoomId}/`, {
+        const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
         });
@@ -190,6 +192,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 <input
                     type="text"
                     value={newChatRoomName}
+                    name="chatRoomName"
                     onChange={(e) => setNewChatRoomName(e.target.value)}
                     className="w-full p-2 mb-2 rounded bg-gray-700 text-white"
                     placeholder="Chat Room Name"
@@ -199,6 +202,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 {/* Dropdown for users */}
                 <Select
                     key={resetDropDown} // Reset the selected users when chat room is created
+                    name="DropDown"
                     isMulti
                     options={users
                         .filter(user => user.id !== currentUser?.id) // Exclude current user
@@ -236,6 +240,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 {/* Create Chat Room Button */}
                 <motion.button
                     onClick={handleCreateChatRoom}
+                    name="createChatRoom"
                     className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

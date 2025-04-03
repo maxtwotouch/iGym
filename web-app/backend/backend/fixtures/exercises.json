@@ -242,5 +242,69 @@
             "muscle_group": "Main muscles: Hamstrings. Secondary muscles: Calves",
             "image": "exercise_images/lying_leg_curl.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Chest Press Machine",
+            "description": "Starting position: Set the chest press machine up so that when sitting down the handles are in line with the lower part of your chest. Make sure that you are sitting right back up against the seat. Grab hold of a handle in each hand, push your chest out, keep your head against the headrest. Execution: Take a deep breath, and slowly push the handles forward until your arms are almost completely extended. Pause just before lockout, and then slowly return the handles back to the start position. Pausing just before the handles stop completely and repeating for another rep.",
+            "muscle_group": "Main muscles: Chest. Secondary muscles: Triceps, front deltoids",
+            "image": "exercise_images/chest_press_machine.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Triceps Pressdown",
+            "description": "Starting position: Standing facing the pulley, grasping the bar with a pronation grip, hands shoulder width apart. Execution: Carry out an extension of the forearms until your arms are fully extended. In this position, contract your triceps for a moment and then slowly return to the initial position. Keep your elbows close to your body during the whole movement.",
+            "muscle_group": "Main muscles: Triceps",
+            "image": "exercise_images/triceps_pressdown.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Barbell Deadlift",
+            "description": "Starting position: Barbell placed on the ground in front of you. Feet a little less than shoulder width apart with your knees bent. With your arms fully extended, grab the barbell in pronation, hands shoulder-width apart Keep your torso slightly bent forward, back straight, shoulders pulled back and chest out. Inhale and tighten your abdominal muscles. Execution: While keeping your arms straight, lift the barbell by extending your legs and straightening your torso to reach a vertical position. Exhale at the end of the motion. Then slowly go back to the starting position. Always remember never to bend your back.",
+            "muscle_group": "Main muscles: Back, legs",
+            "image": "exercise_images/barbell_deadlift.png"
+        }
+    },
+
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Barbell Curl",
+            "description": "Starting position: Standing with knees slightly bent and back straight. Hold the bar with your hands in supination, about shoulder width apart. Execution: Without making a bust movement, raise the bar by bending the forearms. Contract your biceps in the high position, then let the bar slowly come down to the initial position. Keep your elbows close to your body during the movement.",
+            "muscle_group": "Main muscles: Biceps",
+            "image": "exercise_images/barbell_curl.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Hanging Leg Raise",
+            "description": "Starting position: Hanging from a high bar, hands in pronation. Execution: Contract your abs by moving your knees and hips up towards your chest. Stay in the upright position for one second, then slowly return to the starting position.",
+            "muscle_group": "Main muscles: Abs",
+            "image": "exercise_images/hanging_leg_raise.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Standing Barbell Shoulder Press",
+            "description": "Starting position: Standing with your back straight, chest bulged, feet about shoulders width apart, and knees slightly bent. Grasp the bar using a pronated grip, your elbows pointing outward. The bar stands at chin’s level. This level may vary depending on your shoulders’ flexibility. The gap between your hands should be such that your elbows are forming a 90° angle when your arms are parallel to the floor. Execution: Squeeze your shoulders while pressing the weight vertically. Stop the movement when your arms are about to be fully outstretched. Then, come back slowly to the starting position.",
+            "muscle_group": "Main muscles: Deltoids. Secondary muscles: Triceps",
+            "image": "exercise_images/standing_barbell_shoulder_press.png"
+        }
+    },
+    {
+        "model":"backend.Exercise",
+        "fields": {
+            "name": "Lunge",
+            "description": "Starting position: Standing with legs hip-width apart, one dumbbell in each hand. Execution: Keeping the bust straight, take a step forward and slowly descend until the forward thigh is parallel to the ground. Then return to the original position. Once you have completed your series, do the same with the other leg.",
+            "muscle_group": "Main muscles: Buttocks and thigh muscles",
+            "image": "exercise_images/lunge.png"
+        }
     }
 ]
