@@ -19,7 +19,7 @@ const ExerciseSearchBar: React.FC<ExerciseSearchBarProps> = ({ searchQuery, setS
             placeholder="Search exercises..."
             value={searchQuery} 
             onChange={handleSearchChange}
-            className="w-full max-w-lg p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+            className="w-full p-2 rounded-lg border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
         />
     );
 };

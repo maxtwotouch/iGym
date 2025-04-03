@@ -42,6 +42,16 @@ class Exercise(models.Model):
     # How the exercise is performed
     description = models.TextField(blank=False, null=False)
     muscle_group = models.CharField(max_length=255, null=False, blank=False)
+
+    MUSCLE_CATEGORIES = [
+        ("chest", "Chest"),
+        ("back", "Back"),
+        ("legs", "Legs"),
+        ("arms", "Arms"),
+        ("shoulders", "Shoulders"),
+        ("abs", "Abdomonals"),
+    ]
+    muscle_category = models.CharField(max_length=20, choices=MUSCLE_CATEGORIES, default="chest")
     
     image = models.ImageField(upload_to='exercise_images/', blank=True, null=True)
 

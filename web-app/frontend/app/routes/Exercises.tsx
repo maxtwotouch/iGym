@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import NavBar from "~/components/NavBar";
 import ExerciseList from "~/components/ExerciseList";
-import 'bootstrap/dist/css/bootstrap.css'
+import Footer from "~/components/Footer";
 
 // Interface to define the structure of a workout object
 interface Workout {
@@ -25,14 +25,15 @@ return (
         <NavBar />
 
         <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-8"
+            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <h2 className="text-xl font-bold text-white">Exercises</h2>
-        
+
         <ExerciseList />
+
+        <Footer />
 
         </motion.div>  
     </motion.div>
