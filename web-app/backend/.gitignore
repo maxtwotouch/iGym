@@ -1,3 +1,4 @@
-/myenv
-*/__pycache__/
-/lib
+myenv
+lib
+lib64
+bin 

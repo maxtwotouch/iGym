@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import Select from 'react-select';
+import { backendUrl, wsUrl } from "~/config";
 
 type ChatRoomProps = {
     chatRoomId: number;
@@ -65,7 +66,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchChat = async () => {
             try {
-                const currentChatResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/`, {
+                const currentChatResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const currentChat = await currentChatResponse.json();
@@ -77,7 +78,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchParticipants = async () => {
             try {
-                const participantsResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/participants/`, {
+                const participantsResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/participants/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const participants = await participantsResponse.json();
@@ -90,7 +91,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchUserWorkouts = async () => {
             try {
-                const userWorkoutsResponse = await fetch(`http://127.0.0.1:8000/workouts/`, {
+                const userWorkoutsResponse = await fetch(`${backendUrl}/workouts/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userWorkouts = await userWorkoutsResponse.json();
@@ -109,7 +110,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchMessages = async () => {
             try {
-                const messagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/messages/`, {
+                const messagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const messages = await messagesResponse.json();
@@ -133,7 +134,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchWorkoutMessages = async () => {
             try {
-                const workoutMessagesResponse = await fetch(`http://127.0.0.1:8000/chat_room/${chatRoomId}/workout_messages/`, {
+                const workoutMessagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/workout_messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const workoutMessages = await workoutMessagesResponse.json();
@@ -163,7 +164,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const notificationsList = async () => {
             try {
-                const notificationsUserResponse = await fetch(`http://127.0.0.1:8000/notifications/`, {
+                const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const notificationsUserData = await notificationsUserResponse.json();
@@ -204,7 +205,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
             socketRef.current.close();
         }
 
-        const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
+        const socket = new WebSocket(`${wsUrl}/ws/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
         socketRef.current = socket; 
 
         socketRef.current.onmessage = (event) => { // Listen for new messages
@@ -262,7 +263,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 // Deleting every notification from the chat room for the current user
                 notifications.forEach(async (notification) => {
                     if (notification.chat_room_id === chatRoomId) {
-                        await fetch(`http://127.0.0.1:8000/notification/delete/${notification.id}/`, {
+                        await fetch(`${backendUrl}/notification/delete/${notification.id}/`, {
                             method: "DELETE",
                             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
                         });

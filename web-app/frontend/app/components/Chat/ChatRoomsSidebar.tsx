@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import Select from 'react-select';
+import { backendUrl } from '~/config';
 
 type User = {
     id: number;
@@ -31,7 +32,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         }
         
         try {
-            const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_rooms/", {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat_rooms/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const chatRoom = await chatRoomResponse.json();
@@ -50,7 +51,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     
         const fetchUsers = async () => {
             try {
-                const userObjectsResponse = await fetch("http://127.0.0.1:8000/users/", {
+                const userObjectsResponse = await fetch(`${backendUrl}/users/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userObjects = await userObjectsResponse.json();
@@ -83,7 +84,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await fetch("http://127.0.0.1:8000/chat_room/create/", {
+            const response = await fetch(`${backendUrl}/chat_room/create/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -110,7 +111,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     };
 
     const deleteChatRoom = async (chatRoomId: number) => {
-        const response = await fetch(`http://127.0.0.1:8000/chat_room/delete/${chatRoomId}/`, {
+        const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
         });

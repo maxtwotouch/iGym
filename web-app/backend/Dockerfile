@@ -5,28 +5,29 @@ FROM python:3.10-slim
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# System dependencies (adjust as needed for your project)
+# System dependencies for building Python packages
 RUN apt-get update && \
     apt-get install -y build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-# Create the app directory inside the image
+# Create and use a non-root user for security
+RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /app
 
-# Copy requirements first to leverage Docker caching
+# Copy requirements early to leverage Docker caching
 COPY requirements.txt /app/
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your Django code
+# Copy the rest of the Django application code
+# This is done after installing dependencies to take advantage of Docker caching
 COPY . /app/
 
-# Collect static files for production
+# Run static file collection and migrations (consider moving these to a deploy script in production)
 RUN python manage.py collectstatic --noinput
+RUN python manage.py migrate
 
-# Expose port 8000 for Gunicorn
-EXPOSE 8000
+# Switch to non-root user
+USER appuser
 
-# Start Gunicorn (adjust "myproject" to match your Django project name)
+# Start Gunicorn server
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backend.wsgi:application"]

@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
-# Remove the default server block
+# Remove the default configuration
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy your custom server config into conf.d
+# Copy in our custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

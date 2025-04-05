@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
-
+import { backendUrl } from "~/config";
 
 // Interface to define the structure of an exercise object
 interface Exercise {
