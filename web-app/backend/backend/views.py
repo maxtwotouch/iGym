@@ -1,14 +1,16 @@
 
 from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage, Notification
+from .models import PersonalTrainerScheduledWorkout
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
-from .serializers import MessageSerializer, WorkoutMessageSerializer, NotificationSerializer
+from .serializers import MessageSerializer, WorkoutMessageSerializer, NotificationSerializer, PersonalTrainerScheduledWorkoutSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -367,3 +369,31 @@ class NotificationDeleteView(generics.DestroyAPIView):
      def get_queryset(self):
          user = self.request.user
          return Notification.objects.filter(user=user)
+
+
+# Note: Organize the view functions below as you wish
+class CreatePersonalTrainerScheduledWorkoutView(generics.CreateAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        serializer.save(pt=self.request.user)
+
+class PersonalTrainerScheduledWorkoutListView(generics.ListAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+     
+    # Fetch all PersonalTrainerScheduledWorkout objects where the current user is involved
+    def get_queryset(self):
+        user = self.request.user
+        return PersonalTrainerScheduledWorkout.objects.filter(Q(pt=user) | Q(client=user)) # Current user can either be the client or the pt of the scheduled workout
+    
+class PersonalTrainerScheduledWorkoutDeleteView(generics.DestroyAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only delete pt scheduled workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        # Important! As of now only the PT is allowed to delete a scheduled workout. (This can be changed later)
+        return PersonalTrainerScheduledWorkout.objects.filter(pt=user)

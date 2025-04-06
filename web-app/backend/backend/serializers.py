@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
 from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification
+from .models import PersonalTrainerScheduledWorkout
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # The default user-set-up if we only have one type of user
@@ -171,6 +172,17 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'read_only': True},
         }
+
+class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
+     workout_title = serializers.ReadOnlyField(source="workout_template.name")
+     
+     class Meta:
+        model = PersonalTrainerScheduledWorkout
+        fields = ['id', 'client', 'pt', 'workout_template', 'workout_title', 'scheduled_date']
+        extra_kwargs = {
+            'pt': {'read_only': True},
+        }
+
 
 class NotificationSerializer(serializers.ModelSerializer):
      workout_message = WorkoutSerializer()

@@ -107,6 +107,15 @@ class ScheduledWorkout(models.Model):
      
      def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
+     
+class PersonalTrainerScheduledWorkout(models.Model):
+     client = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pt_scheduled_workouts", blank=False, null=False)
+     pt = models.ForeignKey(User, on_delete=models.CASCADE, related_name="arranged_workouts_clients", blank=False, null=False)
+     workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
+     scheduled_date = models.DateTimeField(blank=False, null=False)
+     
+     def __str__(self):
+         return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
 
 class Notification(models.Model):
      user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
