@@ -93,6 +93,22 @@ DATABASES = {
     }
 }
 
+# Caching: Redis configuration
+# Use Redis for caching in production for better performance
+CACHES = {
+    "redis-cache": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.environ.get("REDIS_CACHE_URL", "redis://redis:6379/1"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# Use Redis for session storage in production
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "redis-cache"
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
