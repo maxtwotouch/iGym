@@ -1,56 +1,119 @@
-version: "3.8"
-
 services:
   backend:
-    platform: linux/amd64
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
-    # Gunicorn listens on 8000 inside the container
+    depends_on:
+      - postgres
+    # Gunicorn listens on 8000 within the docker network
     expose:
       - "8000"
-    # No local volumes in production
-    # If we need environment variables, we can pass them in here
-    # environment:
-    #   - DJANGO_SETTINGS_MODULE=myproject.settings.production
+    # Set up environment variables for production
+    environment:
+      - DJANGO_SETTINGS_MODULE=backend.settings_prod
+      - DJANGO_SECRET_KEY=nac85TVxkmqCk30nseDgenkVWFk9F1e1fBjAycJ9
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=igym.vikingthe.dev,localhost
+      - DJANGO_SECURE_SSL_REDIRECT=True
+      - CORS_ALLOWED_ORIGINS=https://igym.vikingthe.dev,https://localhost
+      - POSTGRES_DB=igym_db
+      - POSTGRES_USER=igym
+      - POSTGRES_PASSWORD=iGymAdmin6789
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_CACHE_URL=redis://redis:6379/0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CSRF_TRUSTED_ORIGINS=https://igym.vikingthe.dev,https://localhost
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     networks:
       - shared
+    restart: unless-stopped
 
   frontend:
-    platform: linux/amd64
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     container_name: frontend
     depends_on:
       - backend
-    # We expose port 3000 for the frontend
+    # We expose port 3000 for the frontend within the docker network
     expose:
-      - "5173"
+      - "3000"
     # If we need environment variables, we can pass them in here
-    # environment:
-    #   - REACT_APP_API_URL=http://localhost:8000
+    environment:
+      #- BACKEND_API_URL=https://igym.vikingthe.dev/api
+      #- VITE_BACKEND_API_URL=https://igym.vikingthe.dev/api
+      #- BACKEND_WS_URL=wss://igym.vikingthe.dev/api
+      #- VITE_BACKEND_WS_URL=wss://igym.vikingthe.dev/api
+      - MODE=production
     networks:
       - shared
+    restart: unless-stopped
 
   # This is the Nginx proxy that will handle SSL termination
   nginx:
-    platform: linux/amd64
     build:
       context: ./nginx
+      dockerfile: Dockerfile
     container_name: nginx
     depends_on:
       - backend
       - frontend
+    # Open ports for HTTPS (and HTTP for redirection to HTTPS). 
+    # This will be the only entrance point for the application.
     ports:
       - "443:443"
-      # Optionally "80:80" if you’re redirecting HTTP -> HTTPS
       - "80:80"
-      - "8000:8000"
     volumes:
       - ./nginx/ssl/certificate.crt:/etc/ssl/certs/certificate.crt:ro
       - ./nginx/ssl/certificate.key:/etc/ssl/private/certificate.key:ro
+      - static_volume:/usr/share/nginx/html/static
+      - media_volume:/usr/share/nginx/html/media
     networks:
       - shared
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      # Set up the initial database user, password, and database.
+      - POSTGRES_USER=igym
+      - POSTGRES_PASSWORD=iGymAdmin6789
+      - POSTGRES_DB=igym_db
+    expose:
+      # We just need to expose the port for the backend to connect to the database.
+      - "5432:5432"
+    volumes:
+      # Persist the database data.
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - shared
+    restart: unless-stopped
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
 
 networks:
   shared:

@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Outlet, useLocation } from "react-router";
-
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+import { backendUrl } from "~/config";
 
 export const AuthLayout = () => {
     // Get the current route

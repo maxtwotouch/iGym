@@ -22,7 +22,9 @@ from .views import CreateUserView, CreatePersonalTrainerView, WorkoutListView, E
 from .views import WorkoutDeleteView, CustomTokenObtainPairView, WorkoutDetailView, UpdateWorkoutView, ExerciseDetailView, WorkoutSessionListView
 from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView, ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
-from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView
+from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView, ListParticipantsInChatRoomView
+from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView, ListScheduledWorkoutsOfClientView, ListWorkoutSessionsOfClientsView, ListWorkoutsOfClientsListView
+from .views import NotificationListView, NotificationDeleteView, ListPtAndUserView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -51,16 +53,25 @@ urlpatterns = [
     path("chat_rooms/", ChatRoomListView.as_view(), name="chat_rooms-list"),
     path("chat_room/create/", ChatRoomCreateView.as_view(), name="chat_room-create"),
     path("chat_room/delete/<int:pk>/", ChatRoomDeleteView.as_view(), name="chat_room-delete"),
+    path("chat_room/<int:pk>/participants/", ListParticipantsInChatRoomView.as_view(), name="chat_room-participants"),
+    path("chat_room/<int:pk>/messages/", ListMessagesInChatRoomView.as_view(), name="chat_room-messages"),
+    path("chat_room/<int:pk>/workout_messages/", ListWorkoutMessagesInChatRoomView.as_view(), name="chat_room-workout_messages"),
     path("users/", ListUserView.as_view(), name="user-list"),
+    path("users-pts/", ListPtAndUserView.as_view(), name="user-pt-list"),
     path("personal_trainers/", PersonalTrainerListView.as_view(), name="personal_trainer-list"),
     path("user/update/<int:pk>/", UpdateUserView.as_view(), name="user-update"),
     path("personal_trainer/update/<int:pk>/", UpdatePersonalTrainerView.as_view(), name="personal_trainer-update"),
     path("personal_trainer/<int:pk>/", PersonalTrainerDetailView.as_view(), name="personal_trainer-detail"),
     path("personal_trainer/clients/", ClientsListView.as_view(), name="clients-list"),
+    path("personal_trainer/client/<int:pk>/scheduled_workouts/", ListScheduledWorkoutsOfClientView.as_view(), name="client-scheduled_workouts-list"),
+    path("personal_trainer/client/<int:pk>/workout_sessions/", ListWorkoutSessionsOfClientsView.as_view(), name="client-workout_sessions-list"),
+    path("personal_trainer/client/<int:pk>/workouts/", ListWorkoutsOfClientsListView.as_view(), name="client-workouts-list"),
     path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
     path("scheduled_workout/delete/<int:pk>/", SchedulesWorkoutDeleteView.as_view(), name="scheduled_workout-delete"),
     path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+    path("notifications/", NotificationListView.as_view(), name="notification-list"),
+    path("notification/delete/<int:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
 ]
 
 """

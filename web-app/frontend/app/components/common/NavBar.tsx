@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import { motion } from "framer-motion";
+import { backendUrl } from "~/config";
 
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png"
 
@@ -61,14 +62,14 @@ export const NavBar = () => {
         const fetchTrainerOrClients = async () => {
             try {
                 if (userType === 'user') {
-                    const userResponse = await fetch(`http://127.0.0.1:8000/user/${localStorage.getItem("user_id")}/`, {
+                    const userResponse = await fetch(`${backendUrl}/user/${localStorage.getItem("user_id")}/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });
                     const userData = await userResponse.json();
 
                     // Translate from profile id to user id
-                    const trainersResponse = await fetch(`http://127.0.0.1:8000/personal_trainers/`, {
+                    const trainersResponse = await fetch(`${backendUrl}/personal_trainers/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });
@@ -81,7 +82,7 @@ export const NavBar = () => {
                     });
                 } 
                 else if (userType === 'trainer') {
-                    const clientsArrayResponse = await fetch(`http://127.0.0.1:8000/personal_trainer/clients/`, {
+                    const clientsArrayResponse = await fetch(`${backendUrl}/personal_trainer/clients/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });
@@ -135,7 +136,7 @@ export const NavBar = () => {
         const fetchUserData = async () => {
           try {
             const id = localStorage.getItem("user_id")
-            const response = await fetch(`http://127.0.0.1:8000/user/${id}/`, {
+            const response = await fetch(`${backendUrl}/user/${id}/`, {
               headers: { Authorization: `Bearer ${token}` },
             });
     

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+import { backendUrl } from "~/config";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState(""); 
@@ -13,7 +13,10 @@ export const LoginForm = () => {
     e.preventDefault();
   
     try {
-      const response = await fetch(`${backendUrl}/token/`, {
+      const url = `${backendUrl}/token/`;
+      console.log("Login URL:", url); // Log the URL for debugging
+
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

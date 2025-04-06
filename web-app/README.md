@@ -17,27 +17,26 @@
 3. Start the development server `npm run dev`
 4. Open the browser and go to `http://localhost:3000/`
 
-# Running frontend and backend in docker development environment:
-1. Run `docker-compose -f docker-compose.test.yml up --build`
-2. Frontned is running on `http://localhost:3000/`, backend is running on `http://localhost:8000/`
+# Running in Docker:
+Docker is used for the production environment. It consists of 5 services:
+1. Nginx: A web server that serves the frontend and proxies requests to the backend. All traffic goes through Nginx. This only exposes port 80 and 443 to the outside world, and all HTTP requests are redirected to HTTPS. Also serves all static and media files from the Django app. This is done to reduce the load on the Django server and to allow for caching of static files.
+2. Frontend: React app served by react-router. Utilizes SSR (Server Side Rendering) for better SEO and performance.
+3. Backend: Django app that serves the API and handles the database. Uses gunicorn as the WSGI server. And gunicorn with uvicorn workers for ASGI (Asynchronous Server Gateway Interface) to handle websockets.
+4. Redis: A caching server that is used by Django channels to handle websockets. More performance and scalability than using in-memory caching. Also used by Django to cache data and sessions storage. This is done to reduce the load on the database and to allow for caching of data.
+5. Postgres: A database server that is used by Django to store data. It is a relational database that is used to store the data for the app. Again, more performance and scalability than using SQLite. Uses a volume to persist data.
 
-The development environment is now running in docker. The frontend is running on port 3000 and the backend is running on port 8000.
-It is set up to mount the frontend and backend folders, so changes to the code will be reflected in the docker containers.
-If changes are made to dependencies (npm or pip), the containers must be rebuilt with `docker compose -f docker-compose.test.yml up -d --build`.
+## TODOs for docker:
+- [ ] Find a way to handle SSL certificates for Nginx. Currently, it is set to use self-signed certificates. This is not recommended for production use. You can use Let's Encrypt to get free SSL certificates. This is a bit tricky to set up, but there are many tutorials online. You can also use a reverse proxy like Traefik or Caddy to handle SSL certificates automatically.
+- [ ] When a new Postgres database is created (empty), we want to migrate the database automatically. We then also want to fill the database with some initial data. This is done by running the `python manage.py migrate` and `python manage.py loaddata exercises.json`. Potentially a CI/CD issue.
+- [ ] Set up CI/CD for automatic deployment to Heroku, with traffic routed through Cloudflare.
 
-To run just one of the services, use `docker compose -f docker-compose.test.yml up frontend -d` or `docker -f docker-compose.test.yml compose up backend -d`. (with the `--build` flag if needed)
+## Running frontend and backend in docker production environment:
+- Build the production docker images and run the containers detached `docker compose up -d --build`
+- To stop the containers, run `docker compose down`
 
-To stop the containers, run `docker -f docker-compose.test.yml compose down`
-
-# Running frontend and backend in docker production environment:
-1. Build the production docker images `docker compose -f docker-compose.prod.yml --build`
-2. Run (detached) the containers `docker compose -f docker-compose.prod.yml up -d`
-
-React-router (the frontend service) listens internally on 3000.
-Django (the backend service) listens internally on 8000. (Running with gunicorn)
-Nginx listens on 80 and 443.
-Requests to https://your-server/ (root) serve the React-router app.
+## Endpoints:
+Requests to https://your-server/ (root) get proxied to the frontend.
 Requests to https://your-server/api/... get proxied to Django.
-Http requests are redirected to https.
-
-To stop the containers, run `docker compose -f docker-compose.prod.yml down`
+Requests to https://your-server/ws/... get proxied to Django channels. (websockets).
+Requests to https://your-server/static/... get proxied to the static files served by Django.
+Requests to https://your-server/media/... get proxied to the media files served by Django.

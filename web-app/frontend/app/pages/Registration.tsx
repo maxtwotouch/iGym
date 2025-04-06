@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
+import { backendUrl } from "~/config"; // Import backend URL from config
 
 export const RegistrationForm = () => {
     const [username, setUsername] = useState("");
@@ -17,8 +18,6 @@ export const RegistrationForm = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'; // Vite environment variable for testing or default localhost URL
 
         // URL and payload based on the user type
         let url = "";

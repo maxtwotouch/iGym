@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
+import { backendUrl } from "~/config";
 
 type PT = {
   id: number;
@@ -27,7 +28,7 @@ export const PtList: React.FC = () => {
 
     const fetchPts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/personal_trainers/", {
+        const response = await fetch(`${backendUrl}/personal_trainers/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) throw new Error("Failed to fetch PTs");
@@ -63,7 +64,7 @@ export const PtList: React.FC = () => {
       }
 
       // Update user's personal trainer field
-      await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
+      await fetch(`${backendUrl}/user/update/${userId}/`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ profile: { personal_trainer: ptProfileId } }),
@@ -78,7 +79,7 @@ export const PtList: React.FC = () => {
       const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
 
       // Update user's pt_chatroom field
-      await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
+      await fetch(`${backendUrl}/user/update/${userId}/`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ profile: { pt_chatroom: chatRoomId } }),
@@ -93,7 +94,7 @@ export const PtList: React.FC = () => {
   const createChatRoomWithPt = async (ptId: number, ptName: string) => {
     try {
       const token = localStorage.getItem("accessToken");
-      const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_room/create/", {
+      const chatRoomResponse = await fetch(`${backendUrl}/chat_room/create/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
