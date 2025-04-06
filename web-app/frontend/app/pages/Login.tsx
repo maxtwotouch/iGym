@@ -13,7 +13,10 @@ export const LoginForm = () => {
     e.preventDefault();
   
     try {
-      const response = await fetch(`${backendUrl}/token/`, {
+      const url = `${backendUrl}/token/`;
+      console.log("Login URL:", url); // Log the URL for debugging
+
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
