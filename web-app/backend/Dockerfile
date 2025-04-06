@@ -30,4 +30,4 @@ RUN python manage.py migrate
 USER appuser
 
 # Start Gunicorn server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backend.wsgi:application"]
+CMD ["gunicorn", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "backend.asgi:application"]
