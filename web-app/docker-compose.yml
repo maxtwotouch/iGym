@@ -4,12 +4,29 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
+    depends_on:
+      - postgres
     # Gunicorn listens on 8000 within the docker network
     expose:
       - "8000"
     # Set up environment variables for production
-    # environment:
-    #  - DJANGO_SETTINGS_MODULE=backend.settings.production
+    environment:
+      - DJANGO_SETTINGS_MODULE=backend.settings_prod
+      - DJANGO_SECRET_KEY=nac85TVxkmqCk30nseDgenkVWFk9F1e1fBjAycJ9
+      - DJANGO_DEBUG=True
+      - DJANGO_ALLOWED_HOSTS=*
+      - DJANGO_SECURE_SSL_REDIRECT=True
+      #- CORS_ALLOWED_ORIGINS=*igym.vikingthe.dev,localhost
+      - CORS_ALLOWED_ORIGINS=*
+      - POSTGRES_DB=igym_db
+      - POSTGRES_USER=igym
+      - POSTGRES_PASSWORD=iGymAdmin6789
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - CSRF_TRUSTED_ORIGINS=*
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
     networks:
       - shared
     restart: unless-stopped
@@ -52,9 +69,49 @@ services:
     volumes:
       - ./nginx/ssl/certificate.crt:/etc/ssl/certs/certificate.crt:ro
       - ./nginx/ssl/certificate.key:/etc/ssl/private/certificate.key:ro
+      - static_volume:/usr/share/nginx/html/static
+      - media_volume:/usr/share/nginx/html/media
     networks:
       - shared
     restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      # Set up the initial database user, password, and database.
+      - POSTGRES_USER=igym
+      - POSTGRES_PASSWORD=iGymAdmin6789
+      - POSTGRES_DB=igym_db
+    expose:
+      # We just need to expose the port for the backend to connect to the database.
+      - "5432:5432"
+    volumes:
+      # Persist the database data.
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - shared
+    restart: unless-stopped
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
 
 networks:
   shared:
