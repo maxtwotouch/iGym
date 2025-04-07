@@ -6,11 +6,13 @@ services:
     container_name: backend
     depends_on:
       - postgres
+      - redis
     # Gunicorn listens on 8000 within the docker network
     expose:
       - "8000"
     # Set up environment variables for production
     environment:
+      - PROD=True
       - DJANGO_SETTINGS_MODULE=backend.settings_prod
       - DJANGO_SECRET_KEY=nac85TVxkmqCk30nseDgenkVWFk9F1e1fBjAycJ9
       - DJANGO_DEBUG=False
@@ -29,9 +31,12 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - seeded_volume:/app/seeded
     networks:
-      - shared
-    restart: unless-stopped
+      - nginx-backend
+      - backend-postgres
+      - backend-redis
+    # restart: unless-stopped
 
   frontend:
     build:
@@ -51,7 +56,7 @@ services:
       #- VITE_BACKEND_WS_URL=wss://igym.vikingthe.dev/api
       - MODE=production
     networks:
-      - shared
+      - nginx-frontend
     restart: unless-stopped
 
   # This is the Nginx proxy that will handle SSL termination
@@ -74,7 +79,8 @@ services:
       - static_volume:/usr/share/nginx/html/static
       - media_volume:/usr/share/nginx/html/media
     networks:
-      - shared
+      - nginx-frontend
+      - nginx-backend
     restart: unless-stopped
 
   postgres:
@@ -92,7 +98,7 @@ services:
       # Persist the database data.
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - shared
+      - backend-postgres
     restart: unless-stopped
   redis:
     image: redis:latest
@@ -102,9 +108,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - shared
+      - backend-redis
     restart: unless-stopped
 
+# Volumes for persistent data storage and to share data between containers
 volumes:
   postgres_data:
     driver: local
@@ -114,7 +121,19 @@ volumes:
     driver: local
   media_volume:
     driver: local
+  seeded_volume:
+    driver: local
 
+# Set up multiple networks for better isolation
+# This ensures that i.e. the frontend cannot access the database directly
+# and only the backend can access the database and redis.
 networks:
-  shared:
+  nginx-frontend:
     driver: bridge
+  nginx-backend:
+    driver: bridge
+  backend-postgres:
+    driver: bridge
+  backend-redis:
+    driver: bridge
+  
