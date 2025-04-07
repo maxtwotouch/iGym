@@ -8,7 +8,15 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings_prod')
+
+# Get the prod environment variable
+prod = os.environ.get('PROD', 'False') == 'True'
+
+# Set the settings module based on the environment
+if prod:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings_prod')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings_dev')
 
 import django
 django.setup()
