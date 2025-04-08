@@ -324,8 +324,8 @@ function NavBar() {
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
                     <div
-                    className="absolute right-0 top-full pt-2 z-10"
-                    style={{ minWidth: "200px" }}
+                        className="absolute right-0 top-full pt-2 z-10"
+                        style={{ minWidth: "200px" }}
                     >
                     <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden">
                         <Link
@@ -353,6 +353,7 @@ function NavBar() {
                         <div className="border-t border-gray-700 my-1"></div>
                         <button
                             onClick={handleLogout}
+                            name="logoutButton"
                             className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300"
                             >
                             <div className="flex items-center">
