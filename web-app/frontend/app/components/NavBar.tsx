@@ -220,7 +220,13 @@ function NavBar() {
                         >
                         Exercises
                     </Link>
-                    <Link className={`hover:text-blue-400 ${location.pathname === '/calendar' && 'text-blue-400'}`} to="/calendar">Calendar</Link>
+                    <Link 
+                        className={`hover:text-blue-400 ${location.pathname === '/calendar' && 'text-blue-400'}`} 
+                        to="/calendar"
+                        data-name="Calendar"
+                        >
+                        Calendar
+                    </Link>
                     
                     <Link 
                         className={`hover:text-blue-400 ${location.pathname === '/chat' && 'text-blue-400'}`}
@@ -232,7 +238,11 @@ function NavBar() {
                     
                     {/* Selecting PT only for User */}
                     {userType === "user" && (
-                    <Link className={`hover:text-blue-400 ${location.pathname === '/personalTrainers' && 'text-blue-400'}`} to="/personalTrainers">
+                    <Link 
+                        className={`hover:text-blue-400 ${location.pathname === '/personalTrainers' && 'text-blue-400'}`}
+                        to="/personalTrainers"
+                        data-name="Personal Trainers"
+                        >
                         Personal Trainers
                     </Link>
                     )}

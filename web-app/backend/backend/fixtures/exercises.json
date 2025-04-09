@@ -3,8 +3,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Pec Deck",
-            "description": "Starting position: Sitting on the Peck deck machine with your back pressed against the backrest, your forearms well supported against the padded parts provided for this purpose. Your upper arms should be parallel to the ground and in line with your shoulders. Execution: Tighten your arms as much as possible following the movement of the machine. Tighten your chest at the end of the movement and then slowly return to the initial position.",
-            "muscle_group": "Chest, front deltoids",
+            "description": "Sitting on the Peck deck machine with your back pressed against the backrest, your forearms well supported against the padded parts provided for this purpose. Your upper arms should be parallel to the ground and in line with your shoulders. Tighten your arms as much as possible following the movement of the machine. Tighten your chest at the end of the movement and then slowly return to the initial position.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest & front deltoids",
             "image": "exercise_images/pec_deck.png"
         }
     },
@@ -12,8 +13,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Seated Cable Row",
-            "description": "Starting position: Sitting on the machine's bench with your feet on the wedge. Grasp the double handle attached to the cable with both hands. Keep back straight and knees slightly bent. Execution: Pull the load towards your abdomen. Tighten your back at the end of the movement by bringing your elbows as far back as possible. Then slowly return to the initial position.",
-            "muscle_group": "Back, Hind deltoids, biceps",
+            "description": "Sitting on the machine's bench with your feet on the wedge. Grasp the double handle attached to the cable with both hands. Keep back straight and knees slightly bent. Pull the load towards your abdomen. Tighten your back at the end of the movement by bringing your elbows as far back as possible. Then slowly return to the initial position.",
+            "muscle_category": "back",
+            "muscle_group": "Back, hind deltoids & biceps",
             "image": "exercise_images/seated_cable_row.png"
         }
 
@@ -22,7 +24,8 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Cable One-Arm Lateral Raise",
-            "description": "Starting position: Stand with your feet shoulder-width apart, your left side close to the pulley. The handle in your right hand, against the front of your thigh. Execution: Slowly raise your arm to the side in an arc to the horizontal. Keep your elbow slightly bent. Stay in the raised position for a moment and then slowly return to the original position.",
+            "description": "Stand with your feet shoulder-width apart, your left side close to the pulley. The handle in your right hand, against the front of your thigh. Slowly raise your arm to the side in an arc to the horizontal. Keep your elbow slightly bent. Stay in the raised position for a moment and then slowly return to the original position.",
+            "muscle_category": "shoulders",
             "muscle_group": "Deltoids",
             "image": "exercise_images/cable_one_arm_lateral_raise.png"
         }
@@ -31,7 +34,8 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Hammer Curl",
-            "description": "Starting position: Standing with knees slightly bent and back straight. Hold a dumbbell in each hand, in a neutral grip along the body. Execution: Without making a bust movement, raise a dumbbell by bending the forearms. Keep your hand in a neutral grip (hence the name hammer grip). Contract your biceps, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
+            "description": "Standing with knees slightly bent and back straight. Hold a dumbbell in each hand, in a neutral grip along the body. Without making a bust movement, raise a dumbbell by bending the forearms. Keep your hand in a neutral grip (hence the name hammer grip). Contract your biceps, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
+            "muscle_category": "arms",
             "muscle_group": "Biceps",
             "image": "exercise_images/hammer_curl.png"
         }
@@ -41,7 +45,8 @@
         "fields": {
             "name": "Squat",
             "description": "Starting position: Standing with the bar resting on your trapezium and shoulders. Grasp the bar with your hands for a good support. Keep your head straight. Execution: Bend your knees and hips as if you were sitting down. While keeping your back straight, let your buttocks go backwards, which will tilt your chest slightly forwards to make the movement as natural as possible. The moment your thighs are parallel to the ground, move upwards, doing the movement in the opposite direction. Given the complexity of this movement, ask a trainer in your gym to show you how to perform it correctly the first time.",
-            "muscle_group": "Main muscles: Thigh and buttock muscles. Secondary muscles: Abs and lumbar muscles",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh, buttock muscles (primary), abs & lumbar muscles (secondary)",
             "image": "exercise_images/squat.png"
         }
     },
@@ -49,8 +54,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Dumbbell Shoulder Press",
-            "description": "Starting position: Sitting on a bench with your back well supported against the backrest. Hold the dumbbells in your hands (pronation grip) a little above shoulder height. Your elbows are on the outside and your forearms are perpendicular to the ground. Execution: Push the dumbbells upwards. Until your arms are fully extended. Then return to the original position.",
-            "muscle_group": "Main muscles: Deltoids. Secondary muscles: Triceps",
+            "description": "Sitting on a bench with your back well supported against the backrest. Hold the dumbbells in your hands (pronation grip) a little above shoulder height. Your elbows are on the outside and your forearms are perpendicular to the ground. Push the dumbbells upwards. Until your arms are fully extended. Then return to the original position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (primary) & triceps (secondary)",
             "image": "exercise_images/dumbbell_shoulder_press.png"
         }
     },
@@ -58,8 +64,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Barbell Bench Press",
-            "description": "Lying on the bench, your feet flat on the floor. Grasp the bar with a grip wider than shoulder width. Your forearms should be perpendicular to the floor. Execution: Unhook the bar and slowly lower it to the lower part of your chest. As you contract your pectorals, push the load upwards until your arms are almost straight.",
-            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltiods, triceps",
+            "description": "Lying on the bench, your feet flat on the floor. Grasp the bar with a grip wider than shoulder width. Your forearms should be perpendicular to the floor. Unhook the bar and slowly lower it to the lower part of your chest. As you contract your pectorals, push the load upwards until your arms are almost straight.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (primary), front deltiods & triceps (secondary)",
             "image": "exercise_images/barbell_bench_press.png"
         }
     },
@@ -67,8 +74,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Incline Dumbbell Bench Press",
-            "description": "Starting position: Lying on the sloping bench, your feet flat on the ground, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. Execution: While contracting your pectorals, push the load upwards until your arms are almost straight, then return to the initial position.",
-            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids, triceps",
+            "description": "Lying on the sloping bench, your feet flat on the ground, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. While contracting your pectorals, push the load upwards until your arms are almost straight, then return to the initial position.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (primary), front deltoids & triceps (secondary)",
             "image": "exercise_images/incline_dumbbell_bench_press.png"
         }
     },
@@ -76,8 +84,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Dumbbell Bent Over Row (Single Arm)",
-            "description": "Starting position: Place your left knee and left hand on the bench with your chest parallel to the floor. Keep your right foot on the ground and grasp the dumbbell still on the ground in your right hand in a neutral grip. Execution: Keeping your arm close to your body, lift the dumbbell as high as possible by raising your elbow and keeping your forearm perpendicular to the ground. Once your series is over, do the same with the other arm.",
-            "muscle_group": "Main muscles: Back. Secondary muscles: Hind Deltoids, biceps",
+            "description": "Place your left knee and left hand on the bench with your chest parallel to the floor. Keep your right foot on the ground and grasp the dumbbell still on the ground in your right hand in a neutral grip. Keeping your arm close to your body, lift the dumbbell as high as possible by raising your elbow and keeping your forearm perpendicular to the ground. Once your series is over, do the same with the other arm.",
+            "muscle_category": "back",
+            "muscle_group": "Back (primary), hind deltoids & biceps (secondary)",
             "image": "exercise_images/dumbbell_bent_over_row_single_arm.png"
         }
     },
@@ -85,7 +94,8 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Seated Calf Raise",
-            "description": "Starting position: Sitting on the machine with the front of the feet on the wedge and the lower thighs under the padded parts. Execution: While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves",
+            "description": "Sitting on the machine with the front of the feet on the wedge and the lower thighs under the padded parts. While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves",
+            "muscle_category": "legs",
             "muscle_group": "Calves",
             "image": "exercise_images/seated_calf_raise.png"
         }
@@ -94,7 +104,8 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Leg Extension",
-            "description": "Starting position: Adjust the leg extension so that when you sit down your knees are at the edge of the bench and your ankles are just below the footrest. Sit with your back firmly against the backrest, holding the handles on the sides. Execution: Extend your legs until they are fully extended. Hold the load for a moment by contracting your quadriceps, then return to the lowered position.",
+            "description": "Adjust the leg extension so that when you sit down your knees are at the edge of the bench and your ankles are just below the footrest. Sit with your back firmly against the backrest, holding the handles on the sides. Extend your legs until they are fully extended. Hold the load for a moment by contracting your quadriceps, then return to the lowered position.",
+            "muscle_category": "legs",
             "muscle_group": "Quadriceps",
             "image": "exercise_images/leg_extension.png"
         }
@@ -103,8 +114,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Pull Up",
-            "description": "Starting position: Grasp the pull bar using a pronated grip, head slightly up, hands wider than shoulders width apart, and elbows slightly bent. Execution: Do a pull up by pulling your chin towards the bar. Then come back slowly to the starting position. Your segments’ length, your strength, and your shoulders’ mobility will determine how high you can pull yourself up.",
-            "muscle_group": "Main muscles: Back. Secondary muscles: Biceps",
+            "description": "Grasp the pull bar using a pronated grip, head slightly up, hands wider than shoulders width apart, and elbows slightly bent. Do a pull up by pulling your chin towards the bar. Then come back slowly to the starting position. Your segments’ length, your strength, and your shoulders’ mobility will determine how high you can pull yourself up.",
+            "muscle_category": "back",
+            "muscle_group": "Back (primary) & biceps (secondary)",
             "image": "exercise_images/pull_up.png"
         }
     },
@@ -112,8 +124,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Lying Triceps Extension",
-            "description": "Starting position: Lying on the bench, your feet flat on the floor or on the bench. Hold the EZ bar above your chest, pronated grip, hands slightly tighter than shoulder width. Execution: Slowly bend your forearms without spreading your elbows too far apart, bringing the bar to the top of your head. Then return to the initial position.",
-            "muscle_group": "Main muscles: Triceps",
+            "description": "Lying on the bench, your feet flat on the floor or on the bench. Hold the EZ bar above your chest, pronated grip, hands slightly tighter than shoulder width. Slowly bend your forearms without spreading your elbows too far apart, bringing the bar to the top of your head. Then return to the initial position.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps",
             "image": "exercise_images/lying_triceps_extension.png"
         }
     },
@@ -121,8 +134,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Cable Crossover",
-            "description": "Starting position: Grasp the handles attached to the ends of each rope and stand in the middle between the pulleys. Bend your chest slightly forward and keep your elbows slightly bent. Execution: Slowly tighten your arms in front of your chest in an arc. Keep your elbows slightly bent during the movement. When your hands come together, hold the position for a moment, contracting your chest. Then slowly return to the original position.",
-            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids",
+            "description": "Grasp the handles attached to the ends of each rope and stand in the middle between the pulleys. Bend your chest slightly forward and keep your elbows slightly bent. Slowly tighten your arms in front of your chest in an arc. Keep your elbows slightly bent during the movement. When your hands come together, hold the position for a moment, contracting your chest. Then slowly return to the original position.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (primary) & front deltoids (secondary)",
             "image": "exercise_images/cable_crossover.png"
         }
     },
@@ -130,8 +144,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Plank",
-            "description": "Starting position: Lying face down on the floor. Balance yourself on your forearms and toes, keeping your shoulders and buttocks at the same height. Execution: Hold this position for the desired length of time while contracting your abs.",
-            "muscle_group": "Main muscles: Abs",
+            "description": "Lying face down on the floor. Balance yourself on your forearms and toes, keeping your shoulders and buttocks at the same height. Hold this position for the desired length of time while contracting your abs.",
+            "muscle_category": "abs",
+            "muscle_group": "Abdominals",
             "image": "exercise_images/plank.png"
         }
     },
@@ -139,8 +154,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Rope Cable Curl",
-            "description": "Starting position: Standing in front of the pulley, knees slightly bent, grasp the rope with both hands, in neutral grip, arms relaxed along the body. Execution: Without making a bust movement, bend your forearms, bringing your hands as close as possible to your shoulders, without bringing your elbows too far forward. Contract your biceps in a high position, then slowly return to the initial position.",
-            "muscle_group": "Main muscles: Biceps",
+            "description": "Standing in front of the pulley, knees slightly bent, grasp the rope with both hands, in neutral grip, arms relaxed along the body. Without making a bust movement, bend your forearms, bringing your hands as close as possible to your shoulders, without bringing your elbows too far forward. Contract your biceps in a high position, then slowly return to the initial position.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
             "image": "exercise_images/rope_cable_curl.png"
         }
     },
@@ -148,8 +164,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "T-Bar Rows",
-            "description": "Starting position: Use a T-Bar machine (or place a barbell in the corner of a room). Stand with feet either side of the bar, bend your knees, and bow forward so that your chest is directly over the plate on the barbell. Grab the handle in both hands. Execution: Keeping your posture still, pull the handles so that the plate rises towards your chest. Pause just before it touches, and then slowly lower it back down.",
-            "muscle_group": "Main muscles: Back muscles. Secondary muscles: Rear deltiods, biceps",
+            "description": "Use a T-Bar machine (or place a barbell in the corner of a room). Stand with feet either side of the bar, bend your knees, and bow forward so that your chest is directly over the plate on the barbell. Grab the handle in both hands. Keeping your posture still, pull the handles so that the plate rises towards your chest. Pause just before it touches, and then slowly lower it back down.",
+            "muscle_category": "back",
+            "muscle_group": "Back (primary), rear deltiods & biceps (secondary)",
             "image": "exercise_images/t_bar_rows.png"
         }
     },
@@ -157,8 +174,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Leg Press",
-            "description": "Starting position: Sitting on the press bench, feet flat on the platen, shoulder width apart. Execution: Release the manual safety catch and slowly lower the load by bringing your knees towards your chest. When your knees are at a 90° angle, pause for a moment and then slowly raise the load. To protect your knees, stop the movement just before your legs are fully extended. During the movement, do not lift your buttocks off the bench.",
-            "muscle_group": "Main muscles: Thigh and buttock muscles",
+            "description": "Sitting on the press bench, feet flat on the platen, shoulder width apart. Release the manual safety catch and slowly lower the load by bringing your knees towards your chest. When your knees are at a 90° angle, pause for a moment and then slowly raise the load. To protect your knees, stop the movement just before your legs are fully extended. During the movement, do not lift your buttocks off the bench.",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh & buttock",
             "image": "exercise_images/leg_press.png"
         }
     },
@@ -166,8 +184,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Bent-Over Lateral Raise",
-            "description": "Starting position: Standing with knees slightly bent, bust bent forward, almost parallel to the ground, keeping your back straight and your head in line with your spine. Hold a dumbbell in each hand, palms facing each other. Execution: Slowly lift and move the dumbbells away from each side of your body in an arc with your arms. Contract for a moment in the raised position before returning to the initial position.",
-            "muscle_group": "Main muscles: Deltoids muscles (mainly the posterior bundle). Secondary muscles: Trapezius muscles",
+            "description": "Standing with knees slightly bent, bust bent forward, almost parallel to the ground, keeping your back straight and your head in line with your spine. Hold a dumbbell in each hand, palms facing each other. Slowly lift and move the dumbbells away from each side of your body in an arc with your arms. Contract for a moment in the raised position before returning to the initial position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (primary) & Trapezius (secondary)",
             "image": "exercise_images/bent_over_lateral_raise.png"
         }
     },
@@ -175,17 +194,19 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Dumbbell Bench Press",
-            "description": "Starting position: Lying on the bench, your feet flat on the floor, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. Execution: By contracting your pectorals, push the load against upwards until your arms are almost extended, then return to the initial position. During the entire movement: Keep your elbows on the outside to put maximum stress on your pectorals and minimum stress on your anterior deltoids and triceps. Keep your shoulders flat against the bench.",
-            "muscle_group": "Main muscles: Chest. Secondary muscles: Front deltoids, triceps",
+            "description": "Lying on the bench, your feet flat on the floor, one dumbbell in each hand, pronation grip. Hold the dumbbells at your sides at chest height. Your forearms should be perpendicular to the ground. By contracting your pectorals, push the load against upwards until your arms are almost extended, then return to the initial position. During the entire movement, keep your elbows on the outside to put maximum stress on your pectorals and minimum stress on your anterior deltoids and triceps. Keep your shoulders flat against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (primary), front deltoids & triceps (secondary)",
             "image": "exercise_images/dumbbell_bench_press.png"
         }
     },
     {
         "model":"backend.Exercise",
         "fields": {
-            "name": "Dumbbell Overhead Tricpes Extension",
-            "description": "Starting position: Sitting on a bench, back straight, grasping a dumbbell with both hands, palms against the inside of a disc (see picture). Position the dumbbell above your head, arms outstretched, triceps well contracted. Execution: Lower your forearms behind your head until your elbows form a 90° angle. Then extend the forearms, returning to the initial position.",
-            "muscle_group":  "Main muscles: Triceps",
+            "name": "Dumbbell Overhead Triceps Extension",
+            "description": "Sitting on a bench, back straight, grasping a dumbbell with both hands, palms against the inside of a disc (see picture). Position the dumbbell above your head, arms outstretched, triceps well contracted. Lower your forearms behind your head until your elbows form a 90° angle. Then extend the forearms, returning to the initial position.",
+            "muscle_category": "arms",
+            "muscle_group":  "Triceps",
             "image": "exercise_images/dumbbell_overhead_triceps_extension.png"
         }
     },
@@ -193,8 +214,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Standing Calf Raise",
-            "description": "Starting position: Standing with the front of the feet on the wedge and the shoulders under the padded parts of the aircraft. Execution: While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves.",
-            "muscle_group": "Main muscles: Calves",
+            "description": "Standing with the front of the feet on the wedge and the shoulders under the padded parts of the aircraft. While contracting the calves, raise your heels as high as possible. Stay in the high position for a moment, feeling the contraction well. Then slowly lower your heels by stretching your calves.",
+            "muscle_category": "legs",
+            "muscle_group": "Calves",
             "image": "exercise_images/standing_calf_raise.png"
         }
     },
@@ -202,8 +224,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Barbell Row",
-            "description": "Starting position: Standing with slightly bent knees, grasping the bar with hands in pronation, grip wider than shoulder width. Bust bent forward, keep the back straight, the chest rounded. Execution: Pull the load towards your abdomen. Tighten your back at the end of the movement, shoulders and elbows back. Then slowly return to the initial position.",
-            "muscle_group": "Main muscles: Back. Secondary muscles: Hind deltoids, biceps",
+            "description": "Standing with slightly bent knees, grasping the bar with hands in pronation, grip wider than shoulder width. Bust bent forward, keep the back straight, the chest rounded. Pull the load towards your abdomen. Tighten your back at the end of the movement, shoulders and elbows back. Then slowly return to the initial position.",
+            "muscle_category": "back",
+            "muscle_group": "Back (primary), hind deltoids & biceps (secondary)",
             "image": "exercise_images/barbell_row.png"
         }
     },
@@ -211,8 +234,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Incline Dumbbell Curl",
-            "description":  "Starting position: Sitting on a bench with the backrest tilted at an angle of 40 to 60 degrees. Let your arms hang down towards the floor. Hold a dumbbell in each hand in supination. Execution: Keeping your back well against the backrest, raise a dumbbell by bending your forearm towards your shoulder. Contract your biceps in the high position, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
-            "muscle_group": "Main muscles: Biceps",
+            "description": "Sitting on a bench with the backrest tilted at an angle of 40 to 60 degrees. Let your arms hang down towards the floor. Hold a dumbbell in each hand in supination. Keeping your back well against the backrest, raise a dumbbell by bending your forearm towards your shoulder. Contract your biceps in the high position, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
             "image": "exercise_images/incline_dumbbell_curl.png"
         }
     },
@@ -220,8 +244,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Crunch",
-            "description": "Starting position: Lying on the ground on your back with bent knees and feet flat on the ground. You can put your hands behind your head or on your chest. Execution: Contract your abs by raising your shoulders and upper back towards your knees. Keep your lower back firmly on the ground. Stay in the upright position for a second, then slowly return to the original position.",
-            "muscle_group": "Main muscles: Abs",
+            "description": "Lying on the ground on your back with bent knees and feet flat on the ground. You can put your hands behind your head or on your chest. Contract your abs by raising your shoulders and upper back towards your knees. Keep your lower back firmly on the ground. Stay in the upright position for a second, then slowly return to the original position.",
+            "muscle_category": "abs",
+            "muscle_group": "Abdominals",
             "image": "exercise_images/crunch.png"
         }
     },
@@ -229,8 +254,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Barbell Upright Row",
-            "description": "Starting position: Standing, holding the bar in front of you, pronation grip, hands shoulder-width apart. Execution: Lift the bar vertically to chest height. Contract for a moment, then return to the starting position. During the whole movement, keep the bar close to the body and the elbows higher than the wrists.",
-            "muscle_group": "Main muscles: Deltoids, trapezius muscles. Secondary muscles: Biceps and forearms",
+            "description": "Standing, holding the bar in front of you, pronation grip, hands shoulder-width apart. Lift the bar vertically to chest height. Contract for a moment, then return to the starting position. During the whole movement, keep the bar close to the body and the elbows higher than the wrists.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids, trapezius muscles (primary), biceps & forearms (secondary)",
             "image": "exercise_images/barbell_upright_row.png" 
         }
     },
@@ -238,8 +264,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Lying Leg Curl",
-            "description": "Starting position: Lie on your stomach on the leg curl lying down machine with the back of your ankles pressed against the footrest. Grasp the handles. Execution: Leaning firmly on the bench, bend your legs as far as possible. Hold the load for a moment in the high position by contracting your ischial muscles, then slowly return to the low position.",
-            "muscle_group": "Main muscles: Hamstrings. Secondary muscles: Calves",
+            "description": "Lie on your stomach on the leg curl lying down machine with the back of your ankles pressed against the footrest. Grasp the handles. Leaning firmly on the bench, bend your legs as far as possible. Hold the load for a moment in the high position by contracting your ischial muscles, then slowly return to the low position.",
+            "muscle_category": "legs",
+            "muscle_group": "Hamstrings (primary), calves (secondary)",
             "image": "exercise_images/lying_leg_curl.png"
         }
     },
@@ -247,8 +274,9 @@
         "model": "backend.Exercise",
         "fields": {
             "name": "Chest Press Machine",
-            "description": "Starting position: Set the chest press machine up so that when sitting down the handles are in line with the lower part of your chest. Make sure that you are sitting right back up against the seat. Grab hold of a handle in each hand, push your chest out, keep your head against the headrest. Execution: Take a deep breath, and slowly push the handles forward until your arms are almost completely extended. Pause just before lockout, and then slowly return the handles back to the start position. Pausing just before the handles stop completely and repeating for another rep.",
-            "muscle_group": "Main muscles: Chest. Secondary muscles: Triceps, front deltoids",
+            "description": "Set the chest press machine up so that when sitting down the handles are in line with the lower part of your chest. Make sure that you are sitting right back up against the seat. Grab hold of a handle in each hand, push your chest out, keep your head against the headrest. Take a deep breath, and slowly push the handles forward until your arms are almost completely extended. Pause just before lockout, and then slowly return the handles back to the start position. Pausing just before the handles stop completely and repeating for another rep.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (primary). Triceps, front deltoids (secondary)",
             "image": "exercise_images/chest_press_machine.png"
         }
     },
@@ -256,8 +284,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Triceps Pressdown",
-            "description": "Starting position: Standing facing the pulley, grasping the bar with a pronation grip, hands shoulder width apart. Execution: Carry out an extension of the forearms until your arms are fully extended. In this position, contract your triceps for a moment and then slowly return to the initial position. Keep your elbows close to your body during the whole movement.",
-            "muscle_group": "Main muscles: Triceps",
+            "description": "Standing facing the pulley, grasping the bar with a pronation grip, hands shoulder width apart. Carry out an extension of the forearms until your arms are fully extended. In this position, contract your triceps for a moment and then slowly return to the initial position. Keep your elbows close to your body during the whole movement.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps",
             "image": "exercise_images/triceps_pressdown.png"
         }
     },
@@ -265,8 +294,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Barbell Deadlift",
-            "description": "Starting position: Barbell placed on the ground in front of you. Feet a little less than shoulder width apart with your knees bent. With your arms fully extended, grab the barbell in pronation, hands shoulder-width apart Keep your torso slightly bent forward, back straight, shoulders pulled back and chest out. Inhale and tighten your abdominal muscles. Execution: While keeping your arms straight, lift the barbell by extending your legs and straightening your torso to reach a vertical position. Exhale at the end of the motion. Then slowly go back to the starting position. Always remember never to bend your back.",
-            "muscle_group": "Main muscles: Back, legs",
+            "description": "Barbell placed on the ground in front of you. Feet a little less than shoulder width apart with your knees bent. With your arms fully extended, grab the barbell in pronation, hands shoulder-width apart Keep your torso slightly bent forward, back straight, shoulders pulled back and chest out. Inhale and tighten your abdominal muscles. While keeping your arms straight, lift the barbell by extending your legs and straightening your torso to reach a vertical position. Exhale at the end of the motion. Then slowly go back to the starting position. Always remember never to bend your back.",
+            "muscle_category": "back",
+            "muscle_group": "Back, legs",
             "image": "exercise_images/barbell_deadlift.png"
         }
     },
@@ -275,8 +305,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Barbell Curl",
-            "description": "Starting position: Standing with knees slightly bent and back straight. Hold the bar with your hands in supination, about shoulder width apart. Execution: Without making a bust movement, raise the bar by bending the forearms. Contract your biceps in the high position, then let the bar slowly come down to the initial position. Keep your elbows close to your body during the movement.",
-            "muscle_group": "Main muscles: Biceps",
+            "description": "Standing with knees slightly bent and back straight. Hold the bar with your hands in supination, about shoulder width apart. Without making a bust movement, raise the bar by bending the forearms. Contract your biceps in the high position, then let the bar slowly come down to the initial position. Keep your elbows close to your body during the movement.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
             "image": "exercise_images/barbell_curl.png"
         }
     },
@@ -284,8 +315,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Hanging Leg Raise",
-            "description": "Starting position: Hanging from a high bar, hands in pronation. Execution: Contract your abs by moving your knees and hips up towards your chest. Stay in the upright position for one second, then slowly return to the starting position.",
-            "muscle_group": "Main muscles: Abs",
+            "description": "Hanging from a high bar, hands in pronation. Contract your abs by moving your knees and hips up towards your chest. Stay in the upright position for one second, then slowly return to the starting position.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs",
             "image": "exercise_images/hanging_leg_raise.png"
         }
     },
@@ -293,8 +325,9 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Standing Barbell Shoulder Press",
-            "description": "Starting position: Standing with your back straight, chest bulged, feet about shoulders width apart, and knees slightly bent. Grasp the bar using a pronated grip, your elbows pointing outward. The bar stands at chin’s level. This level may vary depending on your shoulders’ flexibility. The gap between your hands should be such that your elbows are forming a 90° angle when your arms are parallel to the floor. Execution: Squeeze your shoulders while pressing the weight vertically. Stop the movement when your arms are about to be fully outstretched. Then, come back slowly to the starting position.",
-            "muscle_group": "Main muscles: Deltoids. Secondary muscles: Triceps",
+            "description": "Standing with your back straight, chest bulged, feet about shoulders width apart, and knees slightly bent. Grasp the bar using a pronated grip, your elbows pointing outward. The bar stands at chin’s level. This level may vary depending on your shoulders’ flexibility. The gap between your hands should be such that your elbows are forming a 90° angle when your arms are parallel to the floor. Squeeze your shoulders while pressing the weight vertically. Stop the movement when your arms are about to be fully outstretched. Then, come back slowly to the starting position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (primary). Triceps (secondary)",
             "image": "exercise_images/standing_barbell_shoulder_press.png"
         }
     },
@@ -302,9 +335,150 @@
         "model":"backend.Exercise",
         "fields": {
             "name": "Lunge",
-            "description": "Starting position: Standing with legs hip-width apart, one dumbbell in each hand. Execution: Keeping the bust straight, take a step forward and slowly descend until the forward thigh is parallel to the ground. Then return to the original position. Once you have completed your series, do the same with the other leg.",
-            "muscle_group": "Main muscles: Buttocks and thigh muscles",
+            "description": "Standing with legs hip-width apart, one dumbbell in each hand. Keeping the bust straight, take a step forward and slowly descend until the forward thigh is parallel to the ground. Then return to the original position. Once you have completed your series, do the same with the other leg.",
+            "muscle_category": "legs",
+            "muscle_group": "Buttocks and thigh muscles",
             "image": "exercise_images/lunge.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Incline Dumbbell Fly",
+            "description": "Lying on the sloping bench, your feet flat on the floor, one dumbbell in each hand. Hold the weights in a neutral grip with your arms outstretched above your chest. Slowly lower the dumbbells to the sides in an arc with your arms until you feel a stretch in your pectorals. Do not go below shoulder level. Then return to the original position, making the same arc. During the whole movement: Keep your elbows pointed outward and slightly bent to reduce stress on the joint. Keep your shoulders flat against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (Upper chest is mostly solicited due to the inclination of the bench) (Primary). Front deltoids (Secondary)",
+            "image": "exercise_images/incline_dumbbell_fly.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Bench Dips",
+            "description": "Set up for the bench dip by placing two flat benches parallel to one another to around your legs’ length. Keeping your back straight and your arms outstretched, place your hands on the edge of one bench at about shoulder’s width and put your heels on the edge of the other bench, legs and buttocks swinging in the air (see picture). While keeping your elbows tucked in, slowly flex them until they are at a 90° angle. Then slowly come back to the starting position and squeeze your triceps at the top. Keep your back straight throughout the movement. Repeat for desired reps.",
+            "muscle_category":  "arms",
+            "muscle_group": "Triceps, front deltoids",
+            "image": "exercise_images/bench_dips.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Barbell Shrug",
+            "description": "Standing, holding the bar in front of you, pronation grip, hands shoulder-width apart. Keeping your arms outstretched, raise your shoulders as high as possible. Contract your trapezius muscles at the top of the movement, then slowly return to the initial position.",
+            "muscle_group": "back",
+            "muscle_category": "Trapezius muscles",
+            "image": "exercise_images/barbell_shrug.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "EZ Barbell Preacher Curl",
+            "description": "Sitting or standing, adjust the Larry Scott armrest so that it is slightly below the level of your shoulders. Rest your upper arms on the armrest and grasp the EZ bar with your hands in supination. Slowly bend your forearms towards your shoulders while keeping your upper arms pressed against the armrest. Contract your biceps in the up position, then slowly return to the initial position. Be careful not to fully extend your forearms in the lowered position to avoid putting too much strain on the elbow joint.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/ez_barbell_preacher_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Bent Knee Reverse Crunch",
+            "description": "Lie on your back with knees bent and feet flat on the ground. Place your arms on the ground beside you, and brace your abs. Keeping your upper back flat on the ground, raise your knees towards your chest, slightly lifting your hips from the ground. Pause, and then return your feet to the ground. Just before they touch the ground, repeat the movement.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs",
+            "image":  "exercise_images/bent_knee_reverse_crunch.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "High Cable Rear Delt Fly",
+            "description": "Standing between the pulleys with the right handle in the left hand and the left handle in the right hand. Your arms folded in front of you at shoulder height. Tightening your posterior deltoids and keeping your arms almost straight, pull your elbows as far back as possible in an arc. Stay in this position for a moment before returning to the initial position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids muscles (mainly the posterior bundle) (Primary). Trapezius muscles (Secondary)",
+            "image": "exercise_images/high_cable_rear_delt_fly.png"
+        }
+    },
+    {
+        "model":  "backend.Exercise",
+        "fields": {
+            "name": "Barbell Hip Thrust",
+            "description": "With the barbell close and parallel to the bench, sit down on the floor with your upper back against the bench. Roll the bar over your legs so that the bar now rests over your hip crease. Bring your feet up closer and place them flat on the floor about shoulder-width apart. Driving through your whole foot, raise your hips slightly above the ground while gripping the bar at the sides. Keep your chin tucked throughout the movement. Squeeze your glutes to thrust your hips and the bar up until you’re parallel to the ground in a tabletop position. Pause and lower your hips back towards the ground, keeping the movement controlled. Keep your chest in line with your hips. Stop above the ground and repeat.",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles (Secondary)",
+            "image": "exercise_images/barbell_hip_thrust.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Barbell Declined Bench Press",
+            "description": "Lying on the declined bench, with your legs pressed against the pads. Holding the barbell with a grip wider than the width of your shoulders, with your hands in pronation. Your forearms should be perpendicular to the ground. Release the barbell and slowly lower it to the lower part of your pectorals. While contracting your chest muscles, push the weighted barbell upwards until your arms are almost stretched out. During the whole movement: Keep your elbows on the outside in order to strain your chest muscles as much as possible and your anterior deltoids and triceps as little as possible. Keep your shoulders pressed against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Lower chest (Primary). Anterior deltoids, triceps (Secondary)",
+            "image": "exercise_images/barbell_declined_bench_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Parallel Dip Bar",
+            "description": "Grasp the two parallel bars, arms outstretched along your torso and knees bent and swinging in the air (see picture). While keeping your elbows tucked in, slowly flex them until they are at a 90° angle. Then slowly come back to the starting position and squeeze your triceps at the top. Don’t lean forward to prevent the tension from being placed on your pecs. Repeat for desired reps.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps, front deltoids, lower chest",
+            "image": "exercise_images/parallel_dip_bar.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Wide Grip Pulldown",
+            "description": "Sitting, thighs under the padded parts, the bar grasped in pronation, hands more apart than shoulder width. Keep elbows pointed outwards and back straight. Pull the bar up to your chin. Keep the contraction for a moment before slowly returning to the initial position. During the movement, do not let your elbows come forward.",
+            "muscle_category": "back",
+            "muscle_group": "Back (Primary). Biceps (Secondary)",
+            "image": "exercise_images/wide_grip_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Alternating Dumbbell Curl",
+            "description": "Standing with knees slightly bent and back straight. Hold a dumbbell in each hand, in a neutral grip along the body. Without making a bust movement, raise a dumbbell by bending the forearm. During the movement, rotate your wrist outwards until your hand is supine in the upright position. Contract your biceps, then slowly return to the initial position. Keep your elbow close to your body during the movement. Alternate this movement one arm after the other.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/alternating_dumbbell_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Crunch Machine",
+            "description": "Sitting on the machine holding the handles. Contract your abs and stay in position for a moment before slowly returning to the starting position.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs",
+            "image": "exercise_images/crunch_machine.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Lateral Raise",
+            "description": "Standing with feet about shoulder width apart, arms along the body and a dumbbell in each hand. Slowly raise the arms sideways to the horizontal, keeping the elbows slightly bent. Contract your deltoids for a moment in the high position, then slowly return to the initial position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (mostly the middle bundle) (Primary). Trapezius muscles (Secondary).",
+            "image": "exercise_images/dumbbell_lateral_raise.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Seated Leg Curl",
+            "description": "Adjust the leg curl sitting machine so that when you are sitting, the bottom of your knees are at the edge of the bench and the back of your ankles are just beyond the footrest. Sit with your back firmly against the backrest, holding the handles on the sides. Bend your legs as far as possible. Hold the load for a moment in this position by contracting your ischial muscles, then return to the initial position.",
+            "muscle_category": "legs",
+            "muscle_group": "Hamstrings (Primary). Calves (Secondary).",
+            "image": "exercise_images/seated_leg_curl.png"
         }
     }
 ]

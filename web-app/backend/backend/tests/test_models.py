@@ -1,10 +1,9 @@
-
 from django.test import TestCase
 from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
-from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout
+from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification
 from datetime import timedelta
 from django.utils.timezone import now
 
@@ -84,14 +83,16 @@ class PersonalTrainerProfileModelTest(TestCase):
     
     def test_create_personal_trainer_basic(self):
         experience = "2 years"
+        pt_type = "strength"
         
         # Create a django user and link it to our custom personal trainer profile
         user = User.objects.create_user(username="testuser", password="password")
-        profile = PersonalTrainerProfile.objects.create(user=user, experience=experience)
+        profile = PersonalTrainerProfile.objects.create(user=user, experience=experience, pt_type=pt_type)
         
         # Verify that these values was set as expected
         self.assertEqual(profile.user, user)
         self.assertEqual(profile.experience, experience)
+        self.assertEqual(profile.pt_type, pt_type)
     
     def test_create_personal_trainer_without_experience(self):
         # Test the creation of a personal trainer without specifying experience
@@ -111,6 +112,15 @@ class PersonalTrainerProfileModelTest(TestCase):
         
         # Make sure that the personal trainer profile was deleted
         self.assertEqual(PersonalTrainerProfile.objects.count(), 0)
+    
+    def test_no_pt_type_results_in_correct_default(self):
+        experience = "2 years"
+        default_pt_type = "general"
+        
+        user = User.objects.create_user(username="testuser", password="password")
+        profile = PersonalTrainerProfile.objects.create(user=user, experience=experience)
+        
+        self.assertEqual(profile.pt_type, default_pt_type)
         
 
 class ExerciseModelTest(TestCase):
@@ -118,20 +128,23 @@ class ExerciseModelTest(TestCase):
     def test_create_exercise_basic(self):
         name = "test exercise"
         description = "test description"
+        muscle_category = "arms"
         muscle_group = "test muscle group"
         image_path = "exercise_images/pec_deck.png"
         
-        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group, image=image_path)
+        exercise = Exercise.objects.create(name=name, description=description, muscle_category=muscle_category, muscle_group=muscle_group, image=image_path)
         
         self.assertEqual(exercise.name, name)
         self.assertEqual(exercise.description, description)
+        self.assertEqual(exercise.muscle_category, muscle_category)
         self.assertEqual(exercise.muscle_group, muscle_group)
         self.assertEqual(exercise.image, image_path)
     
+    # Here, need to test each
     def test_create_without_required_fields(self):
         exercise = Exercise()
         
-        # Should raise a validation error, as name, descrption and muscle group is required fields
+        # Should raise a validation error, as name, description and muscle group is required fields
         with self.assertRaises(ValidationError):
             exercise.full_clean()
     
@@ -143,6 +156,18 @@ class ExerciseModelTest(TestCase):
         
         #  String method should return the name of the exercise
         self.assertEqual(str(exercise), name)
+    
+    def test_no_muscle_category_results_to_correct_default(self):
+        name = "test exercise"
+        description = "test description"
+        default_muscle_category = "chest"
+        muscle_group = "test muscle group"
+        image_path = "exercise_images/pec_deck.png"
+        
+        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group, image=image_path)
+        
+        self.assertEqual(exercise.muscle_category, default_muscle_category)
+        
 
 
 class WorkoutModelTest(TestCase):
@@ -415,7 +440,7 @@ class ChatRoomModelTest(TestCase):
         chat_room = ChatRoom()
         
         with self.assertRaises(ValidationError):
-            chat_room.full_clean()  # Triggers Django's validation
+            chat_room.full_clean() 
         
     def test_create_chat_room_with_name_exceeding_max_length(self):
         # Generate a name that is too long
@@ -546,7 +571,7 @@ class WorkoutMessageModelTest(TestCase):
         # Make sure that the workout message was deleted
         self.assertEqual(WorkoutMessage.objects.count(), 0)
     
-    def  test_delete_sender_cascade(self):
+    def test_delete_sender_cascade(self):
         workout_message = WorkoutMessage.objects.create(workout=self.workout, chat_room=self.chat_room, sender=self.user)
         
         # Deleting the sender should also delete the workout message
@@ -609,20 +634,113 @@ class ScheduledWorkoutModelTest(TestCase):
         self.workout.delete()
         
         self.assertEqual(ScheduledWorkout.objects.count(), 0)
+
+class NotificationModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.second_user = User.objects.create_user(username="secondTestUser", password="password")
+        self.sender = self.second_user.username
         
-    
-    
-    
+        self.chat_room = ChatRoom.objects.create(name="test chat room")
+        self.chat_room.participants.set([self.user, self.second_user])
         
+        self.message = "testMessage"
+        self.workout = Workout.objects.create(name="test workout", author=self.second_user)
     
+    def test_create_message_notification_basic(self):
+        notification = Notification.objects.create(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        self.assertEqual(notification.user, self.user)
+        self.assertEqual(notification.sender, self.sender)
+        self.assertEqual(notification.chat_room_id, self.chat_room.id)
+        self.assertEqual(notification.chat_room_name, self.chat_room.name)
+        self.assertEqual(notification.message, self.message)
+        self.assertIsNone(notification.workout_message)
+        self.assertIsNotNone(notification.date_sent)
     
+    def test_create_workout_message_notification_basic(self):
+        notification = Notification.objects.create(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, workout_message=self.workout)
+        
+        self.assertEqual(notification.user, self.user)
+        self.assertEqual(notification.sender, self.sender)
+        self.assertEqual(notification.chat_room_id, self.chat_room.id)
+        self.assertEqual(notification.chat_room_name, self.chat_room.name)
+        self.assertEqual(notification.workout_message, self.workout)
+        self.assertIsNone(notification.message)
+        self.assertIsNotNone(notification.date_sent)
+    
+    def test_create_message_notification_with_empty_user(self):
+        notification = Notification(sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        with self.assertRaises(IntegrityError):
+            notification.save()
+    
+    def test_create_message_notification_with_empty_sender(self):
+        notification = Notification(user=self.user, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.full_clean()  
+    
+    def test_create_message_notification_with_sender_exceeding_max_length(self):
+        sender = "A" * 256
+        
+        notification = Notification(user=self.user, sender=sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.full_clean()
+    
+    def test_create_message_notification_with_empty_chat_room_id(self):
+        notification = Notification(user=self.user, sender=self.sender, chat_room_name=self.chat_room.name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.full_clean()
+    
+    def  test_create_message_notification_with_non_existent_chat_room_id(self):
+        non_existent_chat_room_id = 9999
+        
+        notification = Notification(user=self.user, sender=self.sender, chat_room_id=non_existent_chat_room_id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.save()
+        
+    def test_create_message_notification_with_empty_chat_room_name(self):
+        notification = Notification(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.save()
+    
+    def test_create_message_notification_with_wrong_chat_room_name(self):
+        wrong_chat_room_name = "wrong name"
+        notification = Notification(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=wrong_chat_room_name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.save()
+    
+    def test_create_workout_message_notification_with_a_non_workout(self):
+        non_workout = "not a workout object"
+        
+        with self.assertRaises(ValueError):
+            notification = Notification(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, workout_message=non_workout)
+    
+    def test_delete_user_cascade(self):
+        notification = Notification.objects.create(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
+        
+        self.user.delete()
+        
+        self.assertEqual(Notification.objects.count(), 0)
+        
+    def test_delete_workout_message_cascade(self):
+        notification = Notification.objects.create(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, workout_message=self.workout)
+        
+        self.workout.delete()
+        
+        self.assertEqual(Notification.objects.count(), 0)
+        
+        
         
         
 
 
-## Models to test: 
-# Notification
-# ScheduledWorkout
 
 
     

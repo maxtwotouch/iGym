@@ -340,9 +340,15 @@ const fetchScheduledWorkouts = async () => {
 
                   </div>
                   <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      name="closeButton"
+                      onClick={() => setShowModal(false)}
+                    >
                       Close
                     </button>
+                   
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -398,7 +404,12 @@ const fetchScheduledWorkouts = async () => {
                     <button type="button" className="btn btn-secondary" onClick={() => setShowScheduleModal(false)}>
                       Cancel
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={handleScheduleWorkout}>
+                    <button 
+                      type="button" 
+                      className="btn btn-primary" 
+                      name="scheduleButton"
+                      onClick={handleScheduleWorkout}
+                    >
                       Schedule
                     </button>
                   </div>

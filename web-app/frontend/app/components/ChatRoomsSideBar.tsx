@@ -111,18 +111,6 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         }
     };
 
-    const deleteChatRoom = async (chatRoomId: number) => {
-        const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-        });
-        if (response.ok) {
-            fetchChatRooms();
-        } else {
-            console.error("Failed to delete chat room");
-        }
-    }
-
     return (
         <motion.div
             className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center text-white p-6 w-80 shadow-lg"
@@ -155,28 +143,9 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                         key={chatRoom.id}
                         className="bg-gray-800 p-3 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-700 transition"
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => onSelectChatRoom(chatRoom.id)}
                     >
                         <span className='font-medium'>{chatRoom.name}</span>
-
-                        {/* Join Button */}
-                        <motion.button
-                            className="py-1 px-3 bg-blue-600 rounded hover:bg-blue-700 transition"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => onSelectChatRoom(chatRoom.id)}
-                        >
-                            Join
-                        </motion.button>
-
-                        {/* Delete Button */}
-                        <motion.button
-                            className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => deleteChatRoom(chatRoom.id)}
-                        >
-                            ✕
-                        </motion.button>
                     </motion.div>
                 ))}
             </motion.div>

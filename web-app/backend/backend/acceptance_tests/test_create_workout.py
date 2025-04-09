@@ -73,7 +73,7 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         
         # Create a test user
         self.test_user = User.objects.create_user(username="testuser", password="password")
-        self.test_profile = UserProfile.objects.create(user=self.test_user, weight=70, height=175)
+        self.test_profile = UserProfile.objects.create(user=self.test_user)
         # Generate and store JWT tokens
         refresh = RefreshToken.for_user(self.test_user)
         self.access_token = str(refresh.access_token)

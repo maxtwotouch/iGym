@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
 
 type PT = {
     id: number;
@@ -8,11 +10,23 @@ type PT = {
     trainer_profile?: {
         id: number;
         experience: string;
+        pt_type: string;
     };
+};
+
+const PT_TYPE_MAP: { [key: string]: string } = {
+    general: "General Fitness Trainer",
+    strength: "Strength and Conditioning Trainer",
+    functional: "Functional Training Coach",
+    bodybuilding: "Bodybuilding Coach",
+    physio: "Physical Therapist",
 };
 
 const PtList: React.FC = () => {
     const [pts, setPts] = useState<PT[]>([]);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [filterType, setFilterType] = useState<string>("all");
+    const [sortOrder, setSortOrder] = useState<string>("asc");
     const [selectedPt, setSelectedPt] = useState<PT | null>(null);
     const navigate = useNavigate();
 
@@ -25,26 +39,37 @@ const PtList: React.FC = () => {
 
         const fetchPts = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/personal_trainers/", {
+                const response = await fetch(`${backendUrl}/personal_trainers/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) throw new Error("Failed to fetch PTs");
                 const data = await response.json();
-                setPts(data.map((pt: any) => ({ 
+                const trainers = data.map((pt: any) => ({ 
                     id: pt.id, 
                     name: pt.username, 
                     trainer_profile: {
                         id: pt.trainer_profile.id,
-                        experience: pt.trainer_profile.experience
+                        experience: pt.trainer_profile.experience,
+                        pt_type: pt.trainer_profile.pt_type,
                     }
-                })));
+                }));
+                setPts(trainers);
             } catch (error) {
                 console.error("Error fetching PTs:", error);
             }
         };
-
         fetchPts();
-    }, []);
+    }, [navigate]);
+
+    // Filter and sort logic
+    const filteredPts = pts
+        .filter(pt =>
+        pt.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (filterType === "all" || pt.trainer_profile?.pt_type === filterType)
+        )
+        .sort((a, b) => sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+    );
+        
 
     const newPt = async ( ptUserId: number, ptProfileId: number ) => {
         try {
@@ -56,7 +81,7 @@ const PtList: React.FC = () => {
             }
 
             // Update user's personal trainer field, assigned PT for user. Automatically assigns the user to the PT's clients list.
-            await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
+            await fetch(`${backendUrl}/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 body: JSON.stringify({ profile: {personal_trainer: ptProfileId} })
@@ -71,7 +96,7 @@ const PtList: React.FC = () => {
             const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
              
             // Update user's pt_chatroom field
-            await fetch(`http://127.0.0.1:8000/user/update/${userId}/`, {
+            await fetch(`${backendUrl}/user/update/${userId}/`, {
                 method: "PATCH",
                 headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                 body: JSON.stringify({ profile: {pt_chatroom: chatRoomId} })
@@ -86,7 +111,7 @@ const PtList: React.FC = () => {
     const createChatRoomWithPt = async (ptId: number, ptName: string) => {
         try {
             const token = localStorage.getItem("accessToken");
-            const chatRoomResponse = await fetch("http://127.0.0.1:8000/chat_room/create/", {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat_room/create/`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`, "Content-Type": "application/json",
@@ -105,71 +130,100 @@ const PtList: React.FC = () => {
     };
 
     return (
+
         <motion.div 
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white"
+            className="min-h-screen text-white flex flex-col items-center p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
         >
             <motion.h1
-                className="text-4xl font-bold mb-6"
+                className="text-4xl font-bold mb-4"
                 initial={{ y: -20 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                Select Your PT
+                Select Your Personal Trainer
             </motion.h1>
+
+            {/* Search and Filter Section */}
+            <div className="flex flex-col w-full max-w-md mb-6 space-y-3">
+                {/* Search Bar */}
+                <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                />
+                <div className="flex space-x-4 justify-center">
+                    {/* Filter Dropdown */}
+                    <select
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                    >
+                        <option value="all">All Types</option>
+                        {Object.entries(PT_TYPE_MAP).map(([key, value]) => (
+                            <option key={key} value={key}>
+                                {value}
+                            </option>
+                        ))}
+                    </select>
+                    {/* Sort Dropdown */}
+                    <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                    >
+                        <option value="asc">A-Z</option>
+                        <option value="desc">Z-A</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* PT List */}
             <motion.div 
-                className="bg-gray-800 p-8 rounded-lg shadow-md w-80"
-                initial={{ scale: 0.8 }}
+                className="rounded-lg w-full max-w-md space-y-4"
+                initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5 }}
             >
                 {pts.length === 0 ? (
-                    <p className="text-gray-400">No PTs available.</p>
+                    <p className="text-gray-400 text-center">No personal trainers available.</p>
+                ) : filteredPts.length === 0 ? (
+                    <p className="text-gray-400 text-center">No personal trainers match your search.</p>
                 ) : (
-                    <div className="space-y-3">
-                        {pts.map(pt => (
-                            <motion.div 
-                                key={pt.id} 
-                                className={`p-4 rounded-lg cursor-pointer flex justify-between items-center transition ${selectedPt?.id === pt.id ? "bg-blue-600" : "bg-gray-700 hover:bg-gray-600"}`} 
-                                whileHover={{ scale: 1.02 }}
-                                onClick={() => setSelectedPt(pt)}
-                            >
-                                <div>
-                                    <h3 className="text-lg font-semibold">{pt.name}</h3>
-                                    <p className="text-sm text-gray-300">🏆 Experience: {pt.trainer_profile?.experience || "N/A"}</p>
-                                </div>
-                                <motion.button
-                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition"
-                                    whileHover={{ scale: 1.05 }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedPt(pt);
-                                    }}
-                                >
-                                    Choose
-                                </motion.button>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-                {selectedPt && (
-                    <>
-                        <motion.div className="mt-4 p-4 bg-gray-700 rounded-lg">
-                            <h3 className="text-lg font-bold">Chosen PT:</h3>
-                            <p className="text-white">{selectedPt.name}</p>
-                            <p className="text-gray-400">{selectedPt.trainer_profile?.experience || "N/A"}</p>
-                        </motion.div>
-                        <motion.button
-                            className="w-full py-2 mt-4 bg-blue-600 rounded hover:bg-blue-700 transition"
-                            whileHover={{ scale: 1.05 }}
-                            onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
+
+                    filteredPts.map(pt => (
+                        <motion.div 
+                            key={pt.id} 
+                            data-id={pt.id}
+                            className={`p-6 rounded-lg cursor-pointer shadow-lg flex flex-col space-y-2 transition ${
+                                selectedPt?.id === pt.id ? "bg-gray-700 border border-green-500" : "bg-gray-800 hover:bg-gray-700"}`} 
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => setSelectedPt(selectedPt?.id === pt.id ? null : pt)}
                         >
-                            Confirm PT
-                        </motion.button>
-                    </>
-                )}
+                            <div>
+                                <h3 className="text-xl font-semibold">{pt.name} - {PT_TYPE_MAP[pt.trainer_profile?.pt_type || "N/A"]}</h3>
+                                <p className="text-sm text-gray-400">{pt.trainer_profile?.experience || "N/A"}</p>
+                                
+                                {selectedPt?.id === pt.id && (
+                                    <motion.button
+                                    className="w-full py-2 mt-4 bg-green-600 rounded hover:bg-green-700 transition"
+                                    name="selectPtButton"
+                                    whileHover={{ scale: 1.05 }}
+                                    onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
+                                    >
+                                    Confirm Your Personal Trainer
+                                </motion.button>
+                                )}
+
+                            </div>
+                        </motion.div>
+                    ))
+            )}
+
             </motion.div>
         </motion.div>
     );

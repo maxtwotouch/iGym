@@ -10,6 +10,7 @@ export default function RegistrationForm() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   // Field for personal trainer
+  const [pt_type, setPtType] = useState("");
   const [experience, setExperience] = useState("");
 
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ export default function RegistrationForm() {
     url = `${backendUrl}/personal_trainer/register/`;
     payload.trainer_profile = {
       experience: experience,
+      pt_type: pt_type,
     };
   }
 
@@ -139,6 +141,21 @@ export default function RegistrationForm() {
         )}
         {userType === "trainer" && (
           <>
+            <div className="mb-4">
+              <label className="block mb-1">Type of Personal Trainer:</label>
+              <select
+                value={pt_type}
+                onChange={(e) => setPtType(e.target.value)}
+                className="w-full p-2 rounded bg-gray-700 text-white"
+                required
+              >
+                <option value="general">General Fitness Trainer</option>
+                <option value="strength">Strength and Conditioning Trainer</option>
+                <option value="functional">Functional Training Coach</option>
+                <option value="bodybuilding">Bodybuilding Coach</option>
+                <option value="physio">Physical Therapist</option>
+              </select>
+            </div>
             <div className="mb-4">
               <label className="block mb-1">Experience:</label>
               <input

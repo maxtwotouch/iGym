@@ -17,6 +17,10 @@ const Chat = () => {
         }
     }, [navigate]);
 
+    const handleLeaveChatRoom = () => {
+        setSelectedChatRoom(null); 
+    };
+
     return (
         <motion.div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col text-white">
             <NavBar />
@@ -34,7 +38,7 @@ const Chat = () => {
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <Sidebar onSelectChatRoom={setSelectedChatRoom} />
+                <Sidebar key={selectedChatRoom === null ? "reset" : "active"} onSelectChatRoom={setSelectedChatRoom} />
                 </motion.div>
 
                 {/* Chat Room to the right */}
@@ -46,7 +50,7 @@ const Chat = () => {
                 >
                     {selectedChatRoom ? (
                         <>
-                            <ChatRoom chatRoomId={selectedChatRoom} />
+                            <ChatRoom chatRoomId={selectedChatRoom} onLeave={handleLeaveChatRoom} />
                         </>
                     ) : (
                         <>

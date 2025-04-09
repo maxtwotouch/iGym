@@ -440,7 +440,7 @@ const CustomerDashboard: React.FC = () => {
 					{/* Chat Room with PT */}
 					{trainer && roomId &&(
 						<motion.div>
-							<ChatRoom chatRoomId={roomId ?? -1} />
+							<ChatRoom chatRoomId={roomId ?? -1} onLeave={() => setRoomId(null)} />
 						</motion.div> 
 					)}
 					{/* Get a PT section */}

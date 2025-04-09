@@ -5,11 +5,25 @@ import React from 'react';
  import { motion } from 'framer-motion';
  import { useParams } from 'react-router-dom';
  import { useNavigate } from 'react-router-dom';
+ import { useEffect, useState } from "react";
  
  const ChatRoomPage: React.FC = () => {
      const { id } = useParams();
      const chatRoomId = Number(id)
      const navigate = useNavigate();
+    
+    // State to manage chat room ID
+    const [currentChatRoomId, setCurrentChatRoomId] = useState<number | null>(chatRoomId);
+
+    const handleLeaveChatRoom = () => {
+        setCurrentChatRoomId(null); 
+        navigate("/chat"); 
+    };
+
+    useEffect(() => {
+        // Effect to update the state based on params
+        setCurrentChatRoomId(chatRoomId);
+    }, [chatRoomId]);
  
      return (
          <motion.div
@@ -19,7 +33,7 @@ import React from 'react';
              transition={{ duration: 0.5 }}
          >
              <NavBar />
-                 <ChatRoom chatRoomId={chatRoomId} />
+                 <ChatRoom chatRoomId={chatRoomId}  onLeave={handleLeaveChatRoom} />
  
                  {/* Exit Chat Room button */}
                  <motion.button
