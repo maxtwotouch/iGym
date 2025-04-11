@@ -6,6 +6,8 @@ import Sidebar from "~/components/ChatRoomsSideBar";
 import ChatRoom from "~/components/ChatRoom";
 import Footer from "~/components/Footer";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+
 const Chat = () => {
     const navigate = useNavigate();
     const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);

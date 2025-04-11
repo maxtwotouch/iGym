@@ -329,14 +329,67 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             type: "confirmation",
             workout_id: workout.id,
             user_id: currentUserId,
-            message: `${currentUserUsername} has accepted the workout ${workout.name}`
+            message: `${currentUserUsername} has accepted the workout: ${workout.name}`
         }));
     }
 
 
     const leaveChatRoom = async (chatRoomId: number) => {
+        const token = localStorage.getItem("accessToken");
+        const user_id = localStorage.getItem("user_id");
+        const user_type = localStorage.getItem("userType");
+    
+        if (user_type === "user") {
+            try {
+                const response = await fetch(`${backendUrl}/user/${user_id}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`Profile fetch failed with status ${response.status}`);
+                }
+    
+                const user = await response.json();
+                if (user.profile.pt_chatroom === chatRoomId) {
+                    alert("Cannot leave the chat room with your personal trainer!");
+                    return;
+                }
+            } catch (err: any) {
+                console.error("Error fetching profile:", err);
+            }
+        }
+        
+        // Find the other participant (the client) and check if the client have this chat room as their pt_chat room, if so, stop the leave
+        else if (user_type === "trainer") {
+            const client = users.find(user => user.id !== Number(user_id));
+    
+            if (!client) {
+                console.log("Client has already left the chat room");
+            } else {
+                try {
+                    const response = await fetch(`${backendUrl}/user/${client.id}/`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error(`Client fetch failed with status ${response.status}`);
+                    }
+    
+                    const clientData = await response.json();
+    
+                    if (clientData.profile.pt_chatroom === chatRoomId) {
+                        alert("Cannot leave: the client still has this chat room as their PT chat.");
+                        return;
+                    }
+    
+                } catch (err: any) {
+                    console.error("Error fetching client data:", err);
+                }
+            }
+        }
+    
         if (!socketRef.current) return;
-
+    
         const currentUserUsername = localStorage.getItem("username");
         const currentUserId = Number(localStorage.getItem("user_id"));
         socketRef.current.send(JSON.stringify({
@@ -344,18 +397,18 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             user_id: currentUserId,
             message: `${currentUserUsername} has left the chat room`
         }));
-
+    
         const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+            headers: { Authorization: `Bearer ${token}` },
         });
+    
         if (response.ok) {
             onLeave();
         } else {
             console.error("Failed to delete chat room");
         }
-    
-    }
+    };
 
     const getUsernameById = (userId: number) => {
         const user = users.find(user => user.id === userId);

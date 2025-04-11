@@ -204,10 +204,11 @@ class WorkoutModelTest(TestCase):
     def test_create_workout_without_author(self):
         name = "test workout"
         workout = Workout(name=name)
+        workout.save()
         
         # Should raise an integrity error as author is a required field
-        with self.assertRaises(IntegrityError):
-            workout.save()  
+        # with self.assertRaises(IntegrityError):
+        #     workout.save()  
     
     def test_create_workout_with_name_exceeding_max_length(self):
         # Generate a name that is too long
@@ -219,14 +220,15 @@ class WorkoutModelTest(TestCase):
         with self.assertRaises(ValidationError):
             workout.full_clean()
     
-    def test_delete_workout_cascade(self):
+    def test_delete_user(self):
         workout = Workout.objects.create(name="test workout", author=self.user)
         
-        # Deleting the author should also delete the workout
+        # Deleting the author should set the author field to null
         self.user.delete()
         
-        # Make sure that the workout was deleted
-        self.assertEqual(Workout.objects.count(), 0)
+        # Get the updated workout instance
+        workout.refresh_from_db()
+        self.assertIsNone(workout.author)
         
 
 class WorkoutSessionModelTest(TestCase):
@@ -672,7 +674,7 @@ class NotificationModelTest(TestCase):
     def test_create_message_notification_with_empty_user(self):
         notification = Notification(sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
         
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             notification.save()
     
     def test_create_message_notification_with_empty_sender(self):
@@ -712,6 +714,13 @@ class NotificationModelTest(TestCase):
     def test_create_message_notification_with_wrong_chat_room_name(self):
         wrong_chat_room_name = "wrong name"
         notification = Notification(user=self.user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=wrong_chat_room_name, message=self.message)
+        
+        with self.assertRaises(ValidationError):
+            notification.save()
+    
+    def test_create_message_notification_with_user_not_part_of_the_chat_room(self):
+        user = User.objects.create_user(username="someUser", password="password")
+        notification = Notification(user=user, sender=self.sender, chat_room_id=self.chat_room.id, chat_room_name=self.chat_room.name, message=self.message)
         
         with self.assertRaises(ValidationError):
             notification.save()

@@ -80,6 +80,50 @@ const PtList: React.FC = () => {
                 navigate("/login");
             }
 
+            const pt = pts.find(pt => pt.id === ptUserId) || null;
+
+            if (!pt) {
+                alert("Could not find PT with the given ID");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/user/${userId}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`Profile fetch failed with status ${response.status}`);
+                }
+    
+                const user = await response.json();
+
+                if (user.profile.personal_trainer){
+
+                    if (user.profile.personal_trainer === ptProfileId) {
+                        alert(`You already have ${pt.name} as personal trainer`);
+                        return;
+                    }
+
+                    // The client have someone else as their personal trainer
+                    else {
+                        const current_pt = pts.find(pt => pt.trainer_profile?.id === user.profile.personal_trainer)
+
+                        const confirmSwitch = window.confirm(
+                            `You already have ${current_pt?.name} as personal trainer. Are you sure you want to switch to ${pt.name}?`
+                        );
+                    
+                        if (!confirmSwitch) {
+                            return;
+                        }
+
+                    }
+                }
+            
+            } catch (err: any) {
+                console.error("Error fetching profile:", err);
+            }
+
             // Update user's personal trainer field, assigned PT for user. Automatically assigns the user to the PT's clients list.
             await fetch(`${backendUrl}/user/update/${userId}/`, {
                 method: "PATCH",
@@ -88,11 +132,6 @@ const PtList: React.FC = () => {
             });
 
             // Create a chat room between the user and the PT
-            const pt = pts.find(pt => pt.id === ptUserId) || null;
-            if (!pt) {
-                alert("Could not find PT with the given ID");
-                return;
-            }
             const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
              
             // Update user's pt_chatroom field

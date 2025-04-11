@@ -86,14 +86,6 @@ class UpdateWorkoutView(generics.UpdateAPIView):
         user = self.request.user
         return Workout.objects.filter(owners=user)
     
-    def perform_update(self, serializer):
-        user = self.request.user
-        if serializer.is_valid():
-            workout = serializer.save(author=user)  # Save first
-            workout.owners.add(user)  # Ensure author is in owners
-        else:
-            print(serializer.errors)
-    
 class CreateWorkoutView(generics.CreateAPIView):
     serializer_class = WorkoutSerializer
     permission_classes = [IsAuthenticated]
@@ -102,8 +94,8 @@ class CreateWorkoutView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         if serializer.is_valid():
-            workout = serializer.save(author=user)  # Save first
-            workout.owners.add(user)  # Ensure author is in owners
+            workout = serializer.save(author=user)
+            workout.owners.add(user) 
         else:
             print(serializer.errors)
 
@@ -203,7 +195,20 @@ class WorkoutDeleteView(generics.DestroyAPIView):
     # Can only delete workouts related to the current user
     def get_queryset(self):
         user = self.request.user
-        return Workout.objects.filter(author=user) # Visit later, must have a method for removing owner from workout, and deleting workout as a owner, two different functionalities
+        return Workout.objects.filter(owners=user)
+    
+    def perform_destroy(self, instance):
+        user = self.request.user
+        
+        # Remove the user as a owner if there is still more owners left
+        if instance.owners.count() > 1:
+            instance.owners.remove(user)
+            return Response({"detail": "You are not a owner of teh workout anymore."}, status=status.HTTP_204_NO_CONTENT)
+        
+        # If the user is the last owner, delete the workout
+        else:
+            instance.delete()
+            return Response({"detail": "Workout deleted since you were the last owner."}, status=status.HTTP_204_NO_CONTENT)
     
 class ExerciseListView(generics.ListAPIView):
     # Provide a proper queryset rather than the model itself
@@ -381,8 +386,7 @@ class NotificationListView(generics.ListAPIView):
      def get_queryset(self):
          user = self.request.user
          return Notification.objects.filter(user=user).order_by("-date_sent")
-
-##    
+ 
 class NotificationDeleteView(generics.DestroyAPIView):
      serializer_class = NotificationSerializer
      permission_classes = [IsAuthenticated]

@@ -257,52 +257,44 @@ class CreateWorkoutViewTest(APITestCase):
 
 class TestWorkoutDeleteView(APITestCase):
     def setUp(self):
-        create_user_url = reverse('register_user')
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.second_user = User.objects.create_user(username="secondTestUser", password="password")
         
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout.owners.set([self.user, self.second_user])
         
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
+        self.url = reverse("workout-delete", kwargs={"pk": self.workout.id})
         
-        self.client.post(create_user_url, user_data, format='json')
-        self.user = User.objects.get(username=username)
-        
-        # Create some test exercises
-        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
-        self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
-        
-        create_workout_url = reverse('workout-create')
-        workout_name = "Test Workout"
-        
-        workout_data = {
-            "name": workout_name,
-            "exercises": [self.first_exercise.id, self.second_exercise.id]
-        }
-        
+    def test_still_owners_left_only_removes_user_from_workout(self):
         self.client.force_authenticate(user=self.user)
         
-        response = self.client.post(create_workout_url, data=workout_data, format='json')
-        self.workout = Workout.objects.get(id=response.data["id"])
+        response = self.client.delete(self.url)
         
-        
-    def test_delete_workout_basic(self):
-        url = reverse("workout-delete", kwargs={"pk": self.workout.id})
-        
-        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertNotIn(self.workout, Workout.objects.all())  
+        
+        # Check that the workout still exists
+        self.assertIn(self.workout, Workout.objects.all())
+        
+        # Check that the user is not part of the owners anymore
+        self.assertNotIn(self.user, self.workout.owners.all())
     
+    def test_last_owner_deletes_the_workout(self):
+        # Make sure there is only one owner left
+        self.workout.owners.remove(self.user)
+        
+        self.client.force_authenticate(self.second_user)
+        
+        response = self.client.delete(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Check that the workout was deleted
+        self.assertEqual(Workout.objects.count(), 0)
+        
+        
     def test_delete_non_existent_workout(self):
-        invalid_url = reverse("workout-delete", kwargs={"pk": 100})
+        self.client.force_authenticate(user=self.user)
+        invalid_url = reverse("workout-delete", kwargs={"pk": 9999})
         
         # Try to delete a workout that does not exist
         response = self.client.delete(invalid_url)
@@ -314,31 +306,11 @@ class TestWorkoutDeleteView(APITestCase):
         self.assertIn(self.workout, Workout.objects.all())
     
     def test_delete_other_users_workout(self):
-        url = reverse("workout-delete", kwargs={"pk": self.workout.id})
-        
-        # Create a second user
-        create_user_url = reverse('register_user')
-        
-        username = "secondTestUser"
-        password = "testPassword"
-        height = 200
-        weight = 100
-        
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-        
-        self.client.post(create_user_url, user_data, format='json')
-        secondUser = User.objects.get(username=username)
-        self.client.force_authenticate(user=secondUser)
+        user = User.objects.create_user(username="someUser", password="password")
+        self.client.force_authenticate(user=user)
         
         # Try do delete the workout that was created by the first user
-        response = self.client.delete(url)
+        response = self.client.delete(self.url)
         
         # Since the queryset is filtered based on the user making the request, the view should not find the specific workout
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

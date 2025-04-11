@@ -60,7 +60,7 @@ class Exercise(models.Model):
      
 
 class Workout(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="workouts")
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="workouts", null=True)
     owners = models.ManyToManyField(User, blank=True)
     name = models.CharField(max_length=255)
 
@@ -128,7 +128,10 @@ class ScheduledWorkout(models.Model):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
 
 class Notification(models.Model):
+    # User is the one receiving the notification
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications", blank=False, null=False)
+    
+    # Sender of the message corresponding to the notification
     sender = models.CharField(max_length=255, blank=False, null=False)
     chat_room_id = models.IntegerField(blank=False, null=False)
     chat_room_name = models.CharField(max_length=255, blank=False, null=False)
@@ -148,6 +151,14 @@ class Notification(models.Model):
         
         if chat_room.name != self.chat_room_name:
             raise ValidationError(f"Chat room name does not match the actual chat room name")
+        
+        # Check if the user is present
+        if not self.user_id:
+            raise ValidationError("Notification must have a user.")
+        
+        # Check that the sender and user is participants in the chat room
+        if not chat_room.participants.filter(id=self.user.id).exists():
+            raise ValidationError(f"User is not part of the chat room")
         
         super().save(*args, **kwargs)
             
