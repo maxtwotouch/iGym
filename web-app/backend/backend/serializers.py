@@ -1,8 +1,12 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
-from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification
+from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification, PersonalTrainerScheduledWorkout
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import AuthenticationFailed
+from .models import FailedLoginAttempt
+from .utils import is_locked_out, get_client_ip_address
 
 # The default user-set-up if we only have one type of user
 
@@ -124,24 +128,38 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        data = super().validate(attrs)
-        
+        username = attrs.get("username")
+        ip_address = get_client_ip_address(self.context["request"])
+
+        # Check if the user is suspended
+        if is_locked_out(username, ip_address):
+            raise AuthenticationFailed("Too many failed login attempts. Try again later.")
+
+        try:
+            data = super().validate(attrs)
+        except AuthenticationFailed:
+            # Login failed, create a failed login attempt
+            FailedLoginAttempt.objects.create(username=username, ip_address=ip_address)
+            raise  
+
+        # Login succedeed, delete the old failed login attempts
+        FailedLoginAttempt.objects.filter(username=username, ip_address=ip_address).delete()
+
+        # The custom payload returned along with the access and refresh token
         user = self.user
-        
         data["id"] = user.id
         data["username"] = user.username
-        
+
         if hasattr(user, "profile"):
             role = user.profile.role
             data["profile"] = {
                 "role": role,
                 "weight": user.profile.weight
             }
-        
         elif hasattr(user, "trainer_profile"):
             role = user.trainer_profile.role
             data["trainer_profile"] = {"role": role}
-        
+
         return data
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -170,6 +188,16 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'workout_template', 'workout_title', 'scheduled_date']
         extra_kwargs = {
             'user': {'read_only': True},
+        }
+
+class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
+     workout_title = serializers.ReadOnlyField(source="workout_template.name")
+     
+     class Meta:
+        model = PersonalTrainerScheduledWorkout
+        fields = ['id', 'client', 'pt', 'workout_template', 'workout_title', 'scheduled_date']
+        extra_kwargs = {
+            'pt': {'read_only': True},
         }
 
 class NotificationSerializer(serializers.ModelSerializer):

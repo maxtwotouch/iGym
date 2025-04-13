@@ -20,7 +20,8 @@ export default function LoginForm() {
 
       const data = await response.json();
       if (!response.ok || !data.access) {
-        alert("Login failed: Incorrect username or password.");
+        const errorMessage = data.detail || data.error || "Login failed: Incorrect username or password.";
+        alert(errorMessage);
         return;
       }
   
@@ -32,7 +33,7 @@ export default function LoginForm() {
       
       if (data.profile?.role) {
         localStorage.setItem("userType", data.profile.role);
-      } 
+      }   
       else if (data.trainer_profile?.role) {
 
         if (data.trainer_profile.role === "personal_trainer") { // This is a handling towards older registered trainers, where they were given wrong usertype. Can be safely removed after production.

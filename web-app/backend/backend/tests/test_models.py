@@ -3,7 +3,7 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
-from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification
+from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification, PersonalTrainerScheduledWorkout
 from datetime import timedelta
 from django.utils.timezone import now
 
@@ -609,7 +609,7 @@ class ScheduledWorkoutModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             scheduled_workout.save()
     
-    def test_create_scheduked_workout_with_empty_scheduled_date(self):
+    def test_create_scheduled_workout_with_empty_scheduled_date(self):
         scheduled_workout = ScheduledWorkout(user=self.user, workout_template=self.workout)
         
         with self.assertRaises(IntegrityError):
@@ -744,6 +744,98 @@ class NotificationModelTest(TestCase):
         self.workout.delete()
         
         self.assertEqual(Notification.objects.count(), 0)
+
+class TestPersonalTrainerScheduledWorkout(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.user_profile = UserProfile.objects.create(user=self.user)
+        
+        self.trainer = User.objects.create_user(username="trainer", password="password")
+        self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer)
+        
+        self.user_profile.personal_trainer = self.trainer_profile
+        
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.scheduled_date = now() + timedelta(days=1)
+        
+    def test_create_personal_trainer_scheduled_workout_basic(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout.objects.create(client=self.user, pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.assertEqual(personal_trainer_scheduled_workout.client, self.user)
+        self.assertEqual(personal_trainer_scheduled_workout.pt, self.trainer)
+        self.assertEqual(personal_trainer_scheduled_workout.workout_template, self.workout)
+        self.assertEqual(personal_trainer_scheduled_workout.scheduled_date, self.scheduled_date)
+    
+    def test_create_personal_trainer_scheduled_workout_with_empty_workout(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(client=self.user, pt=self.trainer, scheduled_date=self.scheduled_date)
+        
+        with self.assertRaises(IntegrityError):
+            personal_trainer_scheduled_workout.save()
+    
+    def test_create_personal_trainer_scheduled_workout_with_a_non_workout(self):
+        non_workout = "not a workout object"
+        
+        with self.assertRaises(ValueError):
+            PersonalTrainerScheduledWorkout(client=self.user, pt=self.trainer, workout_template=non_workout, scheduled_date=self.scheduled_date)
+        
+    def test_create_personal_trainer_scheduled_workout_with_empty_client(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        with self.assertRaises(IntegrityError):
+            personal_trainer_scheduled_workout.save()
+    
+    def test_create_personal_trainer_scheduled_workout_with_empty_pt(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(client=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        with self.assertRaises(IntegrityError):
+            personal_trainer_scheduled_workout.save()
+    
+    def test_create_personal_trainer_scheduled_workout_with_empty_scheduled_date(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(client=self.user, pt=self.trainer, workout_template=self.workout)
+        
+        with self.assertRaises(IntegrityError):
+            personal_trainer_scheduled_workout.save()
+    
+    def test_str_method(self):
+        workout_name = self.workout.name
+        string = f"{workout_name} scheduled on {self.scheduled_date}"
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout.objects.create(client=self.user, pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.assertEqual(string, str(personal_trainer_scheduled_workout))
+    
+    def test_delete_client_cascade(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout.objects.create(client=self.user, pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.user.delete()
+        
+        self.assertEqual(PersonalTrainerScheduledWorkout.objects.count(), 0)
+    
+    def test_delete_pt_cascade(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(client=self.user, pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.trainer.delete()
+        
+        self.assertEqual(PersonalTrainerScheduledWorkout.objects.count(), 0)
+    
+    def test_workout_template_cascacde(self):
+        personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout(client=self.user, pt=self.trainer, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        
+        self.workout.delete()
+        
+        self.assertEqual(PersonalTrainerScheduledWorkout.objects.count(), 0)
+        
+    
+            
+    
+        
+            
+            
+    
+    
+        
+        
+        
+        
         
         
         

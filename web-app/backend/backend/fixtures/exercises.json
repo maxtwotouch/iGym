@@ -480,5 +480,75 @@
             "muscle_group": "Hamstrings (Primary). Calves (Secondary).",
             "image": "exercise_images/seated_leg_curl.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Fly",
+            "description": "Lying on the bench, your feet flat on the floor, one dumbbell in each hand. Hold the weights in a neutral grip, arms outstretched above your chest. Slowly lower the dumbbells to the sides in an arc with your arms until you feel a stretch in your pectorals. Do not go below shoulder level. Then return to the original position, performing the same arc. During the whole movement: Keep your elbows pointed outward and slightly bent to reduce stress on the joint. Keep your shoulders flat against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (Primary). Front deltoids (Secondary)",
+            "image": "exercise_images/dumbbell_fly.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Cable Rope Pushdown",
+            "description": "Standing in front of the pulley, grasp one end of the rope in each hand in neutral grip. Extend your forearms by spreading the ends of the rope slightly apart until your arms are fully extended. In this position, contract your triceps for a moment and then slowly return to the initial position. Keep your elbows close to your body during the whole movement.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps",
+            "image": "exercise_images/cable_rope_pushdown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Rope Pulldown",
+            "description": "Standing facing the high pulley, knees slightly bent and bust slightly bent forward. Grasp one end of the rope in each hand in a neutral grip. Pull the rope up to your hips, letting your arms describe an arc of a circle. Keep your elbows slightly bent and close to your body. At the end of the movement, contract your back by squeezing your shoulders back, then return to the initial position.",
+            "muscle_category": "back",
+            "muscle_group": "Back (Primary). Triceps (Secondary)",
+            "image": "exercise_images/rope_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Concentration Curl",
+            "description": "Sitting on a bench, hold a dumbbell in your right hand, supine grip. With your chest slightly bent forward, rest your elbow on the inside of your right thigh, leaving your arm relaxed towards the ground. Slowly bend your forearm as you bring the dumbbell towards your right shoulder. Contract your biceps in the high position, then slowly return to the initial position. Once your series is completed, move to the other arm.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/dumbbell_concentration_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Rope Ab Pulldown",
+            "description": "Kneeling on the ground facing the high pulley. Grasp one end of the rope in each hand and bring them to the height of your head. Keep your hands in this position during the movement. Bend your torso so that it is almost parallel to the ground. Contract your abs by bringing your elbows back towards your knees. Stay in the contraction position for a moment before slowly returning to the initial position.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs",
+            "image": "exercise_images/rope_ab_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Barbell Push Press",
+            "description": "Stand upright with a barbell resting on your upper chest and shoulders and elbows pointed out in front of you. Feet should be shoulder width apart. Bend knees slightly and then drive upwards, pushing the barbell straight up in the air and finishing with arms extended above your head. Pause, and then return to starting position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Shoulders (Primary). Triceps (Secondary)",
+            "image": "exercise_images/barbell_push_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Hack Squat",
+            "description": "Standing in the hack squat machine, trapezes under the pads, feet on the footrest, shoulder-width apart. Release the manual safety catch and slowly bend the knees. When your knees are at a 90° angle, pause for a moment and then slowly raise the load. Keep your back firmly against the backrest. To protect your knees, in the high position, stop the movement just before your legs are fully extended.",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh and buttock muscles",
+            "image": "exercise_images/hack_squat.png"
+        }
     }
 ]

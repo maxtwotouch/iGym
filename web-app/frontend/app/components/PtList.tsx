@@ -112,7 +112,8 @@ const PtList: React.FC = () => {
                         const confirmSwitch = window.confirm(
                             `You already have ${current_pt?.name} as personal trainer. Are you sure you want to switch to ${pt.name}?`
                         );
-                    
+                        
+                        // The user chose to stay with the current personal trainer
                         if (!confirmSwitch) {
                             return;
                         }

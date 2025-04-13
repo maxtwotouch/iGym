@@ -1,16 +1,18 @@
 
-from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage, Notification
+from .models import Workout, Exercise, WorkoutSession, Set, ChatRoom, ScheduledWorkout, Message, WorkoutMessage, Notification, PersonalTrainerScheduledWorkout, FailedLoginAttempt
 from django.contrib.auth.models import User
 from rest_framework import generics, serializers
 from .serializers import UserSerializer, WorkoutSerializer
 from .serializers import ExerciseSerializer, CustomTokenObtainPairSerializer, WorkoutSessionSerializer, ExerciseSessionSerializer
 from .serializers import SetSerializer, ChatRoomSerializer, DefaultUserSerializer, PersonalTrainerSerializer, ScheduledWorkoutSerializer
-from .serializers import MessageSerializer, WorkoutMessageSerializer, NotificationSerializer
+from .serializers import MessageSerializer, WorkoutMessageSerializer, NotificationSerializer, PersonalTrainerScheduledWorkoutSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
+from .utils import is_locked_out, get_client_ip_address
+from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -217,9 +219,8 @@ class ExerciseListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class =  CustomTokenObtainPairSerializer
+    serializer_class = CustomTokenObtainPairSerializer
     permission_classes = [AllowAny]
-
 
 class ChatRoomRetrieveView(generics.RetrieveAPIView):
     serializer_class = ChatRoomSerializer
@@ -360,7 +361,7 @@ class ListWorkoutMessagesInChatRoomView(generics.ListAPIView):
         chat_room_object = get_object_or_404(ChatRoom, id=chat_room_id)
 
         if not chat_room_object.participants.filter(id=user.id).exists():
-                    raise serializers.ValidationError("Cannot request workout messages of a chat room that you are not a part of")
+            raise serializers.ValidationError("Cannot request workout messages of a chat room that you are not a part of")
            
         return WorkoutMessage.objects.filter(chat_room=chat_room_id)
     
@@ -377,6 +378,54 @@ class ScheduledWorkoutListView(generics.ListAPIView):
      
     def get_queryset(self):
         return ScheduledWorkout.objects.filter(user=self.request.user)
+
+class CreatePersonalTrainerScheduledWorkoutView(generics.CreateAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        trainer = self.request.user
+        
+        # Check if the user and pt is the correct types
+        if not hasattr(trainer, "trainer_profile"):
+            raise serializers.ValidationError("PT is not a personal trainer")
+        
+        client = serializer.validated_data.get("client")
+        
+        if not hasattr(client, "profile"):
+            raise serializers.ValidationError("Client is not a user")
+        
+        # Check that the client has the pt as its personal trainer
+        if not client.profile.personal_trainer == trainer.trainer_profile:
+            raise serializers.ValidationError("Client does not have this pt as its personal trainer")
+        
+        serializer.save(pt=self.request.user)
+
+class PersonalTrainerScheduledWorkoutListView(generics.ListAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+     
+    # Fetch all PersonalTrainerScheduledWorkout objects where the current user is involved
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Check if the user is a normal user or a personal trainer
+        if hasattr(user, "profile"):
+            return PersonalTrainerScheduledWorkout.objects.filter(client=user)
+        
+        elif hasattr(user, "trainer_profile"):
+            return PersonalTrainerScheduledWorkout.objects.filter(pt=user)
+
+class PersonalTrainerScheduledWorkoutDeleteView(generics.DestroyAPIView):
+    serializer_class = PersonalTrainerScheduledWorkoutSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Can only delete pt scheduled workouts related to the current user
+    def get_queryset(self):
+        user = self.request.user
+        # Only the pt can delete the scheduled workout
+        return PersonalTrainerScheduledWorkout.objects.filter(pt=user)
+                
 
 class NotificationListView(generics.ListAPIView):
      serializer_class = NotificationSerializer

@@ -336,7 +336,12 @@ function Client() {
 
                                     </div>
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-secondary" 
+                                            onClick={() => setShowModal(false)}
+                                            name="closeButton"
+                                        >
                                             Close
                                         </button>
                                     </div>

@@ -8,13 +8,15 @@ import subprocess
 import os
 import time
 from django.core.management import call_command
-from backend.models import UserProfile, WorkoutSession, Set, Exercise, Workout, ExerciseSession
+from backend.models import UserProfile, WorkoutSession, Set, Exercise, Workout, ExerciseSession, PersonalTrainerProfile, ScheduledWorkout
 from django.conf import settings
 from django.contrib.auth.models import User
 import unittest
 from datetime import datetime, timedelta
+from django.utils.timezone import now
 
-class CalendarTest(StaticLiveServerTestCase):
+class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -25,6 +27,7 @@ class CalendarTest(StaticLiveServerTestCase):
         # Set environment variable in frontend
         with open(env_path, "w") as f:
             f.write(f"VITE_BACKEND_URL={cls.live_server_url}\n")
+        
 
         # Start frontend
         cls.frontend_process = subprocess.Popen(
@@ -60,12 +63,15 @@ class CalendarTest(StaticLiveServerTestCase):
         cls.frontend_process.terminate()
         super().tearDownClass()
     
-    def test_calendar(self):
+    def test_pt_can_see_clients_sessions(self):
         call_command("loaddata", "exercises.json")
         
-        self.user = User.objects.create_user(username="testUser", password="password")
-        self.user_profile = UserProfile.objects.create(user=self.user)
+        self.trainer = User.objects.create_user(username="testTrainer", password="password")
+        self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer)
         
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.user_profile = UserProfile.objects.create(user=self.user, personal_trainer=self.trainer_profile)
+
         self.workout = Workout.objects.create(name="test workout", author=self.user)
         self.workout.owners.add(self.user)
         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
@@ -74,10 +80,13 @@ class CalendarTest(StaticLiveServerTestCase):
         self.duration = timedelta(hours=1, minutes=30, seconds=0)
         
         self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=120.5, duration=self.duration)
-
+        
         # Add an exercise session
         self.exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
         self.set = Set.objects.create(exercise_session=self.exercise_session, repetitions=10, weight=50)
+        
+        self.scheduled_date = now() + timedelta(days=1)
+        self.scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
         
         self.browser.refresh()
         self.browser.get("http://localhost:5173")
@@ -87,7 +96,7 @@ class CalendarTest(StaticLiveServerTestCase):
         )
         login_button.click()
         
-        self.browser.find_element(By.NAME, "username").send_keys("testUser")
+        self.browser.find_element(By.NAME, "username").send_keys("testTrainer")
         self.browser.find_element(By.NAME, "password").send_keys("password")
         
         login_button = WebDriverWait(self.browser, 10).until(
@@ -96,65 +105,50 @@ class CalendarTest(StaticLiveServerTestCase):
         login_button.click()
         time.sleep(5)
         
-        calendar_button = WebDriverWait(self.browser, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-name="Calendar"]'))
+        # Find the dropdown menu of clients
+        client_drowpdown = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.NAME, "clientButton"))
         )
-    
-        calendar_button.click()
+        client_drowpdown.click()
         time.sleep(5)
         
-        # Find today's date cell (it has 'fc-day-today' class)
+        # Select client
+        client = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, f"li[data-id='{self.user.id}']"))
+        )
+        client.click()
+        time.sleep(5)
+        
+        # Find today's date cell
         today_cell = WebDriverWait(self.browser, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '.fc-day-today'))
         )
         
         # Find the workout session event within today's cell
-        workout_event = WebDriverWait(today_cell, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, '.fc-event'))
+        workout_event = WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, '.fc-event'))
         )
-        
         workout_event.click()
         time.sleep(5)
         
         close_button = WebDriverWait(self.browser, 10).until(
             EC.element_to_be_clickable((By.NAME, "closeButton"))
         )
-        
         close_button.click()
         time.sleep(5)
     
         # Calculate tomorrow's date in YYYY-MM-DD format
         tomorrow_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
         
-        # Find tomorrow's cell using the data-date attribute
         tomorrow_cell = WebDriverWait(self.browser, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, f'td.fc-day[data-date="{tomorrow_date}"]'))
         )
-        
         tomorrow_cell.click()
         time.sleep(5)
         
-        # Find the workout dropdown and click 
-        workout_dropdown = WebDriverWait(self.browser, 10).until(
-            EC.element_to_be_clickable((By.ID, 'workoutSelect'))
-        )
-        workout_dropdown.click()
-        time.sleep(5) 
+        print("Successfully found client's sessions")
         
-        workout = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located(
-                (By.CSS_SELECTOR, f'select#workoutSelect > option[value="{self.workout.id}"]')
-            )
-        )
         
-        workout.click()
-        time.sleep(5)
         
-        schedule_button = WebDriverWait(self.browser, 10).until(
-            EC.element_to_be_clickable((By.NAME, "scheduleButton"))
-        )
         
-        schedule_button.click()
-        time.sleep(5)
         
-        print("Successfully scheduled a workout!")

@@ -24,7 +24,7 @@ from .views import CreateWorkoutSessionView, CreateExerciseSessionView, CreateSe
 from .views import ListUserView, ChatRoomDeleteView, PersonalTrainerListView, UpdateUserView, UpdatePersonalTrainerView, PersonalTrainerDetailView, UserDetailView
 from .views import ClientsListView, CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView, ListExercisesInWorkoutView, ListParticipantsInChatRoomView
 from .views import ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView, ListScheduledWorkoutsOfClientView, ListWorkoutSessionsOfClientsView, ListWorkoutsOfClientsListView
-from .views import NotificationListView, NotificationDeleteView, ListPtAndUserView
+from .views import NotificationListView, NotificationDeleteView, ListPtAndUserView, CreatePersonalTrainerScheduledWorkoutView, PersonalTrainerScheduledWorkoutListView, PersonalTrainerScheduledWorkoutDeleteView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -70,6 +70,10 @@ urlpatterns = [
     path("scheduled_workout/create/", CreateScheduledWorkoutView.as_view(), name="scheduled_workout-create"),
     path("scheduled_workout/delete/<int:pk>/", SchedulesWorkoutDeleteView.as_view(), name="scheduled_workout-delete"),
     path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+    path("pt_scheduled_workout/create/", CreatePersonalTrainerScheduledWorkoutView.as_view(), name="pt_scheduled_workout-create"),
+    path("pt_scheduled_workout/delete/<int:pk>/", PersonalTrainerScheduledWorkoutDeleteView.as_view(), name="pt_scheduled_workout-delete"),
+    path("scheduled_workouts/", ScheduledWorkoutListView.as_view(), name="scheduled_workouts-list"),
+    path("pt_scheduled_workouts/", PersonalTrainerScheduledWorkoutListView.as_view(), name="pt_scheduled_workouts-list"),
     path("notifications/", NotificationListView.as_view(), name="notification-list"),
     path("notification/delete/<int:pk>/", NotificationDeleteView.as_view(), name="notification-delete"),
 ]

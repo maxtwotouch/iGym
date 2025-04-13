@@ -127,6 +127,16 @@ class ScheduledWorkout(models.Model):
     def __str__(self):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
 
+class PersonalTrainerScheduledWorkout(models.Model):
+     client = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pt_scheduled_workouts", blank=False, null=False)
+     pt = models.ForeignKey(User, on_delete=models.CASCADE, related_name="arranged_workouts_clients", blank=False, null=False)
+     workout_template = models.ForeignKey(Workout, on_delete=models.CASCADE, blank=False, null=False)
+     scheduled_date = models.DateTimeField(blank=False, null=False)
+     
+     def __str__(self):
+         return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
+    
+
 class Notification(models.Model):
     # User is the one receiving the notification
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications", blank=False, null=False)
@@ -140,7 +150,6 @@ class Notification(models.Model):
     # Need Workout model for getting the latest name of the workout
     workout_message = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)
     
-    # TODO: also need to check that the sender and user is a part of the chat room
     # Need to check that the chat room exist, since it does not have a corresponding create view
     def save(self, *args, **kwargs):
         try:
@@ -161,6 +170,14 @@ class Notification(models.Model):
             raise ValidationError(f"User is not part of the chat room")
         
         super().save(*args, **kwargs)
+
+class FailedLoginAttempt(models.Model):
+    username = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.username} from {self.ip_address} at {self.timestamp}"
             
             
             
