@@ -22,7 +22,6 @@ export default function Calendar() {
   // For modals & scheduling
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [showTypeSelectModal, setShowTypeSelectModal] = useState(false); // Selecting between pt and normal schedule (for pt)
   const [showPtScheduleModal, setShowPtScheduleModal] = useState(false); 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
@@ -316,7 +315,7 @@ const fetchPersonalTrainerScheduledWorkouts = async () => {
     setSelectedDateTime(localDateTime);
 
     if (userType === "trainer") {
-      setShowTypeSelectModal(true); // pt
+      setShowPtScheduleModal(true); // pt
     } else {
       setShowScheduleModal(true); // client
     }
@@ -654,33 +653,6 @@ const fetchPersonalTrainerScheduledWorkouts = async () => {
                     >
                       Schedule
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Modal for PT: choose type of schedule */}
-          {showTypeSelectModal && (
-            <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-              <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content bg-dark text-white">
-                  <div className="modal-header">
-                    <h5 className="modal-title">Schedule Workout</h5>
-                    <button type="button" className="btn-close btn-close-white" onClick={() => setShowTypeSelectModal(false)}></button>
-                  </div>
-                  <div className="modal-body">
-                    <p>Who is this workout for?</p>
-                    <div className="d-grid gap-2">
-                      <button className="btn btn-outline-light" onClick={() => {
-                        setShowTypeSelectModal(false);
-                        setShowScheduleModal(true); // For PT self
-                      }}>Myself</button>
-                      <button className="btn btn-outline-light" onClick={() => {
-                        setShowTypeSelectModal(false);
-                        setShowPtScheduleModal(true); // For client
-                      }}>A Client</button>
-                    </div>
                   </div>
                 </div>
               </div>

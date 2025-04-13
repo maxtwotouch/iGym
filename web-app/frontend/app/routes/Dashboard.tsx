@@ -626,8 +626,7 @@ const CustomerDashboard: React.FC = () => {
 const TrainerDashboard: React.FC = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [username, setUsername] = useState<string>("trainer"); 
-  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>([]);
+  const [username, setUsername] = useState<string>("PT"); 
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [uniqueNotifications, setUniqueNotifications] = useState<Notification[]>([]);
@@ -670,25 +669,7 @@ const TrainerDashboard: React.FC = () => {
     }
 
     const name = localStorage.getItem("username");
-    setUsername(name || "User"); 
-    
-    // Fetch workout sessions from the backend
-    const fetchWorkoutSessions = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/workouts_sessions/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) {
-          console.error("Failed to fetch workout sessions");
-          return;
-        }
-        const data = await response.json();
-        console.log("Fetched workout sessions:", data);
-        setWorkoutSessions(data);
-      } catch (error) {
-        console.error("Error fetching workout sessions:", error);
-      }
-    };
+    setUsername(name || "PT"); 
 
     // Fetch exercises from the backend
     const fetchExercises = async () => {
@@ -766,7 +747,6 @@ const TrainerDashboard: React.FC = () => {
     }
   }
 
-    fetchWorkoutSessions();
     fetchWorkouts();
     fetchExercises();
     notificationsList();
@@ -991,106 +971,49 @@ const TrainerDashboard: React.FC = () => {
 
           {/* Upcoming scheduled workouts with client */}
           <div className="mt-6 w-full text-left">
-            <h4 className="text-lg font-semibold mb-2">Upcoming Sessions</h4>
-            {ptScheduledWorkouts.length === 0 ? (
-              <p className="text-sm text-gray-400">No upcoming sessions</p>
-            ) : (
-              <ul className="space-y-2">
-                {ptScheduledWorkouts
-                  .filter(w => new Date(w.scheduled_date) > new Date())
-                  .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
-                  .slice(0, showAll ? undefined : 3)
-                  .map((w, i) => (
-                    <li key={i} className="p-2 bg-gray-700 rounded">
-                      <p className="font-medium">💪 {w.workout_title} with {w.client_username}</p>
-                      <p className="text-sm text-gray-400">
-                        📅 {new Date(w.scheduled_date).toLocaleString("en-GB")}
-                      </p>
-                    </li>
-                  ))}
-              </ul>   
-            )}
-            {ptScheduledWorkouts.length > 3 && (
-              <button
-                onClick={() => setShowAll(prev => !prev)}
-                className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm"
-              >
-                {showAll ? "Show Less" : "Show More"}
-              </button>
-            )}           
+            <h4 className="text-lg font-semibold mb-2">Chatroom button incoming</h4> 
           </div>
 
         </motion.div>
         
-        {/* Middle Section: Feed */}
+        {/* Middle Section: Scheduled workouts with clients */}
         <motion.div className="w-100 mb-3">
           <div className="w-100 mb-3">
-            <h3 className="text-lg font-semibold mb-2 text-center">Sessions Performed</h3>
-            {workoutSessions.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center">No History</p>
+            <h3 className="text-xl font-bold mb-4 text-center">Upcoming Sessions</h3>
+            {ptScheduledWorkouts.length === 0 ? (
+              <p className="text-base text-gray-400 text-center">No upcoming sessions</p>
             ) : (
-              <ul className="space-y-2 w-100">
-                {workoutSessions.slice().reverse().map((session) => {
-                  const workout = workouts.find((workout) => workout.id === session.workout);
-                  const workoutName = workout ? workout.name : "Unknown Workout";
+              <ul className="space-y-4">
+                {ptScheduledWorkouts
+                  .filter(w => new Date(w.scheduled_date) > new Date())
+                  .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
+                  .slice(0, showAll ? undefined : 5)
+                  .map((w, i) => {
+                    return (
+                      <li key={i} className="p-4 bg-gray-700 rounded text-white text-base">
+                        <div className="mb-2">
+                          <span className="block text-lg font-semibold">👤 Client: {w.client_username}</span>
+                          <span className="block text-md font-medium">🏋️ Workout: {w.workout_title}</span>
+                        </div>
+                        <div className="text-sm text-gray-300">
+                          📅 {new Date(w.scheduled_date).toLocaleString("en-GB")}
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
+            )}
+            {ptScheduledWorkouts.length > 3 && (
+              <button
+                onClick={() => setShowAll(prev => !prev)}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm"
+              >
+                {showAll ? "Show Less" : "Show More"}
+              </button>
+            )}
+          </div>
+        </motion.div>
 
-                  return (
-                    <li
-                      key={session.id}
-                      className="p-2 bg-gray-700 rounded hover:bg-gray-600 d-flex flex-column"
-                    >
-                      {/* Display info about the session */}
-                      <p className="font-semibold mb-0">💪 {workoutName}</p>
-                      <div className="d-flex flex-column">
-                        <p className="text-sm text-gray-400 mt-1">
-                          🔥 Calories Burned: <span className="font-semibold text-white">{session.calories_burned}</span>
-                        </p>
-                        <p className="text-sm text-gray-400 mt-1">
-                          📅 Date performed:{" "}
-                          <span className="font-semibold text-white">
-                            {new Date(session.start_time).toLocaleDateString("en-GB", {
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "2-digit",
-                            })}
-                          </span>
-                        </p>
-                      </div>
-
-                {/* Exercise Sessions */}
-                <div className="mt-3">
-                  <ul className="mt-2">
-                    {session.exercise_sessions.map((exerciseSession) => {
-                      const exercise = exercises.find((ex) => ex.id === exerciseSession.exercise);
-                      const exerciseName = exercise ? exercise.name : "Unknown Exercise";
-
-                      return (
-                        <li key={exerciseSession.id} className="mb-2">
-                          <p className="text-white font-semibold">{exerciseName}</p>
-                          <ul className="ml-4 text-sm text-gray-400">
-                            {exerciseSession.sets.map((set, index) => (
-                              <li key={set.id} className="flex justify-between">
-                                <span>Set {index + 1}: </span>
-                                <span className="font-semibold text-white">{set.repetitions} reps</span>
-                                <span className="font-semibold text-white">{set.weight} kg</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  </motion.div>
-
-        
 				{/* Right Section: Quick Actions */}
         <motion.div
           className="bg-gray-800 p-6 rounded-lg shadow-md flex flex-col items-center text-center w-full md:w-1/4"
