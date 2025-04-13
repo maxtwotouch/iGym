@@ -133,15 +133,20 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
+        # Prevents passwords that are too similar to the user's personal data (such as their username)
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
+        # Minimum length for the password
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 8},
     },
     {
+        # Blocks very common passwords that are easily guessed (such ass 'password')
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
+        # Rejects passwords that are entirely numeric (such as 12345678)
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]

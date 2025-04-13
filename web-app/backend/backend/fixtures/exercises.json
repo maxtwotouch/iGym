@@ -550,5 +550,77 @@
             "muscle_group": "Thigh and buttock muscles",
             "image": "exercise_images/hack_squat.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Push Ups",
+            "description": "Face down, arms outstretched, hands wide apart, resting on the floor and aligned with your pectoral muscles. Legs stretched and face pointed towards the ground. Slowly bend your arms, letting your chest come closer to the ground, until your elbows form a 90 degrees angle. Then return to the starting position by pushing on your hands.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest (Primary). Deltoids, Triceps, Biceps (Secondary)",
+            "image": "exercise_images/push_ups.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Close Grip Bench Press",
+            "description": "Lying on the bench, your feet flat on the floor. Grasp the bar with a pronation grip, hands slightly tighter than shoulder width. Unhook the bar and slowly lower it to the lower part of your chest. Then push the load upwards until your arms are straight.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps (Primary). Anterior deltoids, Chest (Secondary)",
+            "image": "exercise_images/close_grip_bench_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name":  "Close Grip Pulldown",
+            "description": "Seated, thighs under the padded parts, the double handle grasped with both hands. Keep your back straight. Pull the load up to your upper chest without moving your elbows away from your body. Keep the contraction for a moment before slowly returning to the initial position.",
+            "muscle_category": "back",
+            "muscle_group": "Back (Primary). Biceps (Secondary)",
+            "image": "exercise_images/close_grip_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "EZ Barbell Curl",
+            "description": "Standing with knees slightly bent and back straight. Hold the EZ bar with your hands in supination. Without making a movement of bust, raise the EZ bar by bending the forearms. Contract your biceps in high position, then let the bar slowly come down again in the initial position. Keep your elbows close to your body during the movement.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/ez_barbell_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Oblique Crunch",
+            "description": "Lying on the ground on the right side with bent knees. Put your left hand behind your head and your right hand on your abs to feel them working. Contract your obliques on your left side by raising your shoulder towards your hip. Stay in the upright position for a second and then slowly return to the original position.",
+            "muscle_category": "abs",
+            "muscle_group": "Abdonomials (oblique)",
+            "image": "exercise_images/oblique_crunch.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Seated Barbell Shoulder Press",
+            "description": "Sit down on the bench and unrack the bar using an overhand (pronated) grip, your elbows pointing outward. The bar stands in front of you at chin’s level. This level may vary depending on your shoulders’ flexibility. The gap between your hands should be such that your elbows are forming a 90° angle when your arms are parallel to the floor. Squeeze your shoulders while pressing the weight vertically. Stop the movement when your arms are about to be fully outstretched. Then, come back slowly to the starting position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (Primary). Triceps (Secondary)",
+            "image": "exercise_images/seated_barbell_shoulder_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "barbell Bulgarian Split Squat",
+            "description": "Rack the bar on your trapezius muscle and shoulders. Rest one leg on the bench behind you, with your laces down. Place your front foot (your squatting leg) about 3 footsteps in front of the bench. Keep a shoulder-width stance, your back foot should not be directly behind your front. Squat down with your standing leg while bracing your core and keeping your chest tall until your back knee almost touches the floor. Pause and push up through your front foot only and return to the starting position. Do not allow your knee to move in or out during the movement.",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles, Calves (Secondary)",
+            "image": "exercise_images/barbell_bulgarian_split_squat.png"
+        }
     }
+
+
 ]

@@ -7,6 +7,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import AuthenticationFailed
 from .models import FailedLoginAttempt
 from .utils import is_locked_out, get_client_ip_address
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 # The default user-set-up if we only have one type of user
 
@@ -36,6 +39,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["id", "username", "password", "profile"]
         extra_kwargs = {"password": {"write_only": True}}
+    
+    def validate(self, data):
+        password = data.get("password")
+        try:
+            validate_password(password)
+        except DjangoValidationError as e:
+            raise DRFValidationError({"password": e.messages})
+        return data
     
     def create(self, validated_data):
         profile_data = validated_data.pop('profile')

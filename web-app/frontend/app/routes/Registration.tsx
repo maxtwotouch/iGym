@@ -45,18 +45,28 @@ export default function RegistrationForm() {
         body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        alert("Registration successful!");
-        navigate("/login");
-      } else {
-        const errorData = await response.json();
-        console.error("Registration failed:", errorData);
-        alert("Registration failed: " + JSON.stringify(errorData));
+      const data = await response.json();
+
+      if(!response.ok) {
+        const fieldErrors = [];
+
+        for (const key in data) {
+          if (Array.isArray(data[key])) {
+            fieldErrors.push(`${key}: ${data[key].join("")}`);
+          } else {
+            fieldErrors.push(`${key}: ${data[key]}`);
+          }
+        }
+
+        alert("Registration failed:\n" + fieldErrors.join("\n"));
       }
     } catch (error) {
       console.error("Error during registration:", error);
       alert("An error occurred during registration.");
     }
+    
+    alert("Registration successful!");
+    navigate("/login");
   };
 
   return (
