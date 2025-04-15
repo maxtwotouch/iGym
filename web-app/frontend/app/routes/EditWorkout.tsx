@@ -111,14 +111,26 @@ const EditWorkout: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to save workout:", errorData);
+      const data = await response.json();
+
+      if(!response.ok) {
+        const fieldErrors = [];
+
+        for (const key in data) {
+          if (Array.isArray(data[key])) {
+            fieldErrors.push(`${key}: ${data[key].join("")}`);
+          } else {
+            fieldErrors.push(`${key}: ${data[key]}`);
+          }
+        }
+
+        alert("Edit failed:\n" + fieldErrors.join("\n"));
         return;
       }
     }
     catch (error) {
       console.error("Error saving workout:", error);
+      return;
     }
 
     navigate("/dashboard");

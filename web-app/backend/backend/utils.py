@@ -1,6 +1,8 @@
 from django.utils.timezone import now
 from datetime import timedelta
 from .models import FailedLoginAttempt
+from rest_framework.exceptions import ValidationError
+import re
 
 MAX_TRIES = 5
 TIME_LOCKED_OUT = timedelta(minutes=3)
@@ -24,3 +26,8 @@ def get_client_ip_address(request):
     if x_forwarded_for:
         return x_forwarded_for.split(",")[0]
     return request.META.get("REMOTE_ADDR", "127.0.0.1")
+
+
+
+    
+    

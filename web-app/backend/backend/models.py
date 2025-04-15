@@ -3,6 +3,15 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+from django.contrib.auth.validators import UnicodeUsernameValidator
+import re
+
+
+def validate_name(name):
+    if not re.fullmatch(r"^[\w.@+\- ]+$", name, re.UNICODE):
+        raise ValidationError("Enter a valid name. Only letters, digits, spaces, and @/./+/-/_ characters are allowed.")
+    return name
+
 
 # Model for personal trainers
 class PersonalTrainerProfile(models.Model):
@@ -62,7 +71,7 @@ class Exercise(models.Model):
 class Workout(models.Model):
     author = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="workouts", null=True)
     owners = models.ManyToManyField(User, blank=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, validators=[validate_name])
 
     # Set the date created to the current time
     date_created = models.DateTimeField(auto_now=True)
@@ -103,7 +112,7 @@ class Set(models.Model):
 class ChatRoom(models.Model):
     participants = models.ManyToManyField(User)
     date_created = models.DateTimeField(auto_now_add=True)
-    name = models.CharField(max_length=255, blank=False, null=False)
+    name = models.CharField(max_length=255, blank=False, null=False, validators=[validate_name])
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_messages", blank=False, null=False)

@@ -157,13 +157,29 @@ const PtList: React.FC = () => {
                     Authorization: `Bearer ${token}`, "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    name: `Chat with PT (Client: ${localStorage.getItem("username")}, PT: ${ptName})`,
+                    name: "Chat with PT",
                     participants: [Number(localStorage.getItem("user_id")), ptId]
                 })
             });
 
             const chatRoomData = await chatRoomResponse.json();
+            if(!chatRoomResponse.ok) {
+                const fieldErrors = [];
+        
+                for (const key in chatRoomData) {
+                  if (Array.isArray(chatRoomData[key])) {
+                    fieldErrors.push(`${key}: ${chatRoomData[key].join("")}`);
+                  } else {
+                    fieldErrors.push(`${key}: ${chatRoomData[key]}`);
+                  }
+                }
+        
+                alert("Chat room creation failed:\n" + fieldErrors.join("\n"));
+                return;
+              }
             return chatRoomData.id;
+
+
         } catch (error) {
             console.error("Error creating chat room:", error);
         }

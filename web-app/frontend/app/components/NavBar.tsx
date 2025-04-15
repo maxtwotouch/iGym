@@ -213,7 +213,14 @@ function NavBar() {
                     animate={{ y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <Link className={`hover:text-blue-400 ${location.pathname === '/dashboard' && 'text-blue-400'}`} to="/dashboard">Home</Link>
+                    <Link 
+                        className={`hover:text-blue-400 ${location.pathname === '/dashboard' && 'text-blue-400'}`} 
+                        to="/dashboard"
+                        data-name="Home Page"
+                        >
+                        Home
+                    </Link>
+                    
                     <Link 
                         className={`hover:text-blue-400 ${location.pathname === '/exercises' ? 'text-blue-400' : ''}`} 
                         to="/exercises"
@@ -371,6 +378,7 @@ function NavBar() {
                         <button
                             onClick={handleLogout}
                             className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300"
+                            name="logoutButton"
                             >
                             <div className="flex items-center">
                                 <svg

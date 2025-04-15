@@ -97,6 +97,8 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 })
             });
 
+            const data = await response.json();
+
             if (response.ok) {
                 // Reset form
                 setNewChatRoomName(""); 
@@ -104,7 +106,18 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
                 fetchChatRooms(); 
             } else {
-                console.error("Failed to create chat room");
+                const fieldErrors = [];
+
+                for (const key in data) {
+                    if (Array.isArray(data[key])) {
+                        fieldErrors.push(`${key}: ${data[key].join("")}`);
+                    } else {
+                        fieldErrors.push(`${key}: ${data[key]}`);
+                    }
+                }
+
+                alert("Chat room creation failed:\n" + fieldErrors.join("\n"));
+                return;
             }
         } else {
             console.error("Chat room name and participants are required");

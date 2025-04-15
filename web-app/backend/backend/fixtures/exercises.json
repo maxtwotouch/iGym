@@ -83,7 +83,7 @@
     {
         "model": "backend.Exercise",
         "fields": {
-            "name": "Dumbbell Bent Over Row (Single Arm)",
+            "name": "Dumbbell Bent-Over Row (Single Arm)",
             "description": "Place your left knee and left hand on the bench with your chest parallel to the floor. Keep your right foot on the ground and grasp the dumbbell still on the ground in your right hand in a neutral grip. Keeping your arm close to your body, lift the dumbbell as high as possible by raising your elbow and keeping your forearm perpendicular to the ground. Once your series is over, do the same with the other arm.",
             "muscle_category": "back",
             "muscle_group": "Back (primary), hind deltoids & biceps (secondary)",
@@ -620,7 +620,76 @@
             "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles, Calves (Secondary)",
             "image": "exercise_images/barbell_bulgarian_split_squat.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Incline Barbell Bench Press",
+            "description": "Lying on the sloping bench with your feet flat on the floor. Grasp the bar with a grip wider than shoulder width. Your forearms should be perpendicular to the ground. Unhook the bar and slowly lower it to the top of your chest. As you contract your pectorals, push the load upwards until your arms are almost straight. During the whole movement: Keep your elbows on the outside to put maximum stress on your chest and minimum stress on your anterior deltoids and triceps. Keep your shoulders flat against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Chest  (the clavicular bundle of the pectorals is mostly solicited due to the inclination of the bench) (Primary). Front deltoids, triceps (Secondary)",
+            "image": "exercise_images/incline_barbell_bench_press.png"
+        }
+    },
+    {
+       "model": "backend.Exercise",
+       "fields": {
+        "name": "Kickback",
+        "description": "Place your left knee and left hand on a bench, with your chest parallel to the floor. Keep your right foot on the ground and grasp the dumbbell in your right hand. Keeping it close to your body, raise the top of your right arm until it is parallel to the ground. Perform an extension of the right arm. When it is fully extended, contract your triceps for a moment before returning to the initial position. Once you have completed your series, do the same with the other arm.",
+        "muscle_category": "arms",
+        "muscle_group": "Triceps",
+        "image": "exercise_images/kickback.png"
+       } 
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Behind Neck Pulldown",
+            "description": "Sitting, thighs under the padded parts, the bar grasped in pronation, hands more apart than shoulder width. Keep elbows pointed outwards and back straight. Pull the bar at the back of the neck. Keep the contraction for a moment before slowly returning to the initial position. During the movement, do not let your elbows come forward.",
+            "muscle_category": "back",
+            "muscle_group": "Back (Primary). Biceps (Secondary)",
+            "image": "exercise_images/behind_neck_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Single-Arm Low Pulley Cable Curl",
+            "description": "Stand in front of the cable machine and grasp the handle with an underhand (supinated) grip. The knees should be slightly bent and your arm relaxed along your body. Keeping your torso fixed, elbow tucked in at your side, and eyes facing forward, slowly curl the weight up as far as possible without letting the elbow move forward excessively; only your forearm should be moving. Squeeze the biceps at the top of the movement, and then slowly lower the weight back to the starting position. Repeat for desired reps and then repeat for the other arm.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/single_arm_low_pulley_cable_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Long Arm Crunch",
+            "description": "Lie on your back with knees bent and feet flat on the ground. Place your arms above your head with your elbows in line with your ears. You can interlink your thumbs if it makes it easier for you. Keeping your elbows in line with your ears throughout the movement, raise your chest and shoulders off the ground. Pause, and then slowly lower yourself back down.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs",
+            "image": "exercise_images/long_arm_crunch.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Smith Machine Shoulder Press",
+            "description": "Sitting on a bench with your back well supported against the backrest. Position the bench so that the bar drops just in front of your face. Grasp the bar with your hands in pronation. Your back is well supported against the backrest, your elbows are on the outside and your forearms are perpendicular to the ground. Unhook the bar and slowly bring it to the height of your chin. Contract your shoulders by pushing the load upwards. Stop the movement just before your arms are fully extended. Then return to the down position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (Primary). Triceps (Secondary)",
+            "image": "exercise_images/smith_machine_shoulder_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Standing Cable Kickback",
+            "description": "Stand up tall in front of the step with dumbbells in each hand at your sides. Keeping your chest tall and core engaged, step one foot up onto the step and place your whole foot flat on the step. Step the other foot up onto the step. Step back and down off of the step with the second foot you brought up, then step down with the first foot. Repeat with the opposite side.",
+            "muscle_category": "legs",
+            "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles, Calves (Secondary)",
+            "image": "exercise_images/standing_cable_kickback.png"
+        }
     }
-
 
 ]

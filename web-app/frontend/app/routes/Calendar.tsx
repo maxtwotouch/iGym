@@ -22,9 +22,49 @@ export default function Calendar() {
   // For modals & scheduling
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showPtScheduleModal, setShowPtScheduleModal] = useState(false); 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<string>("");
+
+  const [clientList, setClientList] = useState<any[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserType(localStorage.getItem("userType"));
+  }, [navigate]);
+
+  useEffect(() => { // Fetch the pt's clients, if the current user is a pt
+    if (userType === "trainer") {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const fetchClients = async () => {
+        try {
+          const response = await fetch(`${backendUrl}/personal_trainer/clients/`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+    
+          if (!response.ok) {
+            throw new Error("Failed to fetch clients");
+          }
+    
+          const data = await response.json();
+          setClientList(data);
+        } catch (error) {
+          console.error("Error fetching clients:", error);
+        }
+      };
+
+      fetchClients();
+    }
+  }, [userType]);
 
   // Fetch both scheduled workouts and workout sessions
   useEffect(() => {
@@ -35,65 +75,130 @@ export default function Calendar() {
     }
 
 
-// Fetch scheduled workouts (
-const fetchScheduledWorkouts = async () => {
-  try {
-    const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    
-    if (!response.ok) {
-      throw new Error("Failed to fetch scheduled workouts");
-    }
+  // Fetch scheduled workouts (
+  const fetchScheduledWorkouts = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch scheduled workouts");
+      }
 
-    const data = await response.json();
-    const now = new Date();
+      const data = await response.json();
+      const now = new Date();
 
-    // Array to hold delete promises
-    const deletePromises = [];
+      // Array to hold delete promises
+      const deletePromises = [];
 
-    for (const item of data) {
-      if (new Date(item.scheduled_date) < now) {
-        try {
-          // Hold the promise for the delete operation
-          const deletePromise = fetch(`${backendUrl}/scheduled_workout/delete/${item.id}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          deletePromises.push(deletePromise); // Keep track of delete promises
-        } catch (err) {
-          console.error(`Failed to delete past scheduled workout ${item.id}:`, err);
+      for (const item of data) {
+        if (new Date(item.scheduled_date) < now) {
+          try {
+            // Hold the promise for the delete operation
+            const deletePromise = fetch(`${backendUrl}/scheduled_workout/delete/${item.id}/`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            deletePromises.push(deletePromise); // Keep track of delete promises
+          } catch (err) {
+            console.error(`Failed to delete past scheduled workout ${item.id}:`, err);
+          }
         }
       }
+
+      // Wait for all delete promises to resolve
+      await Promise.all(deletePromises);
+
+      // Now, fetch the updated list of scheduled workouts
+      const updatedResponse = await fetch(`${backendUrl}/scheduled_workouts/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!updatedResponse.ok) {
+        throw new Error("Failed to fetch scheduled workouts after deletion");
+      }
+
+      const updatedData = await updatedResponse.json(); // Get updated data
+
+      return updatedData.map((item: any) => ({
+        id: `scheduled-${item.id}`,
+        workout_id: item.workout_template,
+        title: item.workout_title,
+        start: item.scheduled_date,
+      }));
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to load scheduled workouts");
+      return [];
     }
+  };
 
-    // Wait for all delete promises to resolve
-    await Promise.all(deletePromises);
+  const fetchPersonalTrainerScheduledWorkouts = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/pt_scheduled_workouts/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-    // Now, fetch the updated list of scheduled workouts
-    const updatedResponse = await fetch(`${backendUrl}/scheduled_workouts/`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+      if (!response.ok) {
+        throw new Error("Failed to fetch PT scheduled workouts");
+      }
 
-    if (!updatedResponse.ok) {
-      throw new Error("Failed to fetch scheduled workouts after deletion");
+      const data = await response.json();
+      const now = new Date();
+
+      // Array to hold delete promises
+      const deletePromises = [];
+
+      for (const item of data) {
+        if (new Date(item.scheduled_date) < now) {
+          try {
+            // Hold the promise for the delete operation
+            const deletePromise = fetch(`${backendUrl}/pt_scheduled_workout/delete/${item.id}/`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            deletePromises.push(deletePromise); // Keep track of delete promises
+          } catch (err) {
+            console.error(`Failed to delete past scheduled workout ${item.id}:`, err);
+          }
+        }
+      }
+
+      // Wait for all delete promises to resolve
+      await Promise.all(deletePromises);
+
+      // Now, fetch the updated list of scheduled workouts
+      const updatedResponse = await fetch(`${backendUrl}/pt_scheduled_workouts/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!updatedResponse.ok) {
+        throw new Error("Failed to fetch scheduled workouts after deletion");
+      }
+
+      const updatedData = await updatedResponse.json(); // Get updated data
+
+      return updatedData.map((item: any) => {
+        const isPt = item.pt === parseInt(localStorage.getItem("user_id") || "-1");
+        const client = clientList.find((client) => client.id === item.client);
+
+        return {
+          id: `pt-scheduled-${item.id}`,
+          workout_id: item.workout_template,
+          start: item.scheduled_date,
+          title: isPt
+            ? `${item.workout_title} with ${client?.username || "Client"}`
+            : `${item.workout_title} with PT`
+        };
+      });
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to load PT scheduled workouts");
+      return [];
     }
-
-    const updatedData = await updatedResponse.json(); // Get updated data
-
-    return updatedData.map((item: any) => ({
-      id: `scheduled-${item.id}`,
-      workout_id: item.workout_template,
-      title: item.workout_title,
-      start: item.scheduled_date,
-    }));
-
-  } catch (err: any) {
-    console.error(err);
-    setError(err.message || "Failed to load scheduled workouts");
-    return [];
-  }
-};
+  };
 
 
     // Fetch workout sessions 
@@ -162,14 +267,15 @@ const fetchScheduledWorkouts = async () => {
     const loadEvents = async () => {
       setIsLoading(true);
       const scheduledEvents = await fetchScheduledWorkouts();
+      const ptScheduledEvents = await fetchPersonalTrainerScheduledWorkouts();
       const sessionEvents = await mapWorkoutSessions();
       // Merge both arrays into one event list
-      setCalendarEvents([...scheduledEvents, ...sessionEvents]);
+      setCalendarEvents([...scheduledEvents, ...ptScheduledEvents, ...sessionEvents]);
       setIsLoading(false);
     };
 
     loadEvents();
-  }, [navigate]);
+  }, [clientList]);
 
   // Load available workout templates for scheduling
   useEffect(() => {
@@ -207,7 +313,12 @@ const fetchScheduledWorkouts = async () => {
       .toISOString()
       .slice(0, 16);
     setSelectedDateTime(localDateTime);
-    setShowScheduleModal(true);
+
+    if (userType === "trainer") {
+      setShowPtScheduleModal(true); // pt
+    } else {
+      setShowScheduleModal(true); // client
+    }
   };
 
   // POST to schedule a workout
@@ -264,6 +375,64 @@ const fetchScheduledWorkouts = async () => {
       setError(err.message || "Failed to schedule workout");
     }
   };
+
+    // POST to schedule a workout with pt
+    const handlePtScheduleWorkout = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token || !selectedWorkoutId || !selectedDateTime) return;
+  
+      // Convert local date/time from input to full ISO string
+      const fullDate = new Date(selectedDateTime);
+      const isoDateTime = fullDate.toISOString();
+  
+      // Check if the selected date is in the past
+      const now = new Date();
+      if (fullDate < now) {
+        alert("You cannot schedule a workout in the past."); // Set error message
+        return;
+      }
+  
+      const postData = {
+        client: selectedClientId,
+        workout_template: selectedWorkoutId,
+        scheduled_date: isoDateTime
+      };
+  
+      try {
+        const response = await fetch(`${backendUrl}/pt_scheduled_workout/create/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(postData)
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to schedule workout");
+        }
+        const newSession = await response.json();
+  
+        const client = clientList.find((client) => client.id === selectedClientId);
+  
+        const newEvent = {
+          id: `pt-scheduled-${newSession.id}`,
+          workout_id: newSession.workout_template,
+          start: newSession.scheduled_date,
+          title: `${newSession.workout_title} with ${client.username}`
+        };
+  
+        setCalendarEvents((prev) => [...prev, newEvent]);
+  
+        // Reset modal state
+        setShowPtScheduleModal(false);
+        setSelectedWorkoutId(null);
+        setSelectedDateTime("");
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Failed to schedule workout");
+      }
+    };
 
   // Show event details when clicked
   const handleEventClick = (info: any) => {
@@ -409,6 +578,90 @@ const fetchScheduledWorkouts = async () => {
                       className="btn btn-primary" 
                       name="scheduleButton"
                       onClick={handleScheduleWorkout}
+                    >
+                      Schedule
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showPtScheduleModal && (
+            <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content bg-dark text-white">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Schedule Workout for a Client</h5>
+                    <button
+                      type="button"
+                      className="btn-close btn-close-white"
+                      onClick={() => setShowPtScheduleModal(false)}
+                    ></button>
+                  </div>
+                  <div className="modal-body">
+                    {/* Select Client */}
+                    <label htmlFor="clientSelect" className="form-label">
+                      Select a Client:
+                    </label>
+                    <select
+                      id="clientSelect"
+                      className="form-select bg-dark text-white border-secondary mb-3"
+                      value={selectedClientId || -1}
+                      onChange={(e) => setSelectedClientId(Number(e.target.value))}
+                    >
+                      <option value="">-- Select a Client --</option>
+                      {clientList.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.username}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Select Workout */}
+                    <label htmlFor="workoutSelectPt" className="form-label">
+                      Select a Workout Template:
+                    </label>
+                    <select
+                      id="workoutSelectPt"
+                      className="form-select bg-dark text-white border-secondary mb-3"
+                      value={selectedWorkoutId || ""}
+                      onChange={(e) => setSelectedWorkoutId(Number(e.target.value))}
+                    >
+                      <option value="">-- Select a Workout --</option>
+                      {availableWorkouts.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.title}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Select Time */}
+                    <label htmlFor="dateTimeInputPt" className="form-label">
+                      Pick Date &amp; Time:
+                    </label>
+                    <input
+                      id="dateTimeInputPt"
+                      type="datetime-local"
+                      className="form-control bg-dark text-white border-secondary"
+                      value={selectedDateTime}
+                      onChange={(e) => setSelectedDateTime(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowPtScheduleModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      name="ptScheduleButton"
+                      onClick={handlePtScheduleWorkout}
                     >
                       Schedule
                     </button>

@@ -59,12 +59,14 @@ export default function RegistrationForm() {
         }
 
         alert("Registration failed:\n" + fieldErrors.join("\n"));
+        return;
       }
     } catch (error) {
       console.error("Error during registration:", error);
       alert("An error occurred during registration.");
+      return;
     }
-    
+
     alert("Registration successful!");
     navigate("/login");
   };
