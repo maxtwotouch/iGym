@@ -1,3 +1,4 @@
+// components/SelectPT/PtList.tsx
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
@@ -5,8 +6,9 @@ import { backendUrl } from "~/config";
 
 type PT = {
   id: number;
-  name: string;
-  trainer_profile?: {
+  first_name: string;
+  last_name: string;
+  trainer_profile: {
     id: number;
     experience: string;
   };
@@ -15,7 +17,7 @@ type PT = {
 export const PtList: React.FC = () => {
   const [pts, setPts] = useState<PT[]>([]);
   const [selectedPt, setSelectedPt] = useState<PT | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,23 +30,24 @@ export const PtList: React.FC = () => {
 
     const fetchPts = async () => {
       try {
-        const response = await fetch(`${backendUrl}/personal_trainers/`, {
+        const res = await fetch(`${backendUrl}/personal_trainers/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error("Failed to fetch PTs");
-        const data = await response.json();
+        if (!res.ok) throw new Error("Failed to fetch PTs");
+        const data = await res.json();
         setPts(
           data.map((pt: any) => ({
             id: pt.id,
-            name: pt.username,
+            first_name: pt.first_name,
+            last_name: pt.last_name,
             trainer_profile: {
               id: pt.trainer_profile.id,
               experience: pt.trainer_profile.experience,
             },
           }))
         );
-      } catch (error) {
-        console.error("Error fetching PTs:", error);
+      } catch (err) {
+        console.error("Error fetching PTs:", err);
       } finally {
         setIsLoading(false);
       }
@@ -53,78 +56,54 @@ export const PtList: React.FC = () => {
     fetchPts();
   }, [navigate]);
 
-  const newPt = async (ptUserId: number, ptProfileId: number) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const userId = localStorage.getItem("user_id");
-      if (!token || !userId) {
-        alert("Access token or user id not found in localStorage");
-        navigate("/login");
-        return;
-      }
-
-      // Update user's personal trainer field
-      await fetch(`${backendUrl}/user/update/${userId}/`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ profile: { personal_trainer: ptProfileId } }),
-      });
-
-      // Create a chat room between the user and the PT
-      const pt = pts.find(pt => pt.id === ptUserId) || null;
-      if (!pt) {
-        alert("Could not find PT with the given ID");
-        return;
-      }
-      const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
-
-      // Update user's pt_chatroom field
-      await fetch(`${backendUrl}/user/update/${userId}/`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ profile: { pt_chatroom: chatRoomId } }),
-      });
-      alert("PT selection successful!");
-      navigate("/chat/" + chatRoomId);
-    } catch (error) {
-      console.error("Error updating PT selection:", error);
+  const selectPt = async (pt: PT) => {
+    const token = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("user_id");
+    if (!token || !userId) {
+      alert("Missing auth info");
+      navigate("/login");
+      return;
     }
-  };
 
-  const createChatRoomWithPt = async (ptId: number, ptName: string) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      const chatRoomResponse = await fetch(`${backendUrl}/chat_room/create/`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: `Chat with PT (Client: ${localStorage.getItem("username")}, PT: ${ptName})`,
-          participants: [Number(localStorage.getItem("user_id")), ptId],
-        }),
-      });
+    // 1) Set personal_trainer on profile
+    await fetch(`${backendUrl}/user/update/${userId}/`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ profile: { personal_trainer: pt.trainer_profile.id } }),
+    });
 
-      const chatRoomData = await chatRoomResponse.json();
-      return chatRoomData.id;
-    } catch (error) {
-      console.error("Error creating chat room:", error);
-    }
+    // 2) Create chat room
+    const chatRes = await fetch(`${backendUrl}/chat_room/create/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: `Chat: ${localStorage.getItem("username")}↔${pt.first_name} ${pt.last_name}`,
+        participants: [Number(userId), pt.id],
+      }),
+    });
+    const chatData = await chatRes.json();
+
+    // 3) Update pt_chatroom
+    await fetch(`${backendUrl}/user/update/${userId}/`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ profile: { pt_chatroom: chatData.id } }),
+    });
+
+    navigate(`/chat/${chatData.id}`);
   };
 
   return (
     <div className="mt-8">
-      <motion.div
-        className="mb-6 text-center"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <p className="text-lg text-gray-300">
-          Browse through our available personal trainers below and select the one that best suits your needs.
-        </p>
-      </motion.div>
       {isLoading ? (
         <motion.div
           className="text-center text-gray-400"
@@ -146,7 +125,7 @@ export const PtList: React.FC = () => {
               No trainers available at the moment.
             </p>
           ) : (
-            pts.map(pt => (
+            pts.map((pt) => (
               <motion.div
                 key={pt.id}
                 className={`p-4 rounded-lg cursor-pointer flex flex-col justify-between transition shadow-lg ${
@@ -156,9 +135,11 @@ export const PtList: React.FC = () => {
                 onClick={() => setSelectedPt(pt)}
               >
                 <div>
-                  <h3 className="text-xl font-semibold">{pt.name}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {pt.first_name} {pt.last_name}
+                  </h3>
                   <p className="text-sm text-gray-300 mt-2">
-                    🏆 Experience: {pt.trainer_profile?.experience || "N/A"}
+                    🏆 Experience: {pt.trainer_profile.experience}
                   </p>
                 </div>
                 <motion.button
@@ -166,7 +147,7 @@ export const PtList: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedPt(pt);
+                    selectPt(pt);
                   }}
                 >
                   Choose
@@ -174,27 +155,6 @@ export const PtList: React.FC = () => {
               </motion.div>
             ))
           )}
-        </motion.div>
-      )}
-      {selectedPt && (
-        <motion.div
-          className="mt-10 p-6 bg-gray-800 rounded-lg shadow-md max-w-md mx-auto"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h3 className="text-2xl font-bold mb-2">Your Selected Trainer</h3>
-          <p className="text-xl text-white mb-1">{selectedPt.name}</p>
-          <p className="text-gray-400 mb-4">
-            Experience: {selectedPt.trainer_profile?.experience || "N/A"}
-          </p>
-          <motion.button
-            className="w-full py-3 bg-blue-600 rounded hover:bg-blue-700 transition"
-            whileHover={{ scale: 1.05 }}
-            onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
-          >
-            Confirm PT
-          </motion.button>
         </motion.div>
       )}
     </div>
