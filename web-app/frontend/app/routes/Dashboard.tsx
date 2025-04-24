@@ -88,7 +88,7 @@ const CustomerDashboard: React.FC = () => {
     }
   
     try {
-      const response = await fetch(`${backendUrl}/workouts/delete/${workoutId}/`, {
+      const response = await fetch(`${backendUrl}/workout/delete/${workoutId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -118,7 +118,7 @@ const CustomerDashboard: React.FC = () => {
     // Fetch workout sessions from the backend
     const fetchWorkoutSessions = async () => {
       try {
-        const response = await fetch(`${backendUrl}/workouts_sessions/`, {
+        const response = await fetch(`${backendUrl}/session/workout/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -136,7 +136,7 @@ const CustomerDashboard: React.FC = () => {
     // Fetch exercises from the backend
     const fetchExercises = async () => {
       try {
-        const response = await fetch(`${backendUrl}/exercises/`, {
+        const response = await fetch(`${backendUrl}/exercise/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -154,7 +154,7 @@ const CustomerDashboard: React.FC = () => {
     // Fetch workouts from the backend
     const fetchWorkouts = async () => {
     try {
-      const response = await fetch(`${backendUrl}/workouts/`, {
+      const response = await fetch(`${backendUrl}/workout/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -177,7 +177,7 @@ const CustomerDashboard: React.FC = () => {
     }
 
     try {
-      const chatRoomsResponse = await fetch(`${backendUrl}/chat_rooms/`, {
+      const chatRoomsResponse = await fetch(`${backendUrl}/chat/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const chatRoomsData = await chatRoomsResponse.json();
@@ -198,7 +198,7 @@ const CustomerDashboard: React.FC = () => {
       console.log("user data:", userData);
 
       // Translate from profile id to user id
-      const trainersResponse = await fetch(`${backendUrl}/personal_trainers/`, {
+      const trainersResponse = await fetch(`${backendUrl}/trainer/`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
       });
@@ -231,7 +231,7 @@ const CustomerDashboard: React.FC = () => {
 
   const notificationsList = async () => {
     try {
-      const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
+      const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const notificationsUserData = await notificationsUserResponse.json();
@@ -645,7 +645,7 @@ const TrainerDashboard: React.FC = () => {
     }
   
     try {
-      const response = await fetch(`${backendUrl}/workouts/delete/${workoutId}/`, {
+      const response = await fetch(`${backendUrl}/workout/delete/${workoutId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -675,7 +675,7 @@ const TrainerDashboard: React.FC = () => {
     // Fetch exercises from the backend
     const fetchExercises = async () => {
       try {
-        const response = await fetch(`${backendUrl}/exercises/`, {
+        const response = await fetch(`${backendUrl}/exercise/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -693,7 +693,7 @@ const TrainerDashboard: React.FC = () => {
     // Fetch workouts from the backend
     const fetchWorkouts = async () => {
     try {
-      const response = await fetch(`${backendUrl}/workouts/`, {
+      const response = await fetch(`${backendUrl}/workout/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -710,7 +710,7 @@ const TrainerDashboard: React.FC = () => {
 
   const notificationsList = async () => {
     try {
-      const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
+      const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const notificationsUserData = await notificationsUserResponse.json();
@@ -738,7 +738,7 @@ const TrainerDashboard: React.FC = () => {
     }
 
     try {
-      const chatRoomsResponse = await fetch(`${backendUrl}/chat_rooms/`, {
+      const chatRoomsResponse = await fetch(`${backendUrl}/chat/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const chatRoomsData = await chatRoomsResponse.json();
@@ -763,10 +763,10 @@ const TrainerDashboard: React.FC = () => {
     }
     try {
       const [scheduledRes, clientsRes] = await Promise.all([
-        fetch(`${backendUrl}/pt_scheduled_workouts/`, {
+        fetch(`${backendUrl}/shedule/pt_workout/`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${backendUrl}/personal_trainer/clients/`, {
+        fetch(`${backendUrl}/trainer/clients/`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

@@ -37,7 +37,7 @@ const WorkoutSession: React.FC = () => {
             }
 
             try {
-                const response = await fetch(`${backendUrl}/workouts/${id}/`, {
+                const response = await fetch(`${backendUrl}/workout/${id}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -69,7 +69,7 @@ const WorkoutSession: React.FC = () => {
                 return;
             }
             try {
-                const response = await fetch(`${backendUrl}/exercises/`, {
+                const response = await fetch(`${backendUrl}/exercise/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -171,7 +171,7 @@ const WorkoutSession: React.FC = () => {
             const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes
             .toString()
             .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            const response = await fetch(`${backendUrl}/workout/session/create/`, {
+            const response = await fetch(`${backendUrl}/session/workout/create/`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -202,7 +202,7 @@ const WorkoutSession: React.FC = () => {
     const createSets = async (token: string, exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
         try {
             const requests = sets.map(set => {
-                return fetch(`${backendUrl}/set/create/`, {
+                return fetch(`${backendUrl}/session/set/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -236,7 +236,7 @@ const WorkoutSession: React.FC = () => {
     const createExerciseSessions = async (token: string, workoutSessionId: number): Promise<number | null> => {
         try {
             const requests = workoutExerciseSessions.map(async session => {
-                const response = await fetch(`${backendUrl}/exercise/session/create/`, {
+                const response = await fetch(`${backendUrl}/session/exercise/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,

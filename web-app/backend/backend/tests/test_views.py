@@ -10,102 +10,122 @@ from datetime import timedelta
 from django.utils.timezone import now
 
 class CreateUserViewTest(APITestCase):
+    def setUp(self):
+        # Default values
+        self.username = "testUser"
+        self.password = "somethingThatIsNotSoEasyToGuess2343"
+        self.height = 180
+        self.weight = 75
+        
+        self.url = reverse("register_user")
     
     def test_create_user(self):
-        url = reverse('register_user')
-        
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
         
         data = {
-            "username": username,
-            "password": password,
+            "username": self.username,
+            "password": self.password,
             "profile": {
-                "height": height,
-                "weight": weight
+                "height": self.height,
+                "weight": self.weight
             }
         }
         
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
        
        # Check if the user was created
         self.assertEqual(User.objects.count(), 1)
-        self.assertEqual(User.objects.get().username, username)
+
+        # Retrieve the user object
+        user = User.objects.get(username=self.username)
         
-        #  Retrieve the user object
-        user = User.objects.get(username=username)
+        # Validate the user fields
+        self.assertEqual(user.username, self.username)
+        self.assertTrue(user.check_password(self.password))
         
         # Check if the profile was created and linked to the user
         self.assertEqual(UserProfile.objects.count(), 1)
         profile = UserProfile.objects.get(user=user)
         
         # Validate the profile fields
-        self.assertEqual(profile.height, height)
-        self.assertEqual(profile.weight, weight)
+        self.assertEqual(profile.height, self.height)
+        self.assertEqual(profile.weight, self.weight)
+        self.assertIsNone(profile.personal_trainer)
+        self.assertIsNone(profile.pt_chatroom)
+        self.assertEqual(profile.role, "user")
         
     def test_create_duplicate_username(self):
-        url = reverse('register_user')
-        
-        username = "duplicateUsername"
-        password = "testPassword"
-        height = 180
-        weight = 75
-        
-        data = {
-            "username": username,
-            "password": password,
+        first_data = {
+            "username": self.username,
+            "password": self.password,
             "profile": {
-                "height": height,
-                "weight": weight
+                "height": self.height,
+                "weight": self.weight
             }
         }
         
-        first_response = self.client.post(url, data, format='json')
-        second_response = self.client.post(url, data, format='json')
+        # Create a second user where the everything is different except the username
+        second_data = {
+            "username": self.username,
+            "password": "somethingNewThatIsNotSoEasyToGuess2343",
+            "profile": {
+                "height": 190,
+                "weight": 80
+            }
+        }
+        
+        # Create the two users
+        first_response = self.client.post(self.url, first_data, format='json')
+        second_response = self.client.post(self.url, second_data, format='json')
         
         self.assertEqual(second_response.status_code, status.HTTP_400_BAD_REQUEST)
         
+        # Make sure that the second user was not created
         self.assertEqual(User.objects.count(), 1)
     
-    def test_create_user_without_information(self):
-        url = reverse('register_user')
+    def test_create_user_using_username_as_sql_injection(self):
+        sql_injection_username = "DROP TABLE users;"
         
         data = {
-            "username": "testuser",
-            # Missing password and profile information
+            "username": sql_injection_username,
+            "password": self.password,
+            "profile": {
+                "height": self.height,
+                "weight": self.weight
+            }
         }
         
-        # Make a post request with the missing data
-        response = self.client.post(url, data, format='json')
-        
-        # Make sure that the response status code is 400 BAD REQUEST
+        response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
-        # Make sure that no user was created
-        self.assertEqual(User.objects.count(), 0)
     
-    def test_create_user_does_not_return_password(self):
-        url = reverse('register_user')
-        
-        # Create a generic user
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
+    def test_create_user_with_weak_password(self):
+        weak_password = "password123"
         
         data = {
-            "username": username,
-            "password": password,
+            "username": self.username,
+            "password": weak_password,
             "profile": {
-                "height": height,
-                "weight": weight
+                "height": self.height,
+                "weight": self.weight
+            }
+        }
+        
+        response = self.client.post(self.url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    
+    def test_create_user_does_not_return_password(self):
+        data = {
+            "username": self.username,
+            "password": self.password,
+            "profile": {
+                "height": self.height,
+                "weight": self.weight
             }
         }
     
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(self.url, data, format='json')
         
         # Verify that the response does not contain the password field
         self.assertNotIn("password", response.data)
@@ -113,7 +133,7 @@ class CreateUserViewTest(APITestCase):
 
 class CreatePersonalTrainerViewTest(APITestCase):
         def test_create_personal_trainer(self):
-            url = reverse('register_personal_trainer')
+            url = reverse("register_personal_trainer")
             
             username = "testTrainer"
             password = "testPassword"
@@ -132,116 +152,85 @@ class CreatePersonalTrainerViewTest(APITestCase):
             
             # Check if the user was created
             self.assertEqual(User.objects.count(), 1)
-            self.assertEqual(User.objects.get().username, username)
             
-            #  Retrieve the user object
+            # Retrieve the user object
             user = User.objects.get(username=username)
+            
+            self.assertEqual(user.username, username)
+            self.assertTrue(user.check_password(password))
             
             # Check if the profile was created and linked to the user
             self.assertEqual(PersonalTrainerProfile.objects.count(), 1)
+            
+            
             profile = PersonalTrainerProfile.objects.get(user=user)
             
             # Validate the profile fields
             self.assertEqual(profile.experience, experience)
-
+            self.assertEqual(profile.role, "trainer")
+            self.assertEqual(profile.pt_type, "general")
+            
 
 class ExerciseListViewTest(APITestCase):
-    
     def setUp(self):
-        # Create a user object
-        create_user_url = reverse('register_user')
+        self.user = User.objects.create_user(username="testUser", password="password")
         
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
+        # Create some test exercises
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
         
-        data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
+        self.url = reverse("exercise-list")
         
-        self.client.post(create_user_url, data, format='json')
-        self.user = User.objects.get(username=username)
+        self.exercises = [self.exercise, self.second_exercise]
         
-    
     
     def test_unauthenticated_user_do_not_have_access(self):
-        url = reverse("exercise-list")
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         
         # Unauthenticated users should not be able to get the list of exercises
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
-    def test_correct_queryset_is_returned(self):
-        url = reverse("exercise-list")
-        
-        # Create some test exercises
-        Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
-        Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
-
-        # Retrieve a user object and force authenticate it
+    def test_list_exercises_basic(self):
+        # Authenticate the user
         self.client.force_authenticate(user=self.user)
         
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Retrieve the exercises and convert it to the same format as the response using the serializer
-        exercises = Exercise.objects.all()
-        serializer = ExerciseSerializer(exercises, many=True)
+        # Convert the exercises to the same format as the response using the serializer
+        serializer = ExerciseSerializer(self.exercises, many=True)
         
         # Make sure that the queryset returned contains all exercises
+        self.assertEqual(len(response.data), len(self.exercises))
         self.assertEqual(response.data, serializer.data)
 
 class CreateWorkoutViewTest(APITestCase):
     def setUp(self):
-        create_user_url = reverse('register_user')
+        self.user = User.objects.create_user(username="testUser", password="password")
         
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
-        
-        data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-        
-        # Create some test exercises
-        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
         
-        self.client.post(create_user_url, data, format='json')
-        self.user = User.objects.get(username=username)
+        self.url = reverse("workout-create")
+        
+        self.exercises = [self.exercise.id, self.second_exercise.id]
+        self.workout_name = "Test Workout"
     
     def test_unauthenticated_user_do_not_have_access(self):
-        url = reverse("workout-create")
-        
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_create_workout_basic(self):
-        url = reverse("workout-create")
-        workout_name = "Test Workout"
-        
         self.client.force_authenticate(user=self.user)
         
         # Data for creating a workout
         data = {
-            "name": workout_name,
-            "exercises": [self.first_exercise.id, self.second_exercise.id]
+            "name": self.workout_name,
+            "exercises": self.exercises
         }
     
         # Make the POST request
-        response = self.client.post(url, data=data, format='json')
+        response = self.client.post(self.url, data=data, format='json')
         
         # Verify that the workout was created and verify the attribute values
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -249,7 +238,7 @@ class CreateWorkoutViewTest(APITestCase):
     
         workout = Workout.objects.get(id=response.data["id"])
         self.assertEqual(workout.author, self.user)
-        self.assertEqual(workout.name, workout_name)
+        self.assertEqual(workout.name, self.workout_name)
         
         # Make sure that the creater was added as one of the owners
         self.assertIn(self.user, workout.owners.all())
@@ -320,45 +309,8 @@ class TestWorkoutDeleteView(APITestCase):
 
 class TestListWorkout(APITestCase):
     def setUp(self):
-        create_user_url = reverse('register_user')
-        
-        # Create a user
-
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
-        
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-        
-        self.client.post(create_user_url, user_data, format='json')
-        self.user = User.objects.get(username=username)
-
-        # Create a second user
-
-        username = "secondTestUser"
-        password = "testPassword"
-        height = 200
-        weight = 100
-        
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-        
-        self.client.post(create_user_url, user_data, format='json')
-        self.secondUser = User.objects.get(username=username)
+        self.user = User.objects.create_user(username="testUser", password="password")
+        self.second_user = User.objects.create_user(username="secondTestUser", password="password")
         
         # Create some test exercises for the first workout
         self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
@@ -372,456 +324,211 @@ class TestListWorkout(APITestCase):
         self.fifth_exercise = Exercise.objects.create(name="Pull-up", description="An upper body exercise.", muscle_group="Back")
         self.sixth_exercise = Exercise.objects.create(name="Leg Press", description="A lower body exercise.", muscle_group="Legs")
 
-        create_workout_url = reverse('workout-create')
-        workout1_name = "Test Workout"
-        workout2_name = "Second Test Workout"
-        workout3_name = "Third Test Workout"
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout.owners.set([self.user])
+        self.workout.exercises.set([self.first_exercise, self.second_exercise])
         
-        workout1_data = {
-            "name": workout1_name,
-            "exercises": [self.first_exercise.id, self.second_exercise.id]
-        }
-
-        workout2_data = {
-            "name": workout2_name,
-            "exercises": [self.third_exercise.id, self.fourth_exercise.id]
-        }
-
-        workout3_data = {
-            "name": workout3_name,
-            "exercises": [self.fifth_exercise.id, self.sixth_exercise.id]
-        }
+        self.second_workout = Workout.objects.create(name= "Second test workout", author=self.user)
+        self.second_workout.owners.set([self.user])
+        self.second_workout.exercises.set([self.third_exercise, self.fourth_exercise])
         
-        # Authenticate the first user
-        self.client.force_authenticate(user=self.user)
+        self.third_workout = Workout.objects.create(name= "Third test workout", author=self.second_user)
+        self.third_workout.owners.set([self.second_user])
+        self.third_workout.exercises.set([self.fifth_exercise, self.sixth_exercise])
 
-        # Store the workouts of the first user in a list
-        self.workouts = []
+        self.url = reverse("workout-list")
         
-        # Push two workouts for the first user
-        response = self.client.post(create_workout_url, data=workout1_data, format='json')
-        self.workouts.append(Workout.objects.get(id=response.data["id"]))
-        response = self.client.post(create_workout_url, data=workout2_data, format='json')
-        self.workouts.append(Workout.objects.get(id=response.data["id"]))
-
-        # Authenticate the second user
-        self.client.force_authenticate(user=self.secondUser)
-
-        # Push a workout for the second user
-        response = self.client.post(create_workout_url, data=workout3_data, format='json')
-        self.secondUserWorkout = Workout.objects.get(id=response.data["id"])
+        self.user_workouts = [self.workout, self.second_workout]
+        self.second_user_workouts = [self.third_workout]
         
-    # Test that the list view returns only the workouts of the authenticated user
     def test_list_workout_basic(self):
-        # URL for the list view
-        url = reverse("workout-list")
-        
-        # Authenticate the user
         self.client.force_authenticate(user=self.user)
         
         # Make a GET request to the list view
-        response = self.client.get(url)
-        # Check that the response status code is 200 OK
+        response = self.client.get(self.url)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Retrieve the workouts and convert it to the same format as the response using the serializer
-        serializer = WorkoutSerializer(self.workouts, many=True)
+        serializer = WorkoutSerializer(self.user_workouts, many=True)
 
         # Check that the queryset returned the right number of workouts
-        self.assertEqual(len(response.data), len(self.workouts))
+        self.assertEqual(len(response.data), len(self.user_workouts))
 
         # Check that the queryset returned contains all workouts for the first user
         self.assertEqual(response.data, serializer.data)
 
         # Authenticate the second user
-        self.client.force_authenticate(user=self.secondUser)
+        self.client.force_authenticate(user=self.second_user)
 
-        # Make a GET request to the list view
-        response = self.client.get(url)
-
-        # Check that the response status code is 200 OK
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Retrieve the workouts and convert it to the same format as the response using the serializer
-        serializer = WorkoutSerializer([self.secondUserWorkout], many=True)
+        serializer = WorkoutSerializer(self.second_user_workouts, many=True)
 
-        # Check that the queryset returned the right number of workouts
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), len(self.second_user_workouts))
 
         # Check that the queryset returned contains all workouts for the second user
         self.assertEqual(response.data, serializer.data)
 
-    # Test that a user without any workouts does not get any workouts returned
+
     def test_user_without_workouts(self):
-        # URL for the list view
-        url = reverse("workout-list")
-
-        # Create a user without any workouts
-        create_user_url = reverse('register_user')
-
-        username = "noWorkoutUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
-
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-
-        self.client.post(create_user_url, user_data, format='json')
-        noWorkoutUser = User.objects.get(username=username)
+        noWorkoutUser = User.objects.create(username="noWorkoutUser", password="password")
         
-        # Authenticate the user
         self.client.force_authenticate(user=noWorkoutUser)
         
-        # Make a GET request to the list view
-        response = self.client.get(url)
-        # Check that the response status code is 200 OK
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check that the queryset returned is empty
         self.assertEqual(len(response.data), 0)
 
-    # Check that an unauthenticated user does not get any workouts returned
     def test_unauthenticated_user_do_not_have_access(self):
-        # URL for the list view
-        url = reverse("workout-list")
-
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-        
-        # Make a GET request to the list view
-        response = self.client.get(url)
-        # Check that the response status code is 401 UNAUTHORIZED
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_not_creator_but_still_owner_(self):
-        url = reverse("workout-list")
         # Create a third user
-        third_user = User.objects.create(username="third_user", password="passowrd")
+        third_user = User.objects.create(username="thirdTestUser", password="passowrd")
         
         # Add the user as one of the owners for the first workout
-        self.secondUserWorkout.owners.set([third_user])
+        self.third_workout.owners.add(third_user)
 
         self.client.force_authenticate(user=third_user)
         
         # Since the third user is an owner of the second user workout, it should come up when the third user calls this endpoint
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        serializer = WorkoutSerializer([self.secondUserWorkout], many=True)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data, serializer.data)
         
+        serializer = WorkoutSerializer(self.second_user_workouts, many=True)
+        
+        self.assertEqual(len(response.data), len(self.second_user_workouts))
+        self.assertEqual(response.data, serializer.data)
         
 
 class TestWorkoutDetail(APITestCase):
     def setUp(self):
-        create_user_url = reverse('register_user')
-        
-        # Create a user
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
+        self.user = User.objects.create_user(username="testUser", password="password")
 
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-
-        self.client.post(create_user_url, user_data, format='json')
-        self.user = User.objects.get(username=username)
-
-        # Create a second user
-        username = "secondTestUser"
-        password = "testPassword"
-        height = 200
-        weight = 100
-
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-
-        self.client.post(create_user_url, user_data, format='json')
-        self.secondUser = User.objects.get(username=username)
-
-        # Create some test exercises for the first workout
-        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        # Create some test exercises for the workout
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
 
-        # Create some test exercises for the second workout
-        self.third_exercise = Exercise.objects.create(name="Bench Press", description="A classic chest exercise.", muscle_group="Chest")
-        self.fourth_exercise = Exercise.objects.create(name="Deadlift", description="A lower body exercise.", muscle_group="Legs")
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout.owners.add(self.user)
+        self.workout.exercises.set([self.exercise, self.second_exercise])
+        
+        self.url = reverse("get-workout", kwargs={"pk": self.workout.id})
 
-        # Create the workouts
-        create_workout_url = reverse('workout-create')
-        workout1_name = "Test Workout"
-        workout2_name = "Second Test Workout"
-
-        workout1_data = {
-            "name": workout1_name,
-            "exercises": [self.first_exercise.id, self.second_exercise.id]
-        }
-
-        workout2_data = {
-            "name": workout2_name,
-            "exercises": [self.third_exercise.id, self.fourth_exercise.id]
-        }
-
-        # Authenticate the first user
-        self.client.force_authenticate(user=self.user)
-
-        response = self.client.post(create_workout_url, data=workout1_data, format='json')
-        self.firstWorkout = Workout.objects.get(id=response.data["id"])
-
-        response = self.client.post(create_workout_url, data=workout2_data, format='json')
-        self.secondWorkout = Workout.objects.get(id=response.data["id"])
-
-    # Test that the detail view returns the correct workout
     def test_workout_detail_basic(self):
-        # URL for the detail view
-        url = reverse("get-workout", kwargs={"pk": self.firstWorkout.id})
-
-        # Authenticate the user
         self.client.force_authenticate(user=self.user)
 
         # Make a GET request to the detail view
-        response = self.client.get(url)
-        # Check that the response status code is 200 OK
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Retrieve the workout and convert it to the same format as the response using the serializer
-        serializer = WorkoutSerializer(self.firstWorkout)
+        serializer = WorkoutSerializer(self.workout)
 
         # Check that the queryset returned contains the correct workout
         self.assertEqual(response.data, serializer.data)
 
-        # Get the second workout
-        url = reverse("get-workout", kwargs={"pk": self.secondWorkout.id})
-
-        # Make a GET request to the detail view
-        response = self.client.get(url)
-
-        # Retrieve the workout and convert it to the same format as the response using the serializer
-        serializer = WorkoutSerializer(self.secondWorkout)
-
-        # Check that the queryset returned contains the correct workout
-        self.assertEqual(response.data, serializer.data)
-
-    # Test that a user can not see the details of another user's workout
     def test_workout_detail_other_users_workout(self):
-       # URL for the detail view
-        url = reverse("get-workout", kwargs={"pk": self.firstWorkout.id})
-
+        second_user = User.objects.create_user(username="someUser", password="password")
+        
         # Authenticate the second user
-        self.client.force_authenticate(user=self.secondUser)
+        self.client.force_authenticate(user=second_user)
 
-        # Make a GET request to the detail view
-        response = self.client.get(url)
-        # Check that the response status code is 404 NOT FOUND
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # Test that a request for a non-existent workout returns 404 NOT FOUND
     def test_workout_detail_non_existent_workout(self):
-        # URL for the detail view
-        url = reverse("get-workout", kwargs={"pk": 100})
-
-        # Authenticate the user
+        url = reverse("get-workout", kwargs={"pk": 9999})
+        
         self.client.force_authenticate(user=self.user)
 
-        # Make a GET request to the detail view
         response = self.client.get(url)
-        # Check that the response status code is 404 NOT FOUND
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # Test that an unauthenticated user does not get any workouts returned
     def test_unauthenticated_user_do_not_have_access(self):
-        # URL for the detail view
-        url = reverse("get-workout", kwargs={"pk": self.firstWorkout.id})
-
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-
-        # Make a GET request to the detail view
-        response = self.client.get(url)
-        # Check that the response status code is 401 UNAUTHORIZED
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestUpdateWorkout(APITestCase):
     def setUp(self):
-        create_user_url = reverse('register_user')
-        
-        # Create a user
-        username = "testUser"
-        password = "testPassword"
-        height = 180
-        weight = 75
+        self.user = User.objects.create_user(username="testUser", password="password")
 
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-
-        self.client.post(create_user_url, user_data, format='json')
-        self.user = User.objects.get(username=username)
-
-        # Create a second user
-        username = "secondTestUser"
-        password = "testPassword"
-        height = 200
-        weight = 100
-
-        user_data = {
-            "username": username,
-            "password": password,
-            "profile": {
-                "height": height,
-                "weight": weight
-            }
-        }
-
-        self.client.post(create_user_url, user_data, format='json')
-        self.secondUser = User.objects.get(username=username)
-
-        # Create some test exercises for the first workout
-        self.first_exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
+        self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
 
-        # Create some test exercises for the second workout
-        self.third_exercise = Exercise.objects.create(name="Bench Press", description="A classic chest exercise.", muscle_group="Chest")
-        self.fourth_exercise = Exercise.objects.create(name="Deadlift", description="A lower body exercise.", muscle_group="Legs")
+        self.workout = Workout.objects.create(name="test workout", author=self.user)
+        self.workout.owners.add(self.user)
+        self.workout.exercises.set([self.exercise])
+        
+        self.url = reverse("workout-update", kwargs={"pk": self.workout.id})
 
-        # Create the workouts
-        create_workout_url = reverse('workout-create')
-        workout1_name = "Test Workout"
-        workout2_name = "Second Test Workout"
-
-        workout1_data = {
-            "name": workout1_name,
-            "exercises": [self.first_exercise.id, self.second_exercise.id]
-        }
-
-        workout2_data = {
-            "name": workout2_name,
-            "exercises": [self.third_exercise.id, self.fourth_exercise.id]
-        }
-
-        # Authenticate the first user
-        self.client.force_authenticate(user=self.user)
-
-        # Create two workouts for the first user
-        response = self.client.post(create_workout_url, data=workout1_data, format='json')
-        self.firstWorkout = Workout.objects.get(id=response.data["id"])
-
-        response = self.client.post(create_workout_url, data=workout2_data, format='json')
-        self.secondWorkout = Workout.objects.get(id=response.data["id"])
-
-    # Test that a user can update their own workout
     def test_update_workout_basic(self):
-        # URL for the update view
-        url = reverse("workout-update", kwargs={"pk": self.firstWorkout.id})
-
-        # Authenticate the user
         self.client.force_authenticate(user=self.user)
 
-        # Data for updating the workout
+        # Data for updating the workout. Adding another exercise to the workout, and changing the name
         data = {
             "name": "Updated Workout",
-            "exercises": [self.first_exercise.id]
+            "exercises": [self.exercise.id, self.second_exercise.id]
         }
 
         # Make a PUT request to the update view
-        response = self.client.put(url, data=data, format='json')
-        # Check that the response status code is 200 OK
+        response = self.client.put(self.url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Retrieve the updated workout
-        updatedWorkout = Workout.objects.get(id=self.firstWorkout.id)
+        updatedWorkout = Workout.objects.get(id=self.workout.id)
 
         # Check that the attributes of the workout have been updated
-        self.assertEqual(updatedWorkout.name, data["name"])
-        self.assertEqual(list(updatedWorkout.exercises.all()), [self.first_exercise])
+        self.assertEqual(updatedWorkout.name, "Updated Workout")
+        self.assertEqual(list(updatedWorkout.exercises.all()), [self.exercise, self.second_exercise])
 
-    # Test that a user can not update another user's workout
     def test_update_other_users_workout(self):
-        # URL for the update view
-        url = reverse("workout-update", kwargs={"pk": self.firstWorkout.id})
-
+        second_user = User.objects.create_user(username="someUser", password="password")
+        
         # Authenticate the second user
-        self.client.force_authenticate(user=self.secondUser)
+        self.client.force_authenticate(user=second_user)
 
-        # Data for updating the workout
         data = {
             "name": "Updated Workout",
-            "exercises": [self.first_exercise.id]
+            "exercises": [self.exercise.id, self.second_exercise.id]
         }
-
-        # Make a PUT request to the update view
-        response = self.client.put(url, data=data, format='json')
-        # Check that the response status code is 404 NOT FOUND
+        
+        response = self.client.put(self.url, data=data, format='json')
+        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Retrieve the original workout
-        originalWorkout = Workout.objects.get(id=self.firstWorkout.id)
+        originalWorkout = Workout.objects.get(id=self.workout.id)
 
         # Check that the attributes of the workout have not been updated
-        self.assertEqual(originalWorkout.name, self.firstWorkout.name)
-        self.assertEqual(list(originalWorkout.exercises.all()), [self.first_exercise, self.second_exercise])
+        self.assertEqual(originalWorkout.name, "test workout")
+        self.assertEqual(list(originalWorkout.exercises.all()), [self.exercise])
 
-    # Test that a request for a non-existent workout returns 404 NOT FOUND
     def test_update_non_existent_workout(self):
-        # URL for the update view
-        url = reverse("workout-update", kwargs={"pk": 100})
+        url = reverse("workout-update", kwargs={"pk": 9999})
 
-        # Authenticate the user
         self.client.force_authenticate(user=self.user)
-
-        # Data for updating the workout
+        
         data = {
             "name": "Updated Workout",
-            "exercises": [self.first_exercise.id]
+            "exercises": [self.exercise.id, self.second_exercise.id]
         }
 
-        # Make a PUT request to the update view
         response = self.client.put(url, data=data, format='json')
-        # Check that the response status code is 404 NOT FOUND
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # Test that an unauthenticated user does not get any workouts returned
     def test_unauthenticated_user_do_not_have_access(self):
-        # URL for the update view
-        url = reverse("workout-update", kwargs={"pk": self.firstWorkout.id})
-
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-
-        # Data for updating the workout
         data = {
             "name": "Updated Workout",
-            "exercises": [self.first_exercise.id]
+            "exercises": [self.exercise.id, self.second_exercise.id]
         }
 
-        # Make a PUT request to the update view
-        response = self.client.put(url, data=data, format='json')
-        # Check that the response status code is 401 UNAUTHORIZED
+        response = self.client.put(self.url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestCreateSet(APITestCase):
@@ -841,6 +548,7 @@ class TestCreateSet(APITestCase):
     
     def test_create_set_basic(self):
         self.client.force_authenticate(user=self.user)
+        
         data = {
             "exercise_session": self.exercise_session.id,
             "repetitions": self.repetitions,
@@ -878,7 +586,6 @@ class TestCreateSet(APITestCase):
     
 
 class TestCreateExerciseSessionView(APITestCase):
-    # Comments, we have to  make sure that the exercise provided is actually a part of the workout given in workot session, in other words that exercise contained in workout_session.workout
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
         self.workout = Workout.objects.create(name="test workout", author=self.user)
@@ -1036,11 +743,10 @@ class TestCreateWorkoutSessionView(APITestCase):
         
         workout_session = WorkoutSession.objects.get(id=response.data["id"])
         
+        # The user that performed the workout session is not the same as the author of the workout, which is allowed (if someone sends a workout to another user)
         self.assertEqual(workout_session.user, self.second_user)
         self.assertEqual(workout_session.workout.author, self.user)
     
-    
-
 
 class TestListUserView(APITestCase):
     def setUp(self):
@@ -1066,15 +772,10 @@ class TestListUserView(APITestCase):
 
     
     def test_unauthenticated_user_do_not_have_access(self):
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-        
-        # Make a GET request to the list view
         response = self.client.get(self.url)
-        # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
-    def test_list_user_does_not_list_personal_trainer(self):
+    def test_list_user_does_not_list_personal_trainers(self):
         # Create a personal trainer
         personal_trainer = User.objects.create(username="test_trainer", password="password")
         personal_trainer_profile = PersonalTrainerProfile.objects.create(user=personal_trainer, experience="5 years")
@@ -1113,12 +814,7 @@ class TestListPersonalTrainerView(APITestCase):
         
 
     def test_unauthenticated_user_do_not_have_access(self):
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-        
-        # Make a GET request to the list view
         response = self.client.get(self.url)
-        # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_list_personal_trainer_does_not_list_user(self):
@@ -1169,7 +865,7 @@ class TestUserDetailView(APITestCase):
         self.assertEqual(response.data, serializer.data)
     
     def test_user_detail_non_existent_user(self):
-        url = reverse("user-detail", kwargs={"pk": 100})
+        url = reverse("user-detail", kwargs={"pk": 9999})
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(url)
@@ -1178,12 +874,7 @@ class TestUserDetailView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_unauthenticated_user_do_not_have_access(self):
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-        
-        # Make a GET request to the list view
         response = self.client.get(self.url)
-        # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         
 
@@ -1216,12 +907,12 @@ class TestPersonalTrainerDetailView(APITestCase):
         self.assertEqual(response.data, serializer.data)
     
     def test_personal_trainer_detail_non_existent_trainer(self):
-        url = reverse("personal_trainer-detail", kwargs={"pk": 100})
+        url = reverse("personal_trainer-detail", kwargs={"pk": 9999})
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(url)
         
-        # Should not find the user
+        # Should not find the trainer
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_unauthenticated_user_do_not_have_access(self):
@@ -1251,7 +942,6 @@ class TestUpdateUserView(APITestCase):
         }
         
         response = self.client.patch(self.url, data=new_data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         updated_user = UserProfile.objects.get(id=self.user_profile.id)
@@ -1272,7 +962,6 @@ class TestUpdateUserView(APITestCase):
         }
         
         response = self.client.patch(self.url, data=new_data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         
         original_user = UserProfile.objects.get(id=self.user_profile.id)
@@ -1288,11 +977,9 @@ class TestUpdateUserView(APITestCase):
             "password": "newPassword"
         }
         
+        # Should not be able to update your own password
         response = self.client.patch(self.url, data=new_data, format='json')
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        updated_user = User.objects.get(id=self.user.id)
-        self.assertEqual(updated_user.password, "newPassword")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_unauthenticated_user_do_not_have_access(self):
         new_data = {
@@ -1321,7 +1008,6 @@ class TestUpdatePersonalTrainerView(APITestCase):
         }
         
         response = self.client.patch(self.url, data=new_data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         updated_trainer = PersonalTrainerProfile.objects.get(id=self.trainer_profile.id)
@@ -1340,7 +1026,6 @@ class TestUpdatePersonalTrainerView(APITestCase):
         }
         
         response = self.client.patch(self.url, data=new_data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         
         original_trainer = PersonalTrainerProfile.objects.get(id=self.trainer_profile.id)
@@ -1357,25 +1042,27 @@ class TestUpdatePersonalTrainerView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-# Check that personal trainers can recieve exercises of workouts they are not a owner of
 class TestListExercisesInWorkoutView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
         self.profile = UserProfile.objects.create(user=self.user)
+        
         self.workout = Workout.objects.create(name="test workout", author=self.user)
+        
         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.second_exercise = Exercise.objects.create(name="Squat", description="A lower body exercise.", muscle_group="Legs")
+        
         self.workout.exercises.set([self.exercise, self.second_exercise])
         self.workout.owners.add(self.user)
         
         self.url = reverse("workout-exercises", kwargs={"pk": self.workout.id})
+        
         self.exercises = [self.exercise, self.second_exercise]
     
     def test_list_exercises_in_workout_basic(self):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ExerciseSerializer(self.exercises, many=True)
@@ -1397,7 +1084,6 @@ class TestListExercisesInWorkoutView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_personal_trainer_can_list_exercises_of_clients_workout(self):
@@ -1410,7 +1096,6 @@ class TestListExercisesInWorkoutView(APITestCase):
         self.client.force_authenticate(user=trainer)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ExerciseSerializer(self.exercises, many=True)
@@ -1420,7 +1105,6 @@ class TestListExercisesInWorkoutView(APITestCase):
         
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
@@ -1448,7 +1132,6 @@ class TestListClientsView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = DefaultUserSerializer(self.clients, many=True)
@@ -1470,7 +1153,6 @@ class TestListClientsView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestListPtAndUserView(APITestCase):
@@ -1502,8 +1184,6 @@ class TestListPtAndUserView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
-        # Make sure no users where returned
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestListWorkoutSessionsView(APITestCase):
@@ -1518,7 +1198,7 @@ class TestListWorkoutSessionsView(APITestCase):
         # Create a first workout session
         self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=120.5, duration=self.duration)
         
-        # Add an exercise session
+        # Add an exercise session and a set
         self.exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
         self.set = Set.objects.create(exercise_session=self.exercise_session, repetitions=10, weight=50)
         
@@ -1537,7 +1217,6 @@ class TestListWorkoutSessionsView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = WorkoutSessionSerializer(self.workout_sessions, many=True)
@@ -1545,14 +1224,12 @@ class TestListWorkoutSessionsView(APITestCase):
         self.assertEqual(len(response.data), len(self.workout_sessions))
         self.assertEqual(response.data, serializer.data)
     
-    def test_user_without_workout_sessions(self):
-        # Make sure that a user cannot list other user's workout sessions
-        second_user = User.objects.create_user(username="secondTestUser", password="password")
+    def test_list_other_user_workout_sessions(self):
+        second_user = User.objects.create_user(username="secondUser", password="password")
         
         self.client.force_authenticate(user=second_user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Should return empty since this user has not performed any workout sessions
@@ -1560,8 +1237,6 @@ class TestListWorkoutSessionsView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
-        # Make sure no users where returned
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestExerciseDetailView(APITestCase):
@@ -1576,7 +1251,6 @@ class TestExerciseDetailView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ExerciseSerializer(self.exercise)
@@ -1593,7 +1267,6 @@ class TestExerciseDetailView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestChatRoomListView(APITestCase):
@@ -1617,7 +1290,6 @@ class TestChatRoomListView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ChatRoomSerializer(self.chat_rooms, many=True)
@@ -1629,7 +1301,6 @@ class TestChatRoomListView(APITestCase):
         self.client.force_authenticate(user=self.second_user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Make sure that the second user do not retrieve the chatroom between user and third user
@@ -1640,8 +1311,6 @@ class TestChatRoomListView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
-        # Make sure no users where returned
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestChatRoomCreateView(APITestCase):
@@ -1651,6 +1320,7 @@ class TestChatRoomCreateView(APITestCase):
         self.third_user = User.objects.create_user(username="thirdTestUser", password="password")
         
         self.url = reverse("chat_room-create")
+        
         self.name = "Test Chat Room"
         self.participants = [self.user.id, self.second_user.id, self.third_user.id]
     
@@ -1663,8 +1333,8 @@ class TestChatRoomCreateView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
         self.assertEqual(ChatRoom.objects.count(), 1)
         
         chat_room = ChatRoom.objects.get(id=response.data["id"])
@@ -1687,8 +1357,8 @@ class TestChatRoomCreateView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
         self.assertEqual(ChatRoom.objects.count(), 0)
     
 
@@ -1708,10 +1378,10 @@ class TestListParticipantsInChatRoomView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = DefaultUserSerializer(self.participants, many=True)
         
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), len(self.participants))
         self.assertEqual(response.data, serializer.data)
         
@@ -1728,13 +1398,12 @@ class TestListParticipantsInChatRoomView(APITestCase):
         url = reverse("chat_room-participants", kwargs={"pk": 9999})
         
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(url)
         
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestCreateScheduledWorkoutView(APITestCase):
@@ -1754,11 +1423,12 @@ class TestCreateScheduledWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
         self.assertEqual(ScheduledWorkout.objects.count(), 1)
         
         scheduled_workout = ScheduledWorkout.objects.get(id=response.data["id"])
+        
         self.assertEqual(scheduled_workout.user, self.user)
         self.assertEqual(scheduled_workout.scheduled_date, self.scheduled_date)
         self.assertEqual(scheduled_workout.workout_template, self.workout)
@@ -1770,7 +1440,6 @@ class TestCreateScheduledWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestScheduledWorkoutsListView(APITestCase):
@@ -1796,7 +1465,6 @@ class TestScheduledWorkoutsListView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ScheduledWorkoutSerializer(self.scheduled_workouts, many=True)
@@ -1809,14 +1477,12 @@ class TestScheduledWorkoutsListView(APITestCase):
         self.client.force_authenticate(user=second_user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
         self.assertEqual(len(response.data), 0)
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
-        # Make sure no users where returned
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         
         
@@ -1852,10 +1518,10 @@ class TestListScheduledWorkoutsOfClients(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = ScheduledWorkoutSerializer(self.user_scheduled_workouts, many=True)
         
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), len(self.user_scheduled_workouts))
         self.assertEqual(response.data, serializer.data)
         
@@ -1875,7 +1541,6 @@ class TestListScheduledWorkoutsOfClients(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_user_cannot_pretend_to_be_a_personal_trainer(self):
@@ -1887,10 +1552,8 @@ class TestListScheduledWorkoutsOfClients(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestListWorkoutsOfClientsListView(APITestCase):
@@ -1933,7 +1596,6 @@ class TestListWorkoutsOfClientsListView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = WorkoutSerializer(self.workouts, many=True)
@@ -1969,7 +1631,6 @@ class TestListWorkoutsOfClientsListView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestListWorkoutSessionsOfClientsView(APITestCase):
@@ -2005,7 +1666,6 @@ class TestListWorkoutSessionsOfClientsView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = WorkoutSessionSerializer(self.client_workout_sessions, many=True)
@@ -2043,7 +1703,6 @@ class TestListWorkoutSessionsOfClientsView(APITestCase):
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestListMessagesInChatRoomView(APITestCase):
@@ -2067,7 +1726,6 @@ class TestListMessagesInChatRoomView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = MessageSerializer(self.messages, many=True)
@@ -2087,13 +1745,12 @@ class TestListMessagesInChatRoomView(APITestCase):
         url = reverse("chat_room-messages", kwargs={"pk": 9999})
         
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(url)
         
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class ListWorkoutMessagesInChatRoomView(APITestCase):
@@ -2118,7 +1775,6 @@ class ListWorkoutMessagesInChatRoomView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = WorkoutMessageSerializer(self.workout_messages, many=True)
@@ -2138,13 +1794,12 @@ class ListWorkoutMessagesInChatRoomView(APITestCase):
         url = reverse("chat_room-workout_messages", kwargs={"pk": 9999})
         
         self.client.force_authenticate(user=self.user)
-        response = self.client.get(url)
         
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestChatRoomDeleteView(APITestCase):
@@ -2158,11 +1813,10 @@ class TestChatRoomDeleteView(APITestCase):
         self.url = reverse("chat_room-delete", kwargs={"pk": self.chat_room.id})
     
     def test_still_participants_left_only_removes_participant_from_chat_room(self):
-        # Calling the endpoint with more than one user in it should just make the user leave the chat room, not delete it
+        # Calling the endpoint with more than one participant in it should just make the user leave the chat room, not delete it
         self.client.force_authenticate(user=self.user)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
         # Check that the chatroom still exist
@@ -2178,7 +1832,6 @@ class TestChatRoomDeleteView(APITestCase):
         self.client.force_authenticate(self.second_user)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
         # Check that the chat room was deleted
@@ -2224,13 +1877,11 @@ class TestNotificationListView(APITestCase):
         self.client.force_authenticate(user=self.second_user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         # Make sure that the list is returned with the newest notifications first
         sorted_notifications = sorted(self.notifications, key=lambda n: n.date_sent, reverse=True)
 
-        
         serializer = NotificationSerializer(sorted_notifications, many=True)
         
         self.assertEqual(len(response.data), len(self.notifications))
@@ -2240,7 +1891,6 @@ class TestNotificationListView(APITestCase):
         user = User.objects.create_user(username="someUser", password="password")
         
         self.client.force_authenticate(user=user)
-        
         response = self.client.get(self.url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2248,7 +1898,6 @@ class TestNotificationListView(APITestCase):
 
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)   
         
 
@@ -2268,15 +1917,14 @@ class TestNotificationDeleteView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
         self.assertNotIn(self.notification, Notification.objects.all())
     
     def test_delete_non_existent_notification(self):
         url = reverse("notification-delete", kwargs={"pk": 9999})
         
         self.client.force_authenticate(user=self.user)
-        
         response = self.client.delete(url)
         
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -2288,8 +1936,8 @@ class TestNotificationDeleteView(APITestCase):
         self.client.force_authenticate(user=user)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
         self.assertIn(self.notification, Notification.objects.all())
 
 class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
@@ -2316,7 +1964,6 @@ class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
         personal_trainer_scheduled_workout = PersonalTrainerScheduledWorkout.objects.get(id=response.data["id"])
@@ -2340,7 +1987,6 @@ class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         
     def test_create_personal_trainer_scheduled_workout_with_wrong_pt_type(self):
@@ -2357,7 +2003,20 @@ class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_user_create_personal_trainer_scheduled_workout_with_pt(self):
+        self.client.force_authenticate(user=self.user)
         
+        data = {
+            "client": self.user.id,
+            "pt": self.trainer.id,
+            "workout_template": self.workout.id,
+            "scheduled_date": self.scheduled_date
+        }
+        
+        # Only personal trainers should be able to create scheduled workouts between the pt and the client
+        response = self.client.post(self.url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_create_personal_trainer_scheduled_workout_with_client_not_a_client_of_pt(self):
@@ -2375,7 +2034,6 @@ class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_unauthenticated_user_do_not_have_access(self):
@@ -2387,7 +2045,6 @@ class TestCreatePersonalTrainerScheduleWorkoutView(APITestCase):
         }
         
         response = self.client.post(self.url, data=data, format='json')
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class TestPersonalTrainerScheduledWorkoutListView(APITestCase):
@@ -2423,7 +2080,6 @@ class TestPersonalTrainerScheduledWorkoutListView(APITestCase):
         self.client.force_authenticate(user=self.user)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = PersonalTrainerScheduledWorkoutSerializer(self.user_scheduled_workouts, many=True)
@@ -2435,7 +2091,6 @@ class TestPersonalTrainerScheduledWorkoutListView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
         serializer = PersonalTrainerScheduledWorkoutSerializer(self.trainer_scheduled_workouts, many=True)
@@ -2445,11 +2100,10 @@ class TestPersonalTrainerScheduledWorkoutListView(APITestCase):
 
     def test_unauthenticated_user_do_not_have_access(self):
         response = self.client.get(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
 
-class TestPersonalScheduledWorkoutDeleteView(APITestCase):
+class TestPersonalTrainerScheduledWorkoutDeleteView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testUser", password="password")
         self.user_profile = UserProfile.objects.create(user=self.user)
@@ -2470,17 +2124,17 @@ class TestPersonalScheduledWorkoutDeleteView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         
         self.assertEqual(PersonalTrainerScheduledWorkout.objects.count(), 0)
         
-    def test_user_cannot_delete_personal_trainer_scheduled_workout(self):
+    def test_user_delete_personal_trainer_scheduled_workout(self):
         self.client.force_authenticate(user=self.user)
         
+        # The client should not be able to delete scheduled workouts with the personal trainer
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
         self.assertIn(self.personal_trainer_scheduled_workout, PersonalTrainerScheduledWorkout.objects.all())
     
     def test_delete_non_existent_personal_trainer_scheduled_workout(self):
@@ -2489,8 +2143,8 @@ class TestPersonalScheduledWorkoutDeleteView(APITestCase):
         self.client.force_authenticate(user=self.trainer)
         
         response = self.client.delete(invalid_url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
         self.assertIn(self.personal_trainer_scheduled_workout, PersonalTrainerScheduledWorkout.objects.all())
     
     def test_cannot_delete_others_personal_trainer_scheduled_workouts(self):
@@ -2500,8 +2154,8 @@ class TestPersonalScheduledWorkoutDeleteView(APITestCase):
         self.client.force_authenticate(user=trainer)
         
         response = self.client.delete(self.url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        
         self.assertIn(self.personal_trainer_scheduled_workout, PersonalTrainerScheduledWorkout.objects.all())
         
      

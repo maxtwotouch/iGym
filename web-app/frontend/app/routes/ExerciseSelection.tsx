@@ -49,7 +49,7 @@ const ExerciseSelection: React.FC = () => {
 
         const fetchExercises = async () => {
             try {
-                const response = await fetch(`${backendUrl}/exercises/`, {
+                const response = await fetch(`${backendUrl}/exercise/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 console.log("Response status:", response.status);

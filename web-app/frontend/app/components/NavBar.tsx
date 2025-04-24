@@ -69,7 +69,7 @@ function NavBar() {
                     const userData = await userResponse.json();
 
                     // Translate from profile id to user id
-                    const trainersResponse = await fetch(`${backendUrl}/personal_trainers/`, {
+                    const trainersResponse = await fetch(`${backendUrl}/trainer/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });
@@ -82,7 +82,7 @@ function NavBar() {
                     });
                 } 
                 else if (userType === 'trainer') {
-                    const clientsArrayResponse = await fetch(`${backendUrl}/personal_trainer/clients/`, {
+                    const clientsArrayResponse = await fetch(`${backendUrl}/trainer/clients/`, {
                         method: "GET",
                         headers: { Authorization: `Bearer ${token}` },
                     });

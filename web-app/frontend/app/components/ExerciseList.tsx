@@ -29,7 +29,7 @@ function ExerciseList() {
 
         const fetchExercises = async () => {
             try {
-                const response = await fetch(`${backendUrl}/exercises/`, {
+                const response = await fetch(`${backendUrl}/exercise/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {

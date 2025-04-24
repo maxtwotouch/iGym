@@ -70,7 +70,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchChat = async () => {
             try {
-                const currentChatResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/`, {
+                const currentChatResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const currentChat = await currentChatResponse.json();
@@ -82,7 +82,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchParticipants = async () => {
             try {
-                const participantsResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/participants/`, {
+                const participantsResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/participants/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const participants = await participantsResponse.json();
@@ -95,7 +95,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchUserWorkouts = async () => {
             try {
-                const userWorkoutsResponse = await fetch(`${backendUrl}/workouts/`, {
+                const userWorkoutsResponse = await fetch(`${backendUrl}/workout/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userWorkouts = await userWorkoutsResponse.json();
@@ -114,7 +114,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchMessages = async () => {
             try {
-                const messagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/messages/`, {
+                const messagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const messages = await messagesResponse.json();
@@ -138,7 +138,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchWorkoutMessages = async () => {
             try {
-                const workoutMessagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/workout_messages/`, {
+                const workoutMessagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/workout_messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const workoutMessages = await workoutMessagesResponse.json();
@@ -168,7 +168,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const notificationsList = async () => {
             try {
-                const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
+                const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const notificationsUserData = await notificationsUserResponse.json();
@@ -398,7 +398,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             message: `${currentUserUsername} has left the chat room`
         }));
     
-        const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
+        const response = await fetch(`${backendUrl}/chat/delete/${chatRoomId}/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
         });

@@ -33,7 +33,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         }
         
         try {
-            const chatRoomResponse = await fetch(`${backendUrl}/chat_rooms/`, {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const chatRoom = await chatRoomResponse.json();
@@ -52,7 +52,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     
         const fetchUsers = async () => {
             try {
-                const userObjectsResponse = await fetch(`${backendUrl}/users/`, {
+                const userObjectsResponse = await fetch(`${backendUrl}/user/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userObjects = await userObjectsResponse.json();
@@ -85,7 +85,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await fetch(`${backendUrl}/chat_room/create/`, {
+            const response = await fetch(`${backendUrl}/chat/create/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -12,7 +12,7 @@ export default function LoginForm() {
     e.preventDefault();
   
     try {
-      const response = await fetch(`${backendUrl}/token/`, {
+      const response = await fetch(`${backendUrl}/auth/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

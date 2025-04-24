@@ -53,7 +53,7 @@ const EditWorkout: React.FC = () => {
 
     const fetchWorkoutData = async () => {
       try {
-        const response = await fetch(`${backendUrl}/workouts/${id}/`, {
+        const response = await fetch(`${backendUrl}/workout/${id}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
@@ -99,7 +99,7 @@ const EditWorkout: React.FC = () => {
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
     try {
-      const response = await fetch(`${backendUrl}/workouts/update/${id}/`, {
+      const response = await fetch(`${backendUrl}/workout/update/${id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

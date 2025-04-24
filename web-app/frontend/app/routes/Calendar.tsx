@@ -45,7 +45,7 @@ export default function Calendar() {
 
       const fetchClients = async () => {
         try {
-          const response = await fetch(`${backendUrl}/personal_trainer/clients/`, {
+          const response = await fetch(`${backendUrl}/trainer/clients/`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -78,7 +78,7 @@ export default function Calendar() {
   // Fetch scheduled workouts (
   const fetchScheduledWorkouts = async () => {
     try {
-      const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
+      const response = await fetch(`${backendUrl}/schedule/workout/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -96,7 +96,7 @@ export default function Calendar() {
         if (new Date(item.scheduled_date) < now) {
           try {
             // Hold the promise for the delete operation
-            const deletePromise = fetch(`${backendUrl}/scheduled_workout/delete/${item.id}/`, {
+            const deletePromise = fetch(`${backendUrl}/schedule/workout/delete/${item.id}/`, {
               method: "DELETE",
               headers: { Authorization: `Bearer ${token}` }
             });
@@ -111,7 +111,7 @@ export default function Calendar() {
       await Promise.all(deletePromises);
 
       // Now, fetch the updated list of scheduled workouts
-      const updatedResponse = await fetch(`${backendUrl}/scheduled_workouts/`, {
+      const updatedResponse = await fetch(`${backendUrl}/schedule/workout/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -137,7 +137,7 @@ export default function Calendar() {
 
   const fetchPersonalTrainerScheduledWorkouts = async () => {
     try {
-      const response = await fetch(`${backendUrl}/pt_scheduled_workouts/`, {
+      const response = await fetch(`${backendUrl}/schedule/pt_workout/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -155,7 +155,7 @@ export default function Calendar() {
         if (new Date(item.scheduled_date) < now) {
           try {
             // Hold the promise for the delete operation
-            const deletePromise = fetch(`${backendUrl}/pt_scheduled_workout/delete/${item.id}/`, {
+            const deletePromise = fetch(`${backendUrl}/schedule/pt_workout/delete/${item.id}/`, {
               method: "DELETE",
               headers: { Authorization: `Bearer ${token}` }
             });
@@ -170,7 +170,7 @@ export default function Calendar() {
       await Promise.all(deletePromises);
 
       // Now, fetch the updated list of scheduled workouts
-      const updatedResponse = await fetch(`${backendUrl}/pt_scheduled_workouts/`, {
+      const updatedResponse = await fetch(`${backendUrl}/schedule/pt_workout/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -212,8 +212,8 @@ export default function Calendar() {
       try {
         // Fetch both workouts and workout sessions in parallel
         const [workoutsRes, sessionsRes] = await Promise.all([
-          fetch(`${backendUrl}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${backendUrl}/workouts_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${backendUrl}/workout/`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${backendUrl}/session/workout/`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
     
         // Convert responses to JSON
@@ -284,7 +284,7 @@ export default function Calendar() {
 
     const fetchAvailableWorkouts = async () => {
       try {
-        const response = await fetch(`${backendUrl}/workouts/`, {
+        const response = await fetch(`${backendUrl}/workout/`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!response.ok) {
@@ -343,7 +343,7 @@ export default function Calendar() {
     };
 
     try {
-      const response = await fetch(`${backendUrl}/scheduled_workout/create/`, {
+      const response = await fetch(`${backendUrl}/schedule/workout/create/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -399,7 +399,7 @@ export default function Calendar() {
       };
   
       try {
-        const response = await fetch(`${backendUrl}/pt_scheduled_workout/create/`, {
+        const response = await fetch(`${backendUrl}/schedule/pt_workout/create/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

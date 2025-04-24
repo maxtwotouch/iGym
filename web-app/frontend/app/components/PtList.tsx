@@ -39,7 +39,7 @@ const PtList: React.FC = () => {
 
         const fetchPts = async () => {
             try {
-                const response = await fetch(`${backendUrl}/personal_trainers/`, {
+                const response = await fetch(`${backendUrl}/trainer/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) throw new Error("Failed to fetch PTs");
@@ -151,7 +151,7 @@ const PtList: React.FC = () => {
     const createChatRoomWithPt = async (ptId: number, ptName: string) => {
         try {
             const token = localStorage.getItem("accessToken");
-            const chatRoomResponse = await fetch(`${backendUrl}/chat_room/create/`, {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat/create/`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`, "Content-Type": "application/json",

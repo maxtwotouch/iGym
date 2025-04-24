@@ -690,6 +690,126 @@
             "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles, Calves (Secondary)",
             "image": "exercise_images/standing_cable_kickback.png"
         }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Declined Bench Press",
+            "description": "Lying on the declined bench, one dumbbell in each hand, pronation grip. Hold the dumbbells on the sides at chest height, elbows on the outside. Your forearms should be perpendicular to the ground. While contracting your pectorals, push the dumbbells upwards until your arms are almost stretched out, and then go back to the starting position. During the whole movement: Keep your elbows on the outside to make sure your pectorals are fully engaged and your anterior deltoids and triceps are minimally engaged. Keep your shoulders pressed against the bench.",
+            "muscle_category": "chest",
+            "muscle_group": "Lower chest (Primary). Anterior deltoids, tricpes (Secondary)",
+            "image": "exercise_images/dumbbell_declined_bench_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Reverse Grip Cable Triceps Extension with Barbell",
+            "description": "Stand in front of the cable machine and grasp the straight bar with an underhand (supinated, palms facing up) grip, hands about shoulders width apart, elbows tucked in and bent at a bit less than a 90° angle. Extend the forearms until your arms are completely stretched. In this position, squeeze your triceps, pause, and then slowly come back to the starting position. Keep the elbows tucked in throughout the movement. Repeat for desired reps.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps",
+            "image": "exercise_images/reverse_grip_cable_triceps_extension_with_barbell.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Reverse Grip Pulldown",
+            "description": "Seated, thighs under the padded parts, bar grasped in supination, hands shoulder-width apart. Keep your back straight. Pull the bar up to your upper chest. Keep the contraction for a moment, the shoulders well back before slowly returning to the initial position.",
+            "muscle_category": "back",
+            "muscle_group": "Back (Primary). Biceps (Secondary)",
+            "image": "exercise_images/reverse_grip_pulldown.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Straight Bar Low Pulley Cable Curl",
+            "description": "Stand in front of the cable machine, legs shoulder width apart, and grasp the straight bar with an underhand (supinated) grip and your hands about shoulder width apart. Keeping your body fixed, elbow tucked in at your side, and eyes facing forward, slowly curl the weight up as far as possible without letting the elbow move forward excessively; only your forearms should be moving. Squeeze the biceps at the top of the movement, and then slowly lower the weight back to the starting position. Repeat for desired reps.",
+            "muscle_category": "arms",
+            "muscle_group": "Biceps",
+            "image": "exercise_images/straight_bar_low_pulley_cable_curl.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Plank Get Ups",
+            "description": "Get yourself into the standard push up position. Feet together, palms on the floor (shoulder width apart). Brace your abs and maintain a straight back. Slowly lower your right arm until the forearm is flat on the ground, then bring down your left arm. Once both forearms are on the ground, immediately raise your right arm back to a push up position followed by your left. This should all be done in one smooth movement, so that you are constantly in motion.",
+            "muscle_category": "abs",
+            "muscle_group": "Abs (Primary). Triceps, deltoids (Secondary)",
+            "image": "exercise_images/plank_get_ups.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Front Raise",
+            "description": "Standing with feet about shoulder width apart, one dumbbell in each hand (pronation grip). Slowly raise the arms forward until they are parallel to the ground. Contract your deltoids for a moment in the raised position, then slowly return to the initial position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Deltoids (mostly anterior bundle)",
+            "image": "exercise_images/dumbbell_front_raise.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Stiff-Leg Deadlift",
+            "description": "Stand with feet shoulder width apart and toes facing forward. Bend knees slightly and push your chest out. Hold a dumbbell in each hand, resting on your upper thighs. Keeping your legs stiff, bow forward and lower the weights towards the ground. Pause when your hamstrings are tight, and then return to the starting position. Keep your back straight and shoulders back throughout.",
+            "muscle_category": "legs",
+            "muscle_group": "Hamstrings, glutes, lower back muscles",
+            "image": "exercise_images/dumbbell_stiff_leg_deadlift.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Single-Arm Cable Triceps Extension with Supinated Grip",
+            "description": "Stand in front of the cable machine and grasp the handle with an underhand (supinated, palm facing up) grip, elbows tucked in and bent at a bit less than a 90° angle. Extend the forearms until your arm is completely stretched. In this position, squeeze your triceps, pause, and then slowly come back to the starting position. Keep the elbows tucked in throughout the movement. Repeat for desired reps and then repeat for the other arm.",
+            "muscle_category": "arms",
+            "muscle_group": "Triceps",
+            "image": "exercise_images/single_arm_cable_triceps_extension_with_supinated_grip.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Trap Bar Deadlift",
+            "description": "Standing inside the trap barbell, with your feet a little less than shoulder width apart, and your knees bent. Grab the trap barbell handles. Torso slightly bent forward, back straight, shoulders pulled back and chest out. Inhale and tighten your abdominal muscles. While keeping your arms straight, lift the barbell by extending your legs and straightening your torso to reach a vertical position. Exhale at the end of the motion. Then slowly go back to the starting position. Always remember never to bend your back.",
+            "muscle_category": "back",
+            "muscle_group": "Back, legs",
+            "image": "exercise_images/trap_bar_deadlift.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Seated Barbell Wrist Extension",
+            "description": "Grasp a barbell using an overhand grip (pronated, palms facing down) and sit down on the end of a flat bench. Rest your forearms on the top of your thighs or on the end of the bench so that your wrists are just off the end of your knees or of the bench. Without moving the forearms, slowly raise your hands up as far as possible squeezing the forearms muscles at the top of the movement. Pause, and then slowly lower the barbell back to the starting position. Repeat for desired reps.",
+            "muscle_category": "arms",
+            "muscle_group": "Forearms",
+            "image": "exercise_images/seated_barbell_wrist_extension.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Dumbbell Push Press",
+            "description": "Stand upright with a dumbbell resting on each shoulder and elbows pointed out in front of you. Feet should be shoulder width apart. Bend knees slightly and then drive upwards, pushing the dumbbells straight up in the air and finishing with arms extended above your head. Pause, and then return to starting position.",
+            "muscle_category": "shoulders",
+            "muscle_group": "Shoulders (Primary). Triceps (Secondary)",
+            "image": "exercise_images/dumbbell_push_press.png"
+        }
+    },
+    {
+        "model": "backend.Exercise",
+        "fields": {
+            "name": "Barbell Stiff-Leg Deadlift",
+            "description": "Stand with feet shoulder width apart and toes facing forward. Bend knees slightly and push your chest out. Grasp a barbell resting on your upper thighs, with hands in pronation shoulder width. Keeping your legs stiff, bow forward and lower the weight towards the ground. Pause when your hamstrings are tight, and then return to the starting position. Keep your back straight and shoulders back throughout.",
+            "muscle_category": "legs",
+            "muscle_group": "Hamstrings, glutes, lower back muscles",
+            "image": "exercise_images/barbell_stiff_leg_deadlift.png"
+        }
     }
 
 ]

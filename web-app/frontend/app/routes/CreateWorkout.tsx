@@ -46,7 +46,7 @@ const CreateWorkout: React.FC = () => {
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
     try {
-      const response = await fetch(`${backendUrl}/workouts/create/`, { 
+      const response = await fetch(`${backendUrl}/workout/create/`, { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",

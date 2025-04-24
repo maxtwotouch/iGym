@@ -40,7 +40,7 @@ function Client() {
         }
         const fetchScheduledWorkouts = async () => {
             try {
-                const response = await fetch(`${backendUrl}/personal_trainer/client/${id}/scheduled_workouts/`, {
+                const response = await fetch(`${backendUrl}/trainer/client/${id}/scheduled_workouts/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
         
@@ -132,8 +132,8 @@ function Client() {
             try {
                 // Fetch both  the client's workouts and workout sessions in parallel
                 const [workoutsRes, sessionsRes] = await Promise.all([
-                  fetch(`${backendUrl}/personal_trainer/client/${id}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
-                  fetch(`${backendUrl}/personal_trainer/client/${id}/workout_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
+                  fetch(`${backendUrl}/trainer/client/${id}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
+                  fetch(`${backendUrl}/trainer/client/${id}/workout_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
                 ]);
 
                 // Convert responses to JSON

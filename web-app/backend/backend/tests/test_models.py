@@ -3,14 +3,13 @@ from django.db.utils import IntegrityError
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from backend.models import UserProfile, PersonalTrainerProfile, Exercise, Workout, WorkoutSession, ExerciseSession, Set
-from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification, PersonalTrainerScheduledWorkout
+from backend.models import ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification, PersonalTrainerScheduledWorkout, FailedLoginAttempt
 from datetime import timedelta
 from django.utils.timezone import now
 
 
 
 class UserProfileModelTest(TestCase):
-    
     def test_create_user_basic(self):
         weight = 75
         height = 180
@@ -68,17 +67,17 @@ class UserProfileModelTest(TestCase):
         personal_trainer = User.objects.create_user(username="testPT", password="password")
         personal_trainer_profile = PersonalTrainerProfile.objects.create(user=user, experience=experience)
         
-        profile.peronsal_trainer = personal_trainer_profile
-        profile.save()
+        profile.personal_trainer = personal_trainer_profile
         
         # Deleting the personal trainer should set the personal trainer field to Null
         personal_trainer_profile.delete()
+        
+        profile.refresh_from_db()
         
         # Make sure that the personal trainer field was set to Null
         self.assertIsNone(profile.personal_trainer)
         
             
-
 class PersonalTrainerProfileModelTest(TestCase):
     
     def test_create_personal_trainer_basic(self):
@@ -124,51 +123,54 @@ class PersonalTrainerProfileModelTest(TestCase):
         
 
 class ExerciseModelTest(TestCase):
+    def setUp(self):
+        self.name = "test exercise"
+        self.description = "test description"
+        self.muscle_category = "arms"
+        self.muscle_group = "test muscle group"
+        self.image_path = "exercise_images/pec_deck.png"
     
-    def test_create_exercise_basic(self):
-        name = "test exercise"
-        description = "test description"
-        muscle_category = "arms"
-        muscle_group = "test muscle group"
-        image_path = "exercise_images/pec_deck.png"
+    def test_create_exercise_basic(self):        
+        exercise = Exercise.objects.create(name=self.name, description=self.description, muscle_category=self.muscle_category, muscle_group=self.muscle_group, image=self.image_path)
         
-        exercise = Exercise.objects.create(name=name, description=description, muscle_category=muscle_category, muscle_group=muscle_group, image=image_path)
-        
-        self.assertEqual(exercise.name, name)
-        self.assertEqual(exercise.description, description)
-        self.assertEqual(exercise.muscle_category, muscle_category)
-        self.assertEqual(exercise.muscle_group, muscle_group)
-        self.assertEqual(exercise.image, image_path)
+        self.assertEqual(exercise.name, self.name)
+        self.assertEqual(exercise.description, self.description)
+        self.assertEqual(exercise.muscle_category, self.muscle_category)
+        self.assertEqual(exercise.muscle_group, self.muscle_group)
+        self.assertEqual(exercise.image, self.image_path)
     
-    # Here, need to test each
-    def test_create_without_required_fields(self):
-        exercise = Exercise()
+    
+    def test_create_exercise_with_empty_name(self):
+        exercise = Exercise(description=self.description, muscle_category=self.muscle_category, muscle_group=self.muscle_group, image=self.image_path)
         
-        # Should raise a validation error, as name, description and muscle group is required fields
+        # Should raise a validation error as name is a required field
         with self.assertRaises(ValidationError):
             exercise.full_clean()
     
+    def test_create_exercise_with_empty_description(self):
+        exercise = Exercise(name=self.name, muscle_category=self.muscle_category, muscle_group=self.muscle_group, image=self.image_path)
+        
+        with self.assertRaises(ValidationError):
+            exercise.full_clean()
+    
+    def test_create_exercise_with_empty_muscle_group(self):
+        exercise = Exercise(name=self.name, description=self.description, muscle_category=self.muscle_category, image=self.image_path)
+        
+        with self.assertRaises(ValidationError):
+            exercise.full_clean()        
+        
     def test_str_method(self):
-        name = "test exercise"
-        description = "test description"
-        muscle_group = "test muscle group"
-        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group)
+        exercise = Exercise.objects.create(name=self.name, description=self.description, muscle_group=self.muscle_group)
         
         #  String method should return the name of the exercise
-        self.assertEqual(str(exercise), name)
+        self.assertEqual(str(exercise), self.name)
     
     def test_no_muscle_category_results_to_correct_default(self):
-        name = "test exercise"
-        description = "test description"
         default_muscle_category = "chest"
-        muscle_group = "test muscle group"
-        image_path = "exercise_images/pec_deck.png"
-        
-        exercise = Exercise.objects.create(name=name, description=description, muscle_group=muscle_group, image=image_path)
+        exercise = Exercise.objects.create(name=self.name, description=self.description, muscle_group=self.muscle_group, image=self.image_path)
         
         self.assertEqual(exercise.muscle_category, default_muscle_category)
         
-
 
 class WorkoutModelTest(TestCase):
     def setUp(self):
@@ -188,7 +190,6 @@ class WorkoutModelTest(TestCase):
         
         self.assertEqual(workout.name, name)
         self.assertEqual(workout.author, self.user)
-        self.assertEqual(name, workout.name)
         
         # Ensure that the date was set automatically
         self.assertIsNotNone(workout.date_created)
@@ -203,12 +204,9 @@ class WorkoutModelTest(TestCase):
     
     def test_create_workout_without_author(self):
         name = "test workout"
-        workout = Workout(name=name)
-        workout.save()
+        workout = Workout.objects.create(name=name)
         
-        # Should raise an integrity error as author is a required field
-        # with self.assertRaises(IntegrityError):
-        #     workout.save()  
+        self.assertIsNone(workout.author)
     
     def test_create_workout_with_name_exceeding_max_length(self):
         # Generate a name that is too long
@@ -216,7 +214,7 @@ class WorkoutModelTest(TestCase):
         
         workout = Workout(name=name, author=self.user)
         
-        # Should raise a validation error since it exceeds max length
+        # Should raise a validation error as it exceeds max length
         with self.assertRaises(ValidationError):
             workout.full_clean()
     
@@ -276,7 +274,7 @@ class WorkoutSessionModelTest(TestCase):
 
         # Should raise an integrity error as calories burned should be a positive integer or default to null
         with self.assertRaises(ValidationError):
-            workout_session.save()
+            workout_session.full_clean()
     
     def test_create_workout_session_with_negative_duration(self):
         calories_burned = 0.5
@@ -823,6 +821,58 @@ class TestPersonalTrainerScheduledWorkout(TestCase):
         self.workout.delete()
         
         self.assertEqual(PersonalTrainerScheduledWorkout.objects.count(), 0)
+
+class TestFailedLoginAttempt(TestCase):
+    def setUp(self):
+        self.username = "testUser"
+        self.ip_address = "192.168.1.1"
+    
+    def test_create_failed_login_attempt_basic(self):
+        failed_login_attempt = FailedLoginAttempt.objects.create(username=self.username, ip_address=self.ip_address)
+        
+        self.assertEqual(failed_login_attempt.username, self.username)
+        self.assertEqual(failed_login_attempt.ip_address, self.ip_address)
+        self.assertIsNotNone(failed_login_attempt.timestamp)
+    
+    def test_create_failed_login_attempt_with_empty_username(self):
+        failed_login_attempt = FailedLoginAttempt(ip_address=self.ip_address)
+        
+        with self.assertRaises(ValidationError):
+            failed_login_attempt.full_clean()
+    
+    def test_create_failed_login_attempt_with_username_exceeding_max_length(self):
+        username = "A" * 256
+        
+        failed_login_attempt = FailedLoginAttempt(username=username, ip_address=self.ip_address)
+        
+        with self.assertRaises(ValidationError):
+            failed_login_attempt.full_clean()
+    
+    def test_create_failed_login_attempt_with_empty_ip_address(self):
+        failed_login_attempt = FailedLoginAttempt(username=self.username)
+        
+        with self.assertRaises(IntegrityError):
+            failed_login_attempt.save()
+    
+    def test_create_failed_login_attempt_with_valid_ipv6_address(self):
+        ipv6_address = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+        
+        failed_login_attempt = FailedLoginAttempt.objects.create(username=self.username, ip_address=ipv6_address)
+        
+        self.assertEqual(failed_login_attempt.ip_address, ipv6_address)
+    
+    def test_create_failed_login_attempt_with_invalid_ip_address(self):
+        invalid_ip_address = "invalid_ip"
+        
+        failed_login_attempt = FailedLoginAttempt(username=self.username, ip_address=invalid_ip_address)
+        
+        with self.assertRaises(ValidationError):
+            failed_login_attempt.full_clean()
+    
+        
+            
+        
+        
         
     
             

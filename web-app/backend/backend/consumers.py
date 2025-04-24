@@ -8,10 +8,6 @@ from urllib.parse import parse_qs
 from .serializers import WorkoutSerializer
 from datetime import datetime
 
-# FIX: We can consider adding a NotificationConsumer class to handle receiving of all notifications for a user. But this adds complexity. And in the case of our application, it is assumed that a user will not take part in a 1000+ chat rooms at once. So we can rather for keeping it simple just open many WebSocket connection for a user in the dashboard for receiving notification. This way we can keep the code simple and avoid the complexity of handling multiple notifications in a single WebSocket connection.
-# class NotificationConsumer(AsyncWebsocketConsumer):
-
-
 class Chatconsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_parameter = self.scope["query_string"] # Get the query parameters from the URL 
