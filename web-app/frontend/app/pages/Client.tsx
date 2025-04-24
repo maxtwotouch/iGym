@@ -14,8 +14,8 @@ interface Client {
     username: string,
 }
 
-// Seems to not be used per now, no route file set up yet
-export const Client = () => {
+
+function Client() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -38,7 +38,7 @@ export const Client = () => {
         }
         const fetchScheduledWorkouts = async () => {
             try {
-                const response = await fetch(`${backendUrl}/personal_trainer/client/${id}/scheduled_workouts/`, {
+                const response = await fetch(`${backendUrl}/trainer/client/${id}/scheduled_workouts/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
         
@@ -130,8 +130,8 @@ export const Client = () => {
             try {
                 // Fetch both  the client's workouts and workout sessions in parallel
                 const [workoutsRes, sessionsRes] = await Promise.all([
-                  fetch(`${backendUrl}/personal_trainer/client/${id}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
-                  fetch(`${backendUrl}/personal_trainer/client/${id}/workout_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
+                  fetch(`${backendUrl}/trainer/client/${id}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
+                  fetch(`${backendUrl}/trainer/client/${id}/workout_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
                 ]);
 
                 // Convert responses to JSON
@@ -231,12 +231,13 @@ export const Client = () => {
     }
 
     return (
-        <motion.div
-            className="flex-grow bg-gradient-to-br from-gray-900 to-gray-800 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-        >
+        <motion.div className="d-flex flex-column min-vh-100">
+            <motion.div
+                className="flex-grow bg-gradient-to-br from-gray-900 to-gray-800 p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+            >
                 <motion.div
                     className="container bg-dark text-white rounded-lg shadow p-4"
                     initial={{ y: 20, opacity: 0 }}
@@ -259,13 +260,13 @@ export const Client = () => {
                                 headerToolbar={{
                                     left: "prev,next today",
                                     center: "title",
-                                        right: "dayGridMonth,timeGridWeek,timeGridDay"
+                                     right: "dayGridMonth,timeGridWeek,timeGridDay"
                                 }}
                                 events={calendarEvents}
                                 eventClick={handleEventClick}
                                 dateClick={handleDateClick}
                                 height="auto"
-                                />
+                             />
                         )}
                     </div>
 
@@ -332,16 +333,24 @@ export const Client = () => {
 
                                     </div>
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-secondary" 
+                                            onClick={() => setShowModal(false)}
+                                            name="closeButton"
+                                        >
                                             Close
                                         </button>
                                     </div>
                                 </div>
-                                </div>
+                             </div>
                         </div>
                     )}
         </motion.div>
+      </motion.div>
     </motion.div>
   );
     
 };
+
+export default Client;

@@ -21,5 +21,6 @@ export default [
         route("exercises/:id", "routes/ExerciseDetailRoute.tsx"),
         route("profile", "routes/ProfileRoute.tsx"),
         route("personalTrainers", "routes/SelectPTRoute.tsx"),
+        route("clients/:id", "routes/ClientsRoute.tsx"),
     ]),
 ] satisfies RouteConfig;

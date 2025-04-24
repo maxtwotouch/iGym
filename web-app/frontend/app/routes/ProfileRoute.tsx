@@ -1,5 +1,5 @@
 import type { Route } from "./+types/ProfileRoute";
-import { ProfilePage } from "../pages/Profile";
+import ProfilePage from "../pages/Profile";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {

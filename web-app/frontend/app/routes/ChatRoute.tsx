@@ -1,5 +1,5 @@
 import type { Route } from "./+types/ChatRoute";
-import { Chat } from "../pages/Chat";
+import Chat  from "../pages/Chat";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {

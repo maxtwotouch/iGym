@@ -13,48 +13,40 @@ export const LoginForm = () => {
     e.preventDefault();
   
     try {
-      const url = `${backendUrl}/token/`;
-      console.log("Login URL:", url); // Log the URL for debugging
-
-      const response = await fetch(url, {
+      const response = await fetch(`${backendUrl}/auth/token/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
-
-        // Store JWT tokens
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("username", data.username);
-        localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
-        
-        console.log(data);
-
-        // Store user type
-        if (data.profile?.role) {
-          localStorage.setItem("userType", data.profile.role);
-        } else if (data.trainer_profile?.role) {
-          if (data.trainer_profile.role === "personal_trainer") {
-            localStorage.setItem("userType", "trainer");
-          }
-        }
-
-        // Store weight for user role
-        if (data.profile?.role === "user") {
-          console.log("storing the user's weight");
-          localStorage.setItem("weight", data.profile.weight ?? "unknown");
-        }
-
-        navigate("/dashboard");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData);
-        alert("Login failed: " + (errorData.detail || "Unknown error"));
+      const data = await response.json();
+      if (!response.ok || !data.access) {
+        const errorMessage = data.detail || data.error || "Login failed: Incorrect username or password.";
+        alert(errorMessage);
+        return;
       }
+  
+      // Store JWT tokens for subsequent authenticated requests.
+      localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
+      localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
+      localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username);
+      localStorage.setItem("user_id", import.meta.env.VITE_USER_ID || data.id);
+      
+      if (data.profile?.role) {
+        localStorage.setItem("userType", data.profile.role);
+      }   
+      else if (data.trainer_profile?.role) {
+
+        if (data.trainer_profile.role === "personal_trainer") { // This is a handling towards older registered trainers, where they were given wrong usertype. Can be safely removed after production.
+          localStorage.setItem("userType", "trainer"); 
+        }
+        else {
+          localStorage.setItem("userType", data.trainer_profile.role);
+        }
+
+      }
+  
+      navigate("/dashboard"); // Redirect to the dashboard after successful login.
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");

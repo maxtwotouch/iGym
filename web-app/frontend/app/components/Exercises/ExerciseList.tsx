@@ -8,93 +8,108 @@ import { backendUrl } from "~/config";
   interface Exercise {
     id: number;
     name: string;
+    muscle_category: string;
 }
 
-export const ExerciseList = () => {
-    const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
-    const [selectedExercise, setSelectedexercise] = useState<number | null>(null); // Track selected exercise
-    const [searchQuery, setSearchQuery] = useState<string>(""); // State for the search query
+const MUSCLE_CATEGORIES = ["legs", "arms", "shoulders", "back", "abs", "chest"];
+const MUSCLE_CATEGORY_MAP: { [key: string]: string } = {
+    legs: "Legs",
+    arms: "Arms",
+    shoulders: "Shoulders",
+    back: "Back",
+    abs: "Abdominals",
+    chest: "Chest",
+};
+
+function ExerciseList() {
+    const [exercises, setExercises] = useState<Exercise[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken"); // Retrieve JWT token
+        const token = localStorage.getItem("accessToken");
 
-        // Fetch available exercises from the backend
         const fetchExercises = async () => {
             try {
-                const response = await fetch(`${backendUrl}/exercises/`, {
-                headers: { Authorization: `Bearer ${token}` }, // Include JWT token for authentication so the backend can verify the user's identity
+                const response = await fetch(`${backendUrl}/exercise/`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
-                console.error("Failed to fetch exercises");
-                return;
+                    console.error("Failed to fetch exercises");
+                    return;
                 }
                 const data = await response.json();
-                setAvailableExercises(data); // Store the fetched exercises in the state
-                console.log("Fetched Exercises:", data);
+                setExercises(data);
             } catch (error) {
                 console.error("Error fetching exercises:", error);
             }
-            };
-        
+        };
+
         fetchExercises();
-        }, [navigate]); // Call the effect whenever the user navigates to a new page
+    }, [navigate]);
 
-        // Handle search input change
-        const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            setSearchQuery(e.target.value);
-        }
-
-        // Filter exercises based on the search query
-        const filteredexercises = availableExercises.filter((exercise) =>
-            exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
+    // Group exercises by muscle category
+    const groupedExercises = MUSCLE_CATEGORIES.reduce((groups, category) => {
+        groups[category] = exercises.filter(
+            (exercise) => exercise.muscle_category === category
         );
+        return groups;
+    }, {} as { [key: string]: Exercise[] });
 
     return (
-        <div className="mx-4">
-            {/* Search Bar */}
-            <div className="mb-4">
-                <input
-                    type="text"
-                    placeholder="Search exercises..."
-                    name="searchBar"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="w-full max-w-lg p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
-                />
-        </div>
-
-
-            <ul className="w-full max-w-lg bg-gray-800 text-white p-4 rounded-lg shadow-md mx-0 ml-4">
-                {filteredexercises.length > 0 ? (
-                    filteredexercises.map((exercise) => (
-                        <li
-                            key={exercise.id}
-                            data-id={exercise.id}
-                            className="cursor-pointer p-2 bg-gray-600 rounded-md mb-2 text-left hover:bg-gray-500 transition"
-                            onClick={() => setSelectedexercise(exercise.id === selectedExercise ? null : exercise.id)}
-                        >
-                            <span className="font-semibold">{exercise.name}</span>
-
-                            {selectedExercise === exercise.id && (
-                                <div className="mt-2">
-                                    <motion.button
-                                        onClick={() => navigate(`/exercises/${exercise.id}`)}
-                                        name="moreInfoButton"
-                                        className="mt-2 w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-                                        whileHover={{ scale: 1.05 }}
+        <motion.div
+            className="min-h-screen text-white flex flex-col items-center p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+        >
+            <motion.h1
+                className="text-4xl font-bold mb-6"
+                initial={{ y: -20 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.5 }}
+            >
+                Exercises
+            </motion.h1>
+            {/* Exercise Categories */}
+            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {MUSCLE_CATEGORIES.map((category) => (
+                    <motion.div
+                        key={category}
+                        className="bg-gray-800 p-4 rounded-lg shadow-lg"
+                        initial={{ scale: 0.9 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        {/* Category Title */}
+                        <h2 className="text-2xl font-semibold mb-4 text-center">
+                            {MUSCLE_CATEGORY_MAP[category]}
+                        </h2>
+                        
+                        {/* Categorized Exercise List */}
+                        {groupedExercises[category]?.length > 0 ? (
+                            <div className="w-full flex-col space-y-2">
+                                {groupedExercises[category]
+                                // Sort exercises alphabetically
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                                .map((exercise) => (
+                                    <div
+                                        key={exercise.id}
+                                        className="w-full max-w-xs mx-auto p-2 bg-gray-700 rounded text-center hover:bg-gray-600 transition cursor-pointer"
+                                        onClick={() =>
+                                            navigate(`/exercises/${exercise.id}`)
+                                        }
                                     >
-                                        More Info
-                                    </motion.button>
-                                </div>
-                            )}
-                        </li>
-                    ))
-                ) : (
-                    <li className="list-group-item">Loading exercises...</li>
-                )}
-            </ul>
-        </div>
+                                        {exercise.name}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-400 text-center">No exercises available.</p>
+                        )}
+                    </motion.div>
+                ))}
+            </div>
+        </motion.div>
     );
 }
 

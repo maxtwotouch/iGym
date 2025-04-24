@@ -9,7 +9,7 @@ export const fetchWorkoutSessions = async (token: string | null): Promise<Workou
     }
 
     try {
-        const response = await fetch(`${backendUrl}/workouts_sessions/`, {
+        const response = await fetch(`${backendUrl}/session/workout/`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

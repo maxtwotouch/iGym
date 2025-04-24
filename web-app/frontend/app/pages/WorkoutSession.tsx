@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import { backendUrl } from "~/config";
-
+import NavBar from "~/components/common/NavBar";
+import Footer from "~/components/common/Footer";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -17,7 +18,7 @@ interface WorkoutExerciseSession {
     sets: { id: number; weight: string; repetitions: string }[];
 }
 
-export const WorkoutSession: React.FC = () => {
+const WorkoutSession: React.FC = () => {
     const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
     const [exercisesWorkout, setExercisesWorkout] = useState<number[]>([]);
     const [workoutExerciseSessions, setWorkoutExerciseSessions] = useState<WorkoutExerciseSession[]>([]);
@@ -36,7 +37,7 @@ export const WorkoutSession: React.FC = () => {
             }
 
             try {
-                const response = await fetch(`${backendUrl}/workouts/${id}/`, {
+                const response = await fetch(`${backendUrl}/workout/${id}/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -68,7 +69,7 @@ export const WorkoutSession: React.FC = () => {
                 return;
             }
             try {
-                const response = await fetch(`${backendUrl}/exercises/`, {
+                const response = await fetch(`${backendUrl}/exercise/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (!response.ok) {
@@ -170,7 +171,7 @@ export const WorkoutSession: React.FC = () => {
             const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes
             .toString()
             .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            const response = await fetch(`${backendUrl}/workout/session/create/`, {
+            const response = await fetch(`${backendUrl}/session/workout/create/`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -201,7 +202,7 @@ export const WorkoutSession: React.FC = () => {
     const createSets = async (token: string, exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
         try {
             const requests = sets.map(set => {
-                return fetch(`${backendUrl}/set/create/`, {
+                return fetch(`${backendUrl}/session/set/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -235,7 +236,7 @@ export const WorkoutSession: React.FC = () => {
     const createExerciseSessions = async (token: string, workoutSessionId: number): Promise<number | null> => {
         try {
             const requests = workoutExerciseSessions.map(async session => {
-                const response = await fetch(`${backendUrl}/exercise/session/create/`, {
+                const response = await fetch(`${backendUrl}/session/exercise/create/`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -317,112 +318,116 @@ export const WorkoutSession: React.FC = () => {
     };
 
     return (
-        <motion.div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white">
-            <motion.h1 
-                className="text-4xl font-bold mt-6 mb-6" 
-                initial={{ y: -20, opacity: 0 }} 
-                animate={{ y: 0, opacity: 1 }} 
-                transition={{ duration: 0.8 }}
-            >
-                Log Workout Session
-            </motion.h1>
+        <motion.div className="d-flex flex-column min-vh-100">
+            <motion.div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white">
+                <motion.h1 
+                    className="text-4xl font-bold mt-6 mb-6" 
+                    initial={{ y: -20, opacity: 0 }} 
+                    animate={{ y: 0, opacity: 1 }} 
+                    transition={{ duration: 0.8 }}
+                >
+                    Log Workout Session
+                </motion.h1>
 
-            <div className="absolute top-16 right-2 text-lg bg-gray-800 p-2 rounded">
-                Time: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-            </div>
+                <div className="absolute top-16 right-2 text-lg bg-gray-800 p-2 rounded">
+                    Time: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                </div>
 
-            <motion.form 
-                className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-                onSubmit={handleLogSession}
-                initial={{ scale: 0.8 }} 
-                animate={{ scale: 1 }} 
-                transition={{ duration: 0.5 }}
-            >
-                {exercisesWorkout.length === 0 ? (
-                    <p className="text-gray-400">No exercises found.</p>
-                ) : (
-                    workoutExerciseSessions.map(session => {
-                        const exercise = availableExercises.find(ex => ex.id === session.exercise);
-                        const exerciseName = exercise ? exercise.name : "Unknown Exercise";
-                        return (
-                            <motion.div 
-                                key={session.exercise} 
-                                className="bg-gray-700 p-4 rounded-lg shadow-md flex flex-col items-center"
-                            >
-                                <motion.h2 
-                                    className="text-lg font-semibold mb-4"
+                <motion.form 
+                    className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                    onSubmit={handleLogSession}
+                    initial={{ scale: 0.8 }} 
+                    animate={{ scale: 1 }} 
+                    transition={{ duration: 0.5 }}
+                >
+                    {exercisesWorkout.length === 0 ? (
+                        <p className="text-gray-400">No exercises found.</p>
+                    ) : (
+                        workoutExerciseSessions.map(session => {
+                            const exercise = availableExercises.find(ex => ex.id === session.exercise);
+                            const exerciseName = exercise ? exercise.name : "Unknown Exercise";
+                            return (
+                                <motion.div 
+                                    key={session.exercise} 
+                                    className="bg-gray-700 p-4 rounded-lg shadow-md flex flex-col items-center"
                                 >
-                                    {exercise ? exercise.name : "Unknown Exercise"} 
-                                </motion.h2>
-                                {session.sets.map((set, index) => (
-                                    <motion.div key={set.id} className="w-full mb-4">
-                                        <motion.h3 
-                                            className="text-md font-medium"
-                                        >
-                                            Set {index + 1}
-                                        </motion.h3>
-                                        {/* Input for weight */}
-                                        <input 
-                                            name={`weight-${exerciseName}-${index + 1}`}
-                                            type="string" 
-                                            placeholder="Weight (kg)" 
-                                            className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none" 
-                                            value={set.weight}
-                                            onChange={(e) => handleInputChange(session.exercise, set.id, "weight", e.target.value)}
-                                        />
-                                        {/* Input for repetitions */}
-                                        <input 
-                                            name={`reps-${exerciseName}-${index + 1}`}
-                                            type="string" 
-                                            placeholder="Repetitions" 
-                                            className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                            value={set.repetitions}
-                                            onChange={(e) => handleInputChange(session.exercise, set.id, "repetitions", e.target.value)}
-                                        />
-                                        {/* Remove set Button */}
-                                        <motion.button 
-                                            type="button" 
-                                            className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition" 
-                                            onClick={() => removeSet(session.exercise, set.id)}
-                                        >
-                                            Remove Set
-                                        </motion.button>
-                                    </motion.div>
-                                ))}
-                                {/* Add set Button */}
-                                <motion.button 
-                                    name={`addSet-${exerciseName}`} 
-                                    type="button" 
-                                    className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
-                                    onClick={() => addSet(session.exercise)}
-                                >
-                                    Add Set
-                                </motion.button>
-                            </motion.div>
-                        );
-                    })
-                )}
-                {/* Save Button */}
-                <motion.div className="w-full col-span-full flex justify-center mt-6">
-                    <motion.button 
-                        name="saveButton"
-                        type="submit"
-                        className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
-                        whileHover={{ scale: 1.05 }}
-                    >
-                        Save Session
-                    </motion.button>
-                </motion.div>
-            </motion.form>
+                                    <motion.h2 
+                                        className="text-lg font-semibold mb-4"
+                                    >
+                                        {exercise ? exercise.name : "Unknown Exercise"} 
+                                    </motion.h2>
+                                    {session.sets.map((set, index) => (
+                                        <motion.div key={set.id} className="w-full mb-4">
+                                            <motion.h3 
+                                                className="text-md font-medium"
+                                            >
+                                                Set {index + 1}
+                                            </motion.h3>
+                                            {/* Input for weight */}
+                                            <input 
+                                                name={`weight-${exerciseName}-${index + 1}`}
+                                                type="string" 
+                                                placeholder="Weight (kg)" 
+                                                className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none" 
+                                                value={set.weight}
+                                                onChange={(e) => handleInputChange(session.exercise, set.id, "weight", e.target.value)}
+                                            />
+                                            {/* Input for repetitions */}
+                                            <input 
+                                                name={`reps-${exerciseName}-${index + 1}`}
+                                                type="string" 
+                                                placeholder="Repetitions" 
+                                                className="w-full p-2 rounded bg-gray-600 text-white mb-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                                value={set.repetitions}
+                                                onChange={(e) => handleInputChange(session.exercise, set.id, "repetitions", e.target.value)}
+                                            />
+                                            {/* Remove set Button */}
+                                            <motion.button 
+                                                type="button" 
+                                                className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition" 
+                                                onClick={() => removeSet(session.exercise, set.id)}
+                                            >
+                                                Remove Set
+                                            </motion.button>
+                                        </motion.div>
+                                    ))}
+                                    {/* Add set Button */}
+                                    <motion.button 
+                                        name={`addSet-${exerciseName}`} 
+                                        type="button" 
+                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
+                                        onClick={() => addSet(session.exercise)}
+                                    >
+                                        Add Set
+                                    </motion.button>
+                                </motion.div>
+                            );
+                        })
+                    )}
+                    {/* Save Button */}
+                    <motion.div className="w-full col-span-full flex justify-center mt-6">
+                        <motion.button 
+                            name="saveButton"
+                            type="submit"
+                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                            whileHover={{ scale: 1.05 }}
+                        >
+                            Save Session
+                        </motion.button>
+                    </motion.div>
+                </motion.form>
 
-            {/* Back Button */}
-            <motion.button
-                onClick={() => navigate("/dashboard")}
-                className="mt-4 text-blue-400 hover:text-blue-500 underline"
-                whileHover={{ scale: 1.05 }}
-            >
-                Back to Dashboard
-            </motion.button>
+                {/* Back Button */}
+                <motion.button
+                    onClick={() => navigate("/dashboard")}
+                    className="mt-4 text-blue-400 hover:text-blue-500 underline"
+                    whileHover={{ scale: 1.05 }}
+                >
+                    Back to Dashboard
+                </motion.button>
+            </motion.div>
         </motion.div>
     );
 };
+
+export default WorkoutSession;

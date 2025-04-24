@@ -2,13 +2,26 @@ import React from 'react';
 import ChatRoom from '~/components/Chat/ChatRoom';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
 
-// Seems to be unused? Should maybe be used as a component instead?
 
 const ChatRoomPage: React.FC = () => {
     const { id } = useParams();
     const chatRoomId = Number(id)
     const navigate = useNavigate();
+   
+   // State to manage chat room ID
+   const [currentChatRoomId, setCurrentChatRoomId] = useState<number | null>(chatRoomId);
+
+   const handleLeaveChatRoom = () => {
+       setCurrentChatRoomId(null); 
+       navigate("/chat"); 
+   };
+
+   useEffect(() => {
+       // Effect to update the state based on params
+       setCurrentChatRoomId(chatRoomId);
+   }, [chatRoomId]);
 
     return (
         <motion.div
@@ -17,7 +30,7 @@ const ChatRoomPage: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
-                <ChatRoom chatRoomId={chatRoomId} />
+                <ChatRoom chatRoomId={chatRoomId}  onLeave={handleLeaveChatRoom} />
 
                 {/* Exit Chat Room button */}
                 <motion.button

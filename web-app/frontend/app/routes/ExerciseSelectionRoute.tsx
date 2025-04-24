@@ -1,5 +1,5 @@
 import type { Route } from "./+types/ExerciseSelectionRoute";
-import { ExerciseSelection } from "../pages/ExerciseSelection";
+import ExerciseSelection from "../pages/ExerciseSelection";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {

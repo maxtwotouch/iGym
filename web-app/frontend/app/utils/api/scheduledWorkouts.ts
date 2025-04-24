@@ -7,7 +7,7 @@ export const fetchScheduledWorkouts = async (token: string | null) => {
     }
 
     try {
-        const response = await fetch(`${backendUrl}/scheduled_workouts/`, {
+        const response = await fetch(`${backendUrl}/schedule/workout/`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -55,7 +55,7 @@ export const deleteScheduledWorkout = async (token: string | null, scheduledWork
 
     try {
         // Hold the promise for the delete operation
-        const deletePromise = fetch(`${backendUrl}/scheduled_workout/delete/${scheduledWorkoutId}/`, {
+        const deletePromise = fetch(`${backendUrl}/schedule/workout/delete/${scheduledWorkoutId}/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -92,7 +92,7 @@ export const createScheduledWorkout = async (token: string | null, workoutId: nu
     };
 
     try {
-        const response = await fetch(`${backendUrl}/scheduled_workout/create/`, {
+        const response = await fetch(`${backendUrl}/schedule/workout/create/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

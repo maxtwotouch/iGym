@@ -9,7 +9,7 @@ export const deleteWorkout = async (token: string | null, workoutId: number): Pr
     }
     
     try {
-        const response = await fetch(`${backendUrl}/workouts/delete/${workoutId}/`, {
+        const response = await fetch(`${backendUrl}/workout/delete/${workoutId}/`, {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
         });
@@ -39,7 +39,7 @@ export const fetchWorkouts = async (token: string | null): Promise<Workout[] | n
     }
 
     try {
-        const response = await fetch(`${backendUrl}/workouts/`, {
+        const response = await fetch(`${backendUrl}/workout/`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

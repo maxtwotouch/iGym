@@ -1,5 +1,5 @@
 import type { Route } from "./+types/WorkoutSessionRoute";
-import { WorkoutSession } from "~/pages/WorkoutSession";
+import WorkoutSession from "~/pages/WorkoutSession";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {
