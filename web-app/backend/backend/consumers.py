@@ -8,10 +8,6 @@ from urllib.parse import parse_qs
 from .serializers import WorkoutSerializer
 from datetime import datetime
 
-# FIX: We can consider adding a NotificationConsumer class to handle receiving of all notifications for a user. But this adds complexity. And in the case of our application, it is assumed that a user will not take part in a 1000+ chat rooms at once. So we can rather for keeping it simple just open many WebSocket connection for a user in the dashboard for receiving notification. This way we can keep the code simple and avoid the complexity of handling multiple notifications in a single WebSocket connection.
-# class NotificationConsumer(AsyncWebsocketConsumer):
-
-
 class Chatconsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_parameter = self.scope["query_string"] # Get the query parameters from the URL 
@@ -78,6 +74,11 @@ class Chatconsumer(AsyncWebsocketConsumer):
         elif type == "confirmation":
             workout_id = data["workout_id"]
             user_id = data["user_id"]
+            content = data["message"]
+            
+            if not content:
+                print("Received invalid websocket confirmation message")
+                return
 
             workout = await self.get_workout(workout_id)
             if workout is None:
@@ -96,12 +97,14 @@ class Chatconsumer(AsyncWebsocketConsumer):
                 await database_sync_to_async(workout.owners.add)(user_id)
 
                 workout_serialized = await self.get_serialized_workout(workout)
+                await self.save_message(user, content)
                 await self.channel_layer.group_send(
                     self.room_id,
                     {
                         "type": "confirmation_message",
                         "workout": workout_serialized,
-                        "added_to_workout": user.username
+                        "added_to_workout": user.username,
+                        "content": content
                     }
                 )
 
@@ -122,6 +125,31 @@ class Chatconsumer(AsyncWebsocketConsumer):
                     "sender": sender.id
                 }
             )
+        
+        elif type == "leave":
+            content = data['message']
+            user_id = data['user_id']
+            
+            if not content:
+                print("Received invalid websocket leave message")
+                return
+
+            user = await self.get_user(user_id)
+            if user is None:
+                print(f"User with ID {user_id} not found!")
+                return  
+            
+            await self.save_message(user, content)
+            await self.channel_layer.group_send(
+                self.room_id,
+                {
+                    "type": "leave",
+                    "left_the_group_chat": user.username,
+                    "content": content
+                }
+            )
+
+            
 
         # Broadcast notification to the rest of the users in the chat room, excluding the sender. And saving the notification to the database
         if type == "message":
@@ -180,11 +208,23 @@ class Chatconsumer(AsyncWebsocketConsumer):
     async def confirmation_message(self, event):
         workout = event["workout"]
         added_to_workout = event["added_to_workout"]
+        content = event["content"]
 
         await self.send(text_data=json.dumps({
             "type": "confirmation",
             "workout": workout,
-            "added_to_workout": added_to_workout
+            "added_to_workout": added_to_workout,
+            "content": content
+        }))
+    
+    async def leave(self, event):
+        left_the_group_chat = event["left_the_group_chat"]
+        content = event["content"]
+        
+        await self.send(text_data=json.dumps({
+            "type": "leave",
+            "left_the_group_chat": left_the_group_chat,
+            "content": content
         }))
 
     async def notification(self, event):

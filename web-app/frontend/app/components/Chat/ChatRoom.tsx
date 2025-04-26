@@ -6,6 +6,7 @@ import { backendUrl, wsUrl } from "~/config";
 
 type ChatRoomProps = {
     chatRoomId: number;
+    onLeave: () => void;
 };
 
 type User = {
@@ -28,7 +29,7 @@ type ChatWorkout = {
 };
 
 type Message = {
-    type: "message" | "confirmation";
+    type: "message" | "confirmation" | "leave";
     content: string;
     sender: string;
     date_sent: string;
@@ -44,7 +45,7 @@ type Notification = {
     workout_message: string | null;
 };
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
+const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [users, setUsers] = useState<User[]>([]);
@@ -66,7 +67,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchChat = async () => {
             try {
-                const currentChatResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/`, {
+                const currentChatResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const currentChat = await currentChatResponse.json();
@@ -78,7 +79,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchParticipants = async () => {
             try {
-                const participantsResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/participants/`, {
+                const participantsResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/participants/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const participants = await participantsResponse.json();
@@ -91,7 +92,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchUserWorkouts = async () => {
             try {
-                const userWorkoutsResponse = await fetch(`${backendUrl}/workouts/`, {
+                const userWorkoutsResponse = await fetch(`${backendUrl}/workout/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userWorkouts = await userWorkoutsResponse.json();
@@ -110,7 +111,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchMessages = async () => {
             try {
-                const messagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/messages/`, {
+                const messagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const messages = await messagesResponse.json();
@@ -134,7 +135,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const fetchWorkoutMessages = async () => {
             try {
-                const workoutMessagesResponse = await fetch(`${backendUrl}/chat_room/${chatRoomId}/workout_messages/`, {
+                const workoutMessagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/workout_messages/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const workoutMessages = await workoutMessagesResponse.json();
@@ -164,7 +165,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
 
         const notificationsList = async () => {
             try {
-                const notificationsUserResponse = await fetch(`${backendUrl}/notifications/`, {
+                const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const notificationsUserData = await notificationsUserResponse.json();
@@ -244,11 +245,24 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 const confirmationMessage: Message = {
                     type: "confirmation",
                     content: `${userName} has accepted the workout: ${workoutName}`,
-                    sender: "System",
+                    sender: `${userName}`,
                     date_sent: new Date().toISOString(),
                 };
                 
                 setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
+            }
+
+            else if (message.type === "leave") { // Handle leave messages (people leaving the chat room)
+                const username = message.left_the_group_chat;
+
+                const leaveMessage: Message = {
+                    type: "leave",
+                    content: `${username} has left the chat room`,
+                    sender: `${username}`,
+                    date_sent: new Date().toISOString(),
+                };
+
+                setMessages((prevMessages) => [...prevMessages, leaveMessage]);
             }
         };
 
@@ -275,7 +289,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
         }
 
         deleteNotificationsChat();
-    }, [notifications]);
+    }, [notifications, navigate]);
 
     const sendMessage = () => {
         if (!newMessage.trim()) return; // Don't send empty messages
@@ -307,16 +321,94 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
         }
         
         const currentUserId = Number(localStorage.getItem("user_id"));
+        const currentUserUsername = localStorage.getItem("username");
         socketRef.current.send(JSON.stringify({
             type: "confirmation",
             workout_id: workout.id,
             user_id: currentUserId,
+            message: `${currentUserUsername} has accepted the workout: ${workout.name}`
         }));
     }
 
+    const leaveChatRoom = async (chatRoomId: number) => {
+        const token = localStorage.getItem("accessToken");
+        const user_id = localStorage.getItem("user_id");
+        const user_type = localStorage.getItem("userType");
+    
+        if (user_type === "user") {
+            try {
+                const response = await fetch(`${backendUrl}/user/${user_id}/`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`Profile fetch failed with status ${response.status}`);
+                }
+    
+                const user = await response.json();
+                if (user.profile.pt_chatroom === chatRoomId) {
+                    alert("Cannot leave the chat room with your personal trainer!");
+                    return;
+                }
+            } catch (err: any) {
+                console.error("Error fetching profile:", err);
+            }
+        }
+        
+        // Find the other participant (the client) and check if the client have this chat room as their pt_chat room, if so, stop the leave
+        else if (user_type === "trainer") {
+            const client = users.find(user => user.id !== Number(user_id));
+    
+            if (!client) {
+                console.log("Client has already left the chat room");
+            } else {
+                try {
+                    const response = await fetch(`${backendUrl}/user/${client.id}/`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error(`Client fetch failed with status ${response.status}`);
+                    }
+    
+                    const clientData = await response.json();
+    
+                    if (clientData.profile.pt_chatroom === chatRoomId) {
+                        alert("Cannot leave: the client still has this chat room as their PT chat.");
+                        return;
+                    }
+    
+                } catch (err: any) {
+                    console.error("Error fetching client data:", err);
+                }
+            }
+        }
+    
+        if (!socketRef.current) return;
+    
+        const currentUserUsername = localStorage.getItem("username");
+        const currentUserId = Number(localStorage.getItem("user_id"));
+        socketRef.current.send(JSON.stringify({
+            type: "leave",
+            user_id: currentUserId,
+            message: `${currentUserUsername} has left the chat room`
+        }));
+    
+        const response = await fetch(`${backendUrl}/chat/delete/${chatRoomId}/`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+        });
+    
+        if (response.ok) {
+            onLeave();
+        } else {
+            console.error("Failed to delete chat room");
+        }
+    };
+
     const getUsernameById = (userId: number) => {
         const user = users.find(user => user.id === userId);
-        return user ? user.username : "Unknown";
+        return user ? user.username : "";
     };
 
     const sortedMessages = [...messages, ...chatWorkouts].sort(
@@ -339,6 +431,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                 {roomName} 
             </motion.h1>
 
+
             {/* Messages in Chat Room*/}
             <motion.div className="bg-gray-800 p-4 rounded-lg shadow-md w-full max-w-2xl flex flex-col h-[60vh]">
                 <motion.div className="flex-1 overflow-y-scroll p-4 space-y-4">
@@ -351,8 +444,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                             sender = "System";
                             isOwnMessage = false;
                         }
+                        if (message.type === "leave") { // Accepted workout messages
+                            sender = "System";
+                            isOwnMessage = false;
+                        }
                         else { // Normal messages and workout messages
                             const message_sender_id = Number(message.sender);
+                            console.log("sender:", message.sender);
                             sender = getUsernameById(message_sender_id);
                             isOwnMessage = sender === localStorage.getItem("username");
                         }
@@ -403,6 +501,24 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                             );
                         }
 
+                        // Display leave messages
+                        else if (message.type === "leave") {
+                            return (
+                                <motion.div
+                                    key={index}
+                                    className="flex justify-center"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                                >
+                                    <div className="p-3 rounded-lg max-w-xs bg-red-500 text-white">
+                                        <p className="text-sm italic">{message.content}</p>
+                                        <p className="text-xs text-gray-300 mt-1">{sender}</p>
+                                    </div>
+                                </motion.div>
+                            );
+                        }
+
                         // Display workout messages
                         else if (message.type == "workout") {
                             return (
@@ -447,6 +563,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                     {/* Biceps button to toggle dropdown */}
                     <motion.button
                         onClick={() => setIsWorkoutsVisible(!isWorkoutsVisible)}
+                        name="workoutButton"
                         className="text-4xl cursor-pointer"
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
@@ -532,6 +649,16 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId }) => {
                     whileHover={{ scale: 1.05 }}
                 >
                     Send
+                </motion.button>
+                
+                {/* Leave Button */}
+                <motion.button
+                    className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => leaveChatRoom(chatRoomId)}
+                >
+                    Leave
                 </motion.button>
             </motion.div>
         </motion.div>

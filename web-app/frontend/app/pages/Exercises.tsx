@@ -2,14 +2,6 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import ExerciseList from "~/components/Exercises/ExerciseList"; // Import the ExerciseList component
-
-// // Interface to define the structure of a workout object
-// interface Workout {
-//     id: number;
-//     name: string;
-//     date_created: string;
-//     exercises: number[];
-// }
   
 
 export const Exercises: React.FC = () => {

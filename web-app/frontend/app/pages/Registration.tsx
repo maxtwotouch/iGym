@@ -12,6 +12,7 @@ export const RegistrationForm = () => {
     const [weight, setWeight] = useState("");
     const [height, setHeight] = useState("");
     // Field for personal trainer
+    const [pt_type, setPtType] = useState("");
     const [experience, setExperience] = useState("");
 
     const navigate = useNavigate();
@@ -24,40 +25,51 @@ export const RegistrationForm = () => {
         let payload: any = { username, password, profile: {} };
 
         if (userType === "user") {
-            url = `${backendUrl}/user/register/`;
+            url = `${backendUrl}/auth/user/register/`;
             payload.profile = {
                 weight: weight ? parseInt(weight) : null,
                 height: height ? parseInt(height) : null,
             };
         } else if (userType === "trainer") {
-            url = `${backendUrl}/personal_trainer/register/`;
+            url = `${backendUrl}/auth/personal_trainer/register/`;
             payload.trainer_profile = {
-            trainer_profile: {
-                experience: experience,
-            },
+              experience: experience,
+              pt_type: pt_type,
             };
-        }
+          }
 
-        try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (response.ok) {
-            alert("Registration successful!");
-            navigate("/login");
-        } else {
-            const errorData = await response.json();
-            console.error("Registration failed:", errorData);
-            alert("Registration failed: " + JSON.stringify(errorData));
-        }
-        } catch (error) {
-        console.error("Error during registration:", error);
-        alert("An error occurred during registration.");
-        }
-    };
+          try {
+            const response = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+      
+            const data = await response.json();
+      
+            if(!response.ok) {
+              const fieldErrors = [];
+      
+              for (const key in data) {
+                if (Array.isArray(data[key])) {
+                  fieldErrors.push(`${key}: ${data[key].join("")}`);
+                } else {
+                  fieldErrors.push(`${key}: ${data[key]}`);
+                }
+              }
+      
+              alert("Registration failed:\n" + fieldErrors.join("\n"));
+              return;
+            }
+          } catch (error) {
+            console.error("Error during registration:", error);
+            alert("An error occurred during registration.");
+            return;
+          }
+      
+          alert("Registration successful!");
+          navigate("/login");
+        };
 
     return (
         <motion.form
@@ -127,6 +139,21 @@ export const RegistrationForm = () => {
             )}
             {userType === "trainer" && (
             <>
+                <div className="mb-4">
+                <label className="block mb-1">Type of Personal Trainer:</label>
+                <select
+                    value={pt_type}
+                    onChange={(e) => setPtType(e.target.value)}
+                    className="w-full p-2 rounded bg-gray-700 text-white"
+                    required
+                >
+                    <option value="general">General Fitness Trainer</option>
+                    <option value="strength">Strength and Conditioning Trainer</option>
+                    <option value="functional">Functional Training Coach</option>
+                    <option value="bodybuilding">Bodybuilding Coach</option>
+                    <option value="physio">Physical Therapist</option>
+                </select>
+                </div>
                 <div className="mb-4">
                     <label className="block mb-1">Experience:</label>
                     <input

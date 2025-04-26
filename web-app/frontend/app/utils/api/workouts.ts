@@ -4,7 +4,7 @@ import apiClient from "./apiClient";
 // Function to delete a workout
 export const deleteWorkout = async (workoutId: number): Promise<Workout[] | null> => {
     try {
-        const response = await apiClient.delete(`/workouts/delete/${workoutId}/`);
+        const response = await apiClient.delete(`/workout/delete/${workoutId}/`);
     
         if (response.status !== 204) {
             console.error("Failed to delete workout");
@@ -26,7 +26,7 @@ export const deleteWorkout = async (workoutId: number): Promise<Workout[] | null
  // Fetch workouts from the backend
 export const fetchWorkouts = async (): Promise<Workout[] | null> => {
     try {
-        const response = await apiClient.get("/workouts/");
+        const response = await apiClient.get("/workout/");
 
         if (response.status !== 200) {
             console.error("Failed to fetch workouts");

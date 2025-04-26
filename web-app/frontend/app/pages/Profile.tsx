@@ -4,6 +4,8 @@ import { useNavigate } from "react-router";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
 
 import { backendUrl } from "~/config";
+import NavBar from "~/components/common/NavBar";
+import Footer from "~/components/common/Footer";
 
 interface UserProfile {
   id: number;  
@@ -16,12 +18,8 @@ interface UserProfile {
   };
 }
 
-/**
- * ProfilePage:
- * - Fetches user info (username, email, height, weight).
- * - Lets users edit username, password (with confirmation), height, weight, and upload a profile image.
- */
-export const ProfilePage = () => {
+
+export default function ProfilePage() {
   const [id, setID] = useState<string | null>(null);  
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -34,13 +32,10 @@ export const ProfilePage = () => {
   // Reference to hidden file input (for uploading images)
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Extend formData to include username, new password, and confirm password fields
+  // The local form fields for weight & height
   const [formData, setFormData] = useState({
-    username: "",
     weight: "",
-    height: "",
-    password: "",
-    confirmPassword: ""
+    height: ""
   });
 
   // 1) Fetch user profile on mount
@@ -52,7 +47,7 @@ export const ProfilePage = () => {
       return;
     }
 
-    const id = localStorage.getItem("user_id");
+    const id = localStorage.getItem("user_id")
     setID(id);
 
     const fetchProfile = async () => {
@@ -71,13 +66,10 @@ export const ProfilePage = () => {
 
         setProfile(data);
 
-        // Initialize form fields from fetched data
+        // Initialize form fields from data.profile
         setFormData({
-          username: data.username || "",
           weight: data.profile?.weight?.toString() || "",
-          height: data.profile?.height?.toString() || "",
-          password: "",
-          confirmPassword: ""
+          height: data.profile?.height?.toString() || ""
         });
       } catch (err: any) {
         console.error("Error fetching profile:", err);
@@ -90,18 +82,18 @@ export const ProfilePage = () => {
     fetchProfile();
   }, [navigate]);
 
-  // 2) Handle changes for any input field
+  // 2) Handle weight/height changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 3) Handle file input -> preview image
+  // 3) Handle file input -> preview
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate that the file is an image
+    // Validate the file is an image
     if (!file.type.match('image.*')) {
       setError("Please select an image file");
       return;
@@ -121,76 +113,69 @@ export const ProfilePage = () => {
     setError(null);
     setSuccessMessage(null);
 
-    // If the user is updating the password, check that the two fields match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.log("No access token found, redirecting to /login");
-      navigate("/login");
-      return;
+        console.log("No access token found, redirecting to /login");
+        navigate("/login");
+        return;
     }
 
     try {
-      const submitData = new FormData();
+        const submitData = new FormData();
 
-      // Append username (top-level field)
-      if (formData.username) {
-        submitData.append("username", formData.username);
-      }
-      // Append new password if provided
-      if (formData.password) {
-        submitData.append("password", formData.password);
-      }
-      // Append weight and height inside the "profile" structure
-      if (formData.weight) {
-        submitData.append("profile.weight", formData.weight);
-      }
-      if (formData.height) {
-        submitData.append("profile.height", formData.height);
-      }
-      // Append image file if selected
-      if (fileInputRef.current?.files?.[0]) {
-        submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
-      }
+        // Append weight and height inside "profile" structure
+        if (formData.weight) {
+            submitData.append("profile.weight", formData.weight);
+        }
+        if (formData.height) {
+            submitData.append("profile.height", formData.height);
+        }
 
-      const response = await fetch(`${backendUrl}/user/update/${id}/`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`, 
-        },
-        body: submitData, 
-      });
+        // Append image file if selected
+        if (fileInputRef.current?.files?.[0]) {
+            submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
+        }
 
-      if (!response.ok) {
-        throw new Error(`Failed to update profile (status ${response.status})`);
-      }
+        const response = await fetch(`${backendUrl}/user/update/${id}/`, {
+            method: "PATCH",
+            headers: {
+                Authorization: `Bearer ${token}`, 
+            },
+            body: submitData, 
+        });
 
-      const updatedProfile = await response.json();
-      console.log("Profile updated successfully:", updatedProfile);
+        if (!response.ok) {
+            throw new Error(`Failed to update profile (status ${response.status})`);
+        }
 
-      setProfile(updatedProfile);
-      setIsEditing(false);
-      setSuccessMessage("Profile updated successfully!");
-      setPreviewImage(null);  // Clear local preview
+        const updatedProfile = await response.json();
+        console.log("Profile updated successfully:", updatedProfile);
+
+        setProfile(updatedProfile);
+        setIsEditing(false);
+        setSuccessMessage("Profile updated successfully!");
+        setPreviewImage(null);  // Clear local preview
     } catch (err: any) {
-      console.error("Error updating profile:", err);
-      setError(err.message || "Failed to update profile");
+        console.error("Error updating profile:", err);
+        setError(err.message || "Failed to update profile");
     }
-  };
+};
 
   if (isLoading) {
     return (
+      <div className="min-h-screen bg-gray-900 flex flex-col">
+        <NavBar />
         <div className="flex-grow flex items-center justify-center">
           <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
         </div>
+        <Footer />
+      </div>
     );
   }
 
   return (
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+
       <motion.div
         className="flex-grow container mx-auto px-4 py-8"
         initial={{ opacity: 0 }}
@@ -231,6 +216,7 @@ export const ProfilePage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2"
                   >
+                    {/* Simple "upload" icon */}
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -239,10 +225,13 @@ export const ProfilePage = () => {
                     >
                       <path
                         fillRule="evenodd"
-                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z"
+                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 
+                        2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 
+                        12H4V5h12v10z"
                         clipRule="evenodd"
                       />
-                      <path d="M7 9a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" />
+                      <path d="M7 9a1 1 0 011-1h4a1 
+                      1 0 110 2H8a1 1 0 01-1-1z" />
                     </svg>
                   </button>
                 )}
@@ -284,7 +273,7 @@ export const ProfilePage = () => {
               )}
 
               <form onSubmit={handleSubmit}>
-                {/* Hidden file input for image uploads */}
+                {/* Hidden file input (if user chooses an image) */}
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -294,62 +283,19 @@ export const ProfilePage = () => {
                 />
 
                 <div className="grid md:grid-cols-2 gap-6">
-                  {/* Username */}
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">Username</label>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-white">{profile?.username}</p>
-                    )}
-                  </div>
-
-                  {/* New Password */}
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">New Password</label>
-                    {isEditing ? (
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
-                      />
-                    ) : (
-                      <p className="text-white">******</p>
-                    )}
-                  </div>
-
-                  {/* Confirm New Password */}
-                  {isEditing && (
-                    <div className="mb-4">
-                      <label className="block text-gray-300 mb-2">Confirm New Password</label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  )}
-
                   {/* Weight */}
                   <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">Weight (kg)</label>
+                    <label className="block text-gray-300 mb-2">
+                      Weight (kg)
+                    </label>
                     {isEditing ? (
                       <input
                         type="number"
                         name="weight"
                         value={formData.weight}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
+                          focus:outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-white">
@@ -360,14 +306,17 @@ export const ProfilePage = () => {
 
                   {/* Height */}
                   <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">Height (cm)</label>
+                    <label className="block text-gray-300 mb-2">
+                      Height (cm)
+                    </label>
                     {isEditing ? (
                       <input
                         type="number"
                         name="height"
                         value={formData.height}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
+                          focus:outline-none focus:border-blue-500"
                       />
                     ) : (
                       <p className="text-white">
@@ -403,5 +352,7 @@ export const ProfilePage = () => {
           </div>
         </div>
       </motion.div>
+
+    </div>
   );
 }

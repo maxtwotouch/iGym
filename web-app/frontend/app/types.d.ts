@@ -22,7 +22,7 @@ export interface WorkoutSession {
 }
  
 // Interface to define the structure of an exercise set object
-export interface ExcerciseSet {
+export interface Set {
     id: number;
     repetitions: number;
     weight: number;
@@ -35,5 +35,23 @@ export interface ExerciseSession {
     sets: ExcerciseSet[];
 }
 
+type Notification = {
+    id: number;
+    sender: string;
+    chat_room_id: number;
+    chat_room_name: string;
+    date_sent: Date;
+    message: string | null;
+    workout_message: string | null; // Name of the workout
+  };
+  
+  type chatRoom = {
+    id: number;
+  }
 
-// Interface to define the structure of a scheduled workout object
+  type User = {
+    id: number;
+    username: string;
+  };
+
+

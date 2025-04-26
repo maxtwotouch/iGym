@@ -10,7 +10,7 @@ export const fetchExercises = async (token: string | null): Promise<Exercise[] |
     }
 
     try {
-        const response = await fetch(`${backendUrl}/exercises/`, {
+        const response = await fetch(`${backendUrl}/exercise/`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 

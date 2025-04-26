@@ -32,7 +32,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         }
         
         try {
-            const chatRoomResponse = await fetch(`${backendUrl}/chat_rooms/`, {
+            const chatRoomResponse = await fetch(`${backendUrl}/chat/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const chatRoom = await chatRoomResponse.json();
@@ -51,11 +51,10 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     
         const fetchUsers = async () => {
             try {
-                const userObjectsResponse = await fetch(`${backendUrl}/users/`, {
+                const userObjectsResponse = await fetch(`${backendUrl}/user/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const userObjects = await userObjectsResponse.json();
-                console.log(userObjects);
                 setUsers(userObjects);
     
                 // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
@@ -84,7 +83,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await fetch(`${backendUrl}/chat_room/create/`, {
+            const response = await fetch(`${backendUrl}/chat/create/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -109,18 +108,6 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
             console.error("Chat room name and participants are required");
         }
     };
-
-    const deleteChatRoom = async (chatRoomId: number) => {
-        const response = await fetch(`${backendUrl}/chat_room/delete/${chatRoomId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-        });
-        if (response.ok) {
-            fetchChatRooms();
-        } else {
-            console.error("Failed to delete chat room");
-        }
-    }
 
     return (
         <motion.div
@@ -154,28 +141,9 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                         key={chatRoom.id}
                         className="bg-gray-800 p-3 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-700 transition"
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => onSelectChatRoom(chatRoom.id)}
                     >
                         <span className='font-medium'>{chatRoom.name}</span>
-
-                        {/* Join Button */}
-                        <motion.button
-                            className="py-1 px-3 bg-blue-600 rounded hover:bg-blue-700 transition"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => onSelectChatRoom(chatRoom.id)}
-                        >
-                            Join
-                        </motion.button>
-
-                        {/* Delete Button */}
-                        <motion.button
-                            className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => deleteChatRoom(chatRoom.id)}
-                        >
-                            ✕
-                        </motion.button>
                     </motion.div>
                 ))}
             </motion.div>

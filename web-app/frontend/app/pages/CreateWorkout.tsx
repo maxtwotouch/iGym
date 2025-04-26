@@ -10,7 +10,7 @@ interface Exercise {
 }
 
 
-export const CreateWorkout: React.FC = () => {
+const CreateWorkout: React.FC = () => {
     const [newWorkoutName, setNewWorkoutName] = useState<string>(""); 
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ export const CreateWorkout: React.FC = () => {
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
     try {
-      const response = await fetch(`${backendUrl}/workouts/create/`, { 
+      const response = await fetch(`${backendUrl}/workout/create/`, { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,10 +52,20 @@ export const CreateWorkout: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to add workout:", errorData);
-        alert(`Failed to add workout: ${errorData.detail || JSON.stringify(errorData)}`);
+      const data = await response.json();
+
+      if(!response.ok) {
+        const fieldErrors = [];
+
+        for (const key in data) {
+          if (Array.isArray(data[key])) {
+            fieldErrors.push(`${key}: ${data[key].join("")}`);
+          } else {
+            fieldErrors.push(`${key}: ${data[key]}`);
+          }
+        }
+
+        alert("Edit failed:\n" + fieldErrors.join("\n"));
         return;
       }
 
@@ -68,6 +78,7 @@ export const CreateWorkout: React.FC = () => {
   };
 
   return (
+    <motion.div className="d-flex flex-column min-vh-100">
       <motion.div
         className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
         initial={{ opacity: 0 }}
@@ -155,5 +166,8 @@ export const CreateWorkout: React.FC = () => {
           Back to Dashboard
         </motion.button>
       </motion.div>
+    </motion.div>
   );
 };
+
+export default CreateWorkout;

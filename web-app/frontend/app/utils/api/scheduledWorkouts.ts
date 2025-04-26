@@ -2,7 +2,7 @@ import apiClient from '~/utils/api/apiClient';
 
 export const fetchScheduledWorkouts = async () => {
     try {
-        const response = await apiClient.get('/scheduled_workouts/');
+        const response = await apiClient.get('/schedule/workout/');
 
         if (response.status !== 200) {
             throw new Error("Failed to fetch scheduled workouts");
@@ -42,7 +42,7 @@ export const fetchScheduledWorkouts = async () => {
 
 export const deleteScheduledWorkout = async (scheduledWorkoutId: number) => {
     try {
-        const deletePromise = apiClient.delete(`/scheduled_workout/delete/${scheduledWorkoutId}/`);
+        const deletePromise = apiClient.delete(`/schedule/workout/delete/${scheduledWorkoutId}/`);
 
         // Return the promise
         return deletePromise;
@@ -71,7 +71,7 @@ export const createScheduledWorkout = async (workoutId: number, scheduledDate: s
     };
 
     try {
-        const response = await apiClient.post('/scheduled_workout/create/', postData);
+        const response = await apiClient.post('/schedule/workout/create/', postData);
 
         if (response.status !== 201) {
             throw new Error("Failed to schedule workout");

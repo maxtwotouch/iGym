@@ -1,7 +1,34 @@
 from django.test import TestCase
 from django.urls import resolve
-from backend.views import CreateUserView, CreatePersonalTrainerView, CustomTokenObtainPairView, WorkoutListView, ExerciseListView, CreateWorkoutView, WorkoutDeleteView, UpdateWorkoutView, WorkoutDetailView, ExerciseDetailView, WorkoutSessionListView, CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView
 from rest_framework_simplejwt.views import TokenRefreshView
+
+from backend.views.auth import CreateUserView, CreatePersonalTrainerView, CustomTokenObtainPairView
+from backend.views.chat import (
+    ChatRoomRetrieveView, ChatRoomListView, ChatRoomCreateView, ChatRoomDeleteView,
+    ListParticipantsInChatRoomView, ListMessagesInChatRoomView, ListWorkoutMessagesInChatRoomView
+)
+from backend.views.exercise import ExerciseListView, ExerciseDetailView
+from backend.views.notification import NotificationListView, NotificationDeleteView
+from backend.views.schedule import (
+    CreateScheduledWorkoutView, ScheduledWorkoutListView, SchedulesWorkoutDeleteView,
+    CreatePersonalTrainerScheduledWorkoutView, PersonalTrainerScheduledWorkoutListView,
+    PersonalTrainerScheduledWorkoutDeleteView
+)
+from backend.views.session import (
+    WorkoutSessionListView, CreateWorkoutSessionView, CreateExerciseSessionView, CreateSetView
+)
+from backend.views.trainer import (
+    PersonalTrainerListView, UpdatePersonalTrainerView, PersonalTrainerDetailView, ClientsListView,
+    ListScheduledWorkoutsOfClientView, ListWorkoutSessionsOfClientsView, ListWorkoutsOfClientsListView
+)
+from backend.views.user import (
+    ListUserView, UpdateUserView, UserDetailView, ListPtAndUserView
+)
+from backend.views.workout import (
+    WorkoutListView, CreateWorkoutView, WorkoutDeleteView, WorkoutDetailView, 
+    UpdateWorkoutView, ListExercisesInWorkoutView
+)
+
 
 
 class GymUrlTest(TestCase):
@@ -23,45 +50,45 @@ class GymUrlTest(TestCase):
         self.assertEqual(view.func.view_class, TokenRefreshView)
     
     def test_gym_url_to_list_workouts_endpoint(self):
-        view = resolve('/workouts/')
+        view = resolve('/workout/')
         self.assertEqual(view.func.view_class, WorkoutListView)
 
     def test_gym_url_to_list_exercises_endpoint(self):
-        view = resolve('/exercises/')
+        view = resolve('/exercise/')
         self.assertEqual(view.func.view_class, ExerciseListView)
     
     def test_gym_url_to_create_workout_endpoint(self):
-        view = resolve('/workouts/create/')
+        view = resolve('/workout/create/')
         self.assertEqual(view.func.view_class, CreateWorkoutView)
     
     def test_gym_url_to_delete_workout_endpoint(self):
-        view = resolve('/workouts/delete/1/')
+        view = resolve('/workout/delete/1/')
         self.assertEqual(view.func.view_class, WorkoutDeleteView)
 
     def test_gym_url_to_update_workout_endpoint(self):
-        view = resolve('/workouts/update/1/')
+        view = resolve('/workout/update/1/')
         self.assertEqual(view.func.view_class, UpdateWorkoutView)
 
     def test_gym_url_to_get_workout_detail_endpoint(self):
-        view = resolve('/workouts/1/')
+        view = resolve('/workout/1/')
         self.assertEqual(view.func.view_class, WorkoutDetailView)
 
     def test_gym_url_to_get_exercise_detail_endpoint(self):
-        view = resolve('/exercises/1/')
+        view = resolve('/exercise/1/')
         self.assertEqual(view.func.view_class, ExerciseDetailView)
     
     def test_gym_url_to_create_workout_session_endpoint(self):
-        view = resolve('/workout/session/create/')
+        view = resolve('/session/workout/create/')
         self.assertEqual(view.func.view_class, CreateWorkoutSessionView)
 
     def test_gym_url_to_create_exercise_session_endpoint(self):
-        view = resolve('/exercise/session/create/')
+        view = resolve('/session/exercise/create/')
         self.assertEqual(view.func.view_class, CreateExerciseSessionView)
     
     def test_gym_url_to_create_set_endpoint(self):
-        view = resolve('/set/create/')
+        view = resolve('/session/set/create/')
         self.assertEqual(view.func.view_class, CreateSetView)
     
     def test_gym_url_to_list_workout_sessions_endpoint(self):
-        view = resolve('/workouts_sessions/')
+        view = resolve('/session/workout/')
         self.assertEqual(view.func.view_class, WorkoutSessionListView)
