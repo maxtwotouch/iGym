@@ -273,4 +273,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         elif hasattr(user, "trainer_profile"):
             data["trainer_profile"] = {"role": user.trainer_profile.role}
 
+        # Don't remove!
+        data["accessExp"] = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
+        data["refreshExp"] = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
+
         return data

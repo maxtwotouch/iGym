@@ -15,6 +15,7 @@ const apiClient = axios.create({
 // Before each request, check if the access token is valid and set it in the headers
 apiClient.interceptors.request.use( async (config) => {
     const token = await getValidAccessToken();
+
     if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
     }

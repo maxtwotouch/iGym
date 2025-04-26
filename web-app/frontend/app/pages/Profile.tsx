@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
-
 import apiClient from "~/utils/api/apiClient";
-import { useAuth } from "~/context/AuthContext"
+import { useAuth } from "~/context/AuthContext";
 
 interface UserProfile {
   id: number;
@@ -34,9 +33,10 @@ const ProfilePage: React.FC = () => {
   const [error, setError]               = useState<string | null>(null);
   const [success, setSuccess]           = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const { user } = useAuth();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { user } = useAuth();
 
   // form state
   const [form, setForm] = useState({
@@ -51,18 +51,9 @@ const ProfilePage: React.FC = () => {
 
   // load profile
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.get(`/user/${user?.userId}/`)
-
-        if (response.status != 200) {
-          throw new Error(`Profile fetch failed with status ${response.status}`);
-        }
-
-        const data = await response.data;
-        console.log("Profile data received:", data);
-
+    apiClient.get(`/user/${user?.userId}/`)
+      .then(res => res.data)
+      .then((data: UserProfile) => {
         setProfile(data);
         setForm({
           first_name: data.first_name || "",
@@ -97,37 +88,34 @@ const ProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
+    setSuccess(null);
+    if (form.password && form.password !== form.confirm) {
+      setError("Passwords must match");
+      return;
+    }
+
+    const data = new FormData();
+    data.append("first_name", form.first_name);
+    data.append("last_name",  form.last_name);
+    data.append("username",   form.username);
+    if (form.password) data.append("password", form.password);
+    data.append("profile.weight", form.weight);
+    data.append("profile.height", form.height);
+    if (fileInputRef.current?.files?.[0]) {
+      data.append("profile.profile_picture", fileInputRef.current.files[0]);
+    }
 
     try {
-        const submitData = new FormData();
-
-        // Append weight and height inside "profile" structure
-        if (formData.weight) {
-            submitData.append("profile.weight", formData.weight);
-        }
-        if (formData.height) {
-            submitData.append("profile.height", formData.height);
-        }
-
-        // Append image file if selected
-        if (fileInputRef.current?.files?.[0]) {
-            submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
-        }
-
-        const response = await apiClient.patch(`/user/update/${user?.userId}/`, submitData);
-
-        if (response.status != 200) {
-            throw new Error(`Failed to update profile (status ${response.status})`);
-        }
-
-        const updatedProfile = await response.data;
-        console.log("Profile updated successfully:", updatedProfile);
-
-        setProfile(updatedProfile);
-        setIsEditing(false);
-        setSuccessMessage("Profile updated successfully!");
-        setPreviewImage(null);  // Clear local preview
+      const res = await apiClient.patch(`/user/update/${user?.userId}/`, data );
+      if (res.status != 200) {
+        const text = await res.statusText;
+        throw new Error(text || "Update failed");
+      }
+      const updated = await res.data;
+      setProfile(updated);
+      setSuccess("Profile saved!");
+      setEditing(false);
+      setPreviewImage(null);
     } catch (err: any) {
       setError(err.message);
     }
@@ -136,8 +124,8 @@ const ProfilePage: React.FC = () => {
   // Render loading spinner only
   if (loading) {
     return (
-      <div className="flex-grow flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }

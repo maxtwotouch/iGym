@@ -19,6 +19,8 @@ interface User {
     username: string;
     profile: any;
     userType?: string; // Optional, depending on your user model
+    firstName: string;
+    lastName: string;
 }
 
 interface AuthContextType {
@@ -86,7 +88,9 @@ const login = async (credentials: { username: string; password: string }) => {
             userId: tokenResponse.id,
             username: tokenResponse.username,
             profile: tokenResponse.profile,
-            userType: tokenResponse.profile?.role
+            userType: tokenResponse.profile?.role,
+            firstName: tokenResponse.first_name,
+            lastName: tokenResponse.last_name
         };
         setUser(newUser);
         // Persist credentials in localStorage for a smoother user experience

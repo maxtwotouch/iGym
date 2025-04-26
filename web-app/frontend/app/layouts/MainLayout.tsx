@@ -14,17 +14,16 @@ export const MainLayout = ({
     // the client loader to run as it acts as a route guard.
     // The loader will redirect to the login page if the user is not authenticated.
 
-export const MainLayout = () => {
-     return (
-          <motion.div className="flex flex-col min-h-screen bg-gray-900">
-               <NavBar />
-               <div className="flex-1 relative">
-                   <Outlet />
-               </div>
-               <Footer />
-           </motion.div>
-       );
-     }
+    return (
+        <motion.div className="flex flex-col min-h-screen">
+            <NavBar />
+            <div className="flex-1 relative">
+                <Outlet />
+            </div>
+            <Footer />
+        </motion.div>
+    );
+}
 
 export const clientLoader = async ({ 
     request
