@@ -1,52 +1,57 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { motion } from "framer-motion";
-
-import { backendUrl } from "~/config";
+import { useAuth } from "~/context/AuthContext";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get("redirectTo") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
     try {
-      const response = await fetch(`${backendUrl}/auth/token/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      await login({ username, password });
 
-      const data = await response.json();
-      if (!response.ok || !data.access) {
-        const errorMessage = data.detail || data.error || "Login failed: Incorrect username or password.";
-        alert(errorMessage);
-        return;
-      }
-  
-      // Store JWT tokens for subsequent authenticated requests.
-      localStorage.setItem("accessToken", import.meta.env.VITE_ACCESS_TOKEN || data.access);
-      localStorage.setItem("refreshToken", import.meta.env.VITE_REFRESH_TOKEN || data.refresh);
-      localStorage.setItem("username", import.meta.env.VITE_USERNAME || data.username);
-      localStorage.setItem("user_id", import.meta.env.VITE_USER_ID || data.id);
-      
-      if (data.profile?.role) {
-        localStorage.setItem("userType", data.profile.role);
-      }   
-      else if (data.trainer_profile?.role) {
+      navigate(from, { replace: true });
 
-        if (data.trainer_profile.role === "personal_trainer") { // This is a handling towards older registered trainers, where they were given wrong usertype. Can be safely removed after production.
-          localStorage.setItem("userType", "trainer"); 
-        }
-        else {
-          localStorage.setItem("userType", data.trainer_profile.role);
-        }
+      // if (response.ok) {
+      //   const data = await response.json();
+      //   console.log("Login successful:", data);
 
-      }
-  
-      navigate("/dashboard"); // Redirect to the dashboard after successful login.
+      //   // Store JWT tokens
+      //   localStorage.setItem("accessToken", data.access);
+      //   localStorage.setItem("refreshToken", data.refresh);
+      //   localStorage.setItem("username", data.username);
+      //   localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
+        
+      //   console.log(data);
+
+      //   // Store user type
+      //   if (data.profile?.role) {
+      //     localStorage.setItem("userType", data.profile.role);
+      //   } else if (data.trainer_profile?.role) {
+      //     if (data.trainer_profile.role === "personal_trainer") {
+      //       localStorage.setItem("userType", "trainer");
+      //     }
+      //   }
+
+      //   // Store weight for user role
+      //   if (data.profile?.role === "user") {
+      //     console.log("storing the user's weight");
+      //     localStorage.setItem("weight", data.profile.weight ?? "unknown");
+      //   }
+
+      //   navigate("/dashboard");
+      // } else {
+      //   const errorData = await response.json();
+      //   console.error("Login failed:", errorData);
+      //   alert("Login failed: " + (errorData.detail || "Unknown error"));
+      // }
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");

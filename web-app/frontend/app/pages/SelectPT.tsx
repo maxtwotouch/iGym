@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import PtList from "~/components/SelectPT/PtList";
+import PtList from "~/components/SelectPT/Ptlist";
 
 export const SelectPT: React.FC = () => {
   return (

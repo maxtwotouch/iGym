@@ -5,6 +5,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed, ValidationError as DRFValidationError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.conf import settings
 
 from .models import (
     UserProfile,
@@ -191,15 +192,11 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
 class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
     workout_title = serializers.ReadOnlyField(source="workout_template.name")
 
-    class Meta:
-        model = PersonalTrainerScheduledWorkout
-        fields = ["id", "client", "pt", "workout_template", "workout_title", "scheduled_date"]
-        extra_kwargs = {"pt": {"read_only": True}}
-
-
-# ----------------------------
-# Messaging & notification API
-# ----------------------------
+        # Set the access and refresh token expiration times
+        data["accessExp"] = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
+        data["refreshExp"] = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
+        
+        return data
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:

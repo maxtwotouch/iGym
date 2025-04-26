@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from "~/config";
+import { useAuth } from "~/context/AuthContext";
+import apiClient from "~/utils/api/apiClient";
 
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png"
 
@@ -40,9 +41,10 @@ export const NavBar = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<number | null>(null);
 
+    const { user, logout } = useAuth();
+
     const handleLogout = () => {
-        localStorage.clear();
-        window.location.href = '/login';
+        logout();
     };
 
     useEffect(() => {
@@ -53,27 +55,15 @@ export const NavBar = () => {
     }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            alert("Access token not found in localStorage");
-            window.location.href = '/login';
-        }
-    
         const fetchTrainerOrClients = async () => {
             try {
                 if (userType === 'user') {
-                    const userResponse = await fetch(`${backendUrl}/user/${localStorage.getItem("user_id")}/`, {
-                        method: "GET",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    const userData = await userResponse.json();
+                    const userResponse = await apiClient.get(`/user/${user?.userId}/`)
+                    const userData = userResponse.data;
 
                     // Translate from profile id to user id
-                    const trainersResponse = await fetch(`${backendUrl}/trainer/`, {
-                        method: "GET",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    const trainerData = await trainersResponse.json();
+                    const trainersResponse = await apiClient.get(`/trainer/`);
+                    const trainerData = await trainersResponse.data;
 
                     trainerData.find((trainer: any) => { 
                         if (trainer.trainer_profile.id === userData.profile.personal_trainer) {
@@ -82,11 +72,8 @@ export const NavBar = () => {
                     });
                 } 
                 else if (userType === 'trainer') {
-                    const clientsArrayResponse = await fetch(`${backendUrl}/trainer/clients/`, {
-                        method: "GET",
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    const clientsArrayData = await clientsArrayResponse.json();
+                    const clientsArrayResponse = await apiClient.get(`/trainer/clients/`);
+                    const clientsArrayData = await clientsArrayResponse.data;
 
                     clientsArrayData.map((client: any) => {
                         setClients((prevClients) => [...prevClients, { id: client.id, username: client.username, profile: client.profile }]);
@@ -125,26 +112,16 @@ export const NavBar = () => {
     }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          // If no token, force the user to login
-          window.location.href = "/login";
-          return;
-        }
-    
         // Fetch the user data
         const fetchUserData = async () => {
           try {
-            const id = localStorage.getItem("user_id")
-            const response = await fetch(`${backendUrl}/user/${id}/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!response.ok) {
+            // Parse user from string to JSON
+            const response = await apiClient.get(`/user/${user?.userId}/`);
+            if (response.status != 200) {
               throw new Error("Failed to fetch user data");
             }
     
-            const userData: User = await response.json();
+            const userData: User = response.data;
             setUsername(userData.username);
     
             // If the backend user profile doesn't have an image, use our fallback

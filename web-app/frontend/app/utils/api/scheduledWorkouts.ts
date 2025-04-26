@@ -1,21 +1,14 @@
-import { backendUrl } from '~/config'; // Import backendUrl from config
+import apiClient from '~/utils/api/apiClient';
 
-export const fetchScheduledWorkouts = async (token: string | null) => {
-    if (!token) {
-        console.error("Could not fetch scheduled workouts: No access token found");
-        return null;
-    }
-
+export const fetchScheduledWorkouts = async () => {
     try {
-        const response = await fetch(`${backendUrl}/schedule/workout/`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiClient.get('/schedule/workout/');
 
-        if (!response.ok) {
+        if (response.status !== 200) {
             throw new Error("Failed to fetch scheduled workouts");
         }
 
-        const scheduledWorkouts = await response.json();
+        const scheduledWorkouts = await response.data;
         const now = new Date();
 
         // Array to hold delete promises
@@ -25,7 +18,7 @@ export const fetchScheduledWorkouts = async (token: string | null) => {
             const workoutDate = new Date(workout.scheduled_date);
             if (workoutDate < now) {
                 // If the scheduled workout is in the past, delete it
-                const deletePromise = deleteScheduledWorkout(token, workout.id);
+                const deletePromise = deleteScheduledWorkout(workout.id);
                 deletePromises.push(deletePromise);
                 // Remove the workout from the data array to avoid refetching to get the updated list
                 scheduledWorkouts.splice(scheduledWorkouts.indexOf(workout), 1);
@@ -47,18 +40,9 @@ export const fetchScheduledWorkouts = async (token: string | null) => {
     }
 }
 
-export const deleteScheduledWorkout = async (token: string | null, scheduledWorkoutId: number) => {
-    if (!token) {
-        console.error("Could not delete scheduled workout: No access token found");
-        return null;
-    }
-
+export const deleteScheduledWorkout = async (scheduledWorkoutId: number) => {
     try {
-        // Hold the promise for the delete operation
-        const deletePromise = fetch(`${backendUrl}/schedule/workout/delete/${scheduledWorkoutId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        const deletePromise = apiClient.delete(`/schedule/workout/delete/${scheduledWorkoutId}/`);
 
         // Return the promise
         return deletePromise;
@@ -69,12 +53,7 @@ export const deleteScheduledWorkout = async (token: string | null, scheduledWork
     
 }
 
-export const createScheduledWorkout = async (token: string | null, workoutId: number, scheduledDate: string) => {
-    if (!token) {
-        console.error("Could not create scheduled workout: No access token found");
-        return null;
-    }
-
+export const createScheduledWorkout = async (workoutId: number, scheduledDate: string) => {
     // Convert local date/time from input to full ISO string
     const fullDate = new Date(scheduledDate);
     const isoDateTime = fullDate.toISOString();
@@ -92,20 +71,13 @@ export const createScheduledWorkout = async (token: string | null, workoutId: nu
     };
 
     try {
-        const response = await fetch(`${backendUrl}/schedule/workout/create/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(postData)
-        });
+        const response = await apiClient.post('/schedule/workout/create/', postData);
 
-        if (!response.ok) {
+        if (response.status !== 201) {
             throw new Error("Failed to schedule workout");
         }
 
-        const newSession = await response.json();
+        const newSession = await response.data;
 
         return {
             id: `scheduled-${newSession.id}`,

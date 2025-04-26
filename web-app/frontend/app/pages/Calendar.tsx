@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts";
 import { mapWorkoutSessionsToCalendarEvents } from "~/utils/calendarHelper";
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
 
 type CalendarEvent = {
   id: string;
@@ -36,13 +36,11 @@ export const Calendar = () => {
 
   // load events once
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return navigate("/login");
     (async () => {
       setLoading(true);
       try {
-        const sched = await fetchScheduledWorkouts(token);
-        const sess = await mapWorkoutSessionsToCalendarEvents(token);
+        const sched = await fetchScheduledWorkouts();
+        const sess = await mapWorkoutSessionsToCalendarEvents();
         setEvents([...sched, ...sess]);
       } catch (e: any) {
         console.error(e);
@@ -54,15 +52,11 @@ export const Calendar = () => {
 
   // load workout templates
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
     (async () => {
       try {
-        const res = await fetch(`${backendUrl}/workouts/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const res = await apiClient.get("/workout/");
+        if (res.status !== 200) throw new Error();
+        const data = await res.data;
         setAvailableWorkouts(data.map((w: any) => ({ id: w.id, title: w.name })));
       } catch {
         console.error("Could not load workouts");
@@ -117,20 +111,12 @@ export const Calendar = () => {
       return;
     }
     try {
-      const token = localStorage.getItem("accessToken")!;
-      const res = await fetch(`${backendUrl}/scheduled_workout/create/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          workout_template: selectedWorkoutId,
-          scheduled_date: dt.toISOString(),
-        }),
+      const res = await apiClient.post("/schedule/workout/create/", {
+        workout_template: selectedWorkoutId,
+        scheduled_date: dt.toISOString(),
       });
-      if (!res.ok) throw new Error();
-      const ns = await res.json();
+      if (res.status !== 201) throw new Error();
+      const ns = await res.data;
       setEvents(e => [
         ...e,
         {

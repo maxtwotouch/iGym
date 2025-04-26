@@ -1,24 +1,17 @@
-import { backendUrl } from '~/config'; // Import backendUrl from config
+import apiClient from "./apiClient";
 import type { WorkoutSession } from "~/types"; // Import type for workout sessions
 
 // Fetch workout sessions from the backend
-export const fetchWorkoutSessions = async (token: string | null): Promise<WorkoutSession[] | null> => {
-    if (!token) {
-        console.error("Could not fetch workout sessions: No access token found");
-        return null;
-    }
-
+export const fetchWorkoutSessions = async (): Promise<WorkoutSession[] | null> => {
     try {
-        const response = await fetch(`${backendUrl}/session/workout/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await apiClient.get("/session/workout/");
 
-        if (!response.ok) {
+        if (response.status !== 200) {
             console.error("Failed to fetch workout sessions");
             return  null;
         }
 
-        const data = await response.json();
+        const data = await response.data;
 
         return data; // Return the fetched workout sessions
     } catch (error) {
