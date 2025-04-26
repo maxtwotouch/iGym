@@ -7,9 +7,10 @@ export interface Workout {
 }
 
 // Interface to define the structure of an exercise object
-export interface Exercise {
-    name: string;
+interface Exercise {
     id: number;
+    name: string;
+    muscle_category: string;
 }
 
 // Interface to define the structure of a workout session object

@@ -1,25 +1,18 @@
-import { backendUrl } from '~/config'; // Import backendUrl from config
+import apiClient from "./apiClient";
 
 import type { Exercise } from "~/types"; // Import type for exercises
 
 // Fetch exercises from the backend
-export const fetchExercises = async (token: string | null): Promise<Exercise[] | null> => {
-    if (!token) {
-        console.error("Could not fetch exercises: No access token found");
-        return null;
-    }
-
+export const fetchExercises = async (): Promise<Exercise[] | null> => {
     try {
-        const response = await fetch(`${backendUrl}/exercise/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await apiClient.get("/exercise/");
 
-        if (!response.ok) {
+        if (response.status !== 200) {
             console.error("Failed to fetch exercises");
             return null;
         }
 
-        const data = await response.json();
+        const data = await response.data;
     
         return data; // Return the fetched exercises
     }

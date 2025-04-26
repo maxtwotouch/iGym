@@ -52,7 +52,7 @@ export const clientLoader = async ({
 
       const workoutSessions = await fetchWorkoutSessions();
       const workouts = await fetchWorkouts();
-      const exercises = await fetchExercises(token);
+      const exercises = await fetchExercises();
 
       return { workoutSessions, workouts, exercises, userType };
   } catch (error) {

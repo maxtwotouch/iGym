@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { getValidAccessToken } from '../authService';
-import { backendUrl } from '~/config';
+import { backendUrl, wsUrl } from '~/config';
+
+declare module 'axios' {
+    export interface AxiosInstance {
+        createSocket(chatRoomId: number): Promise<WebSocket>;
+    }
+}
 
 const apiClient = axios.create({
     baseURL: backendUrl,
@@ -14,5 +20,12 @@ apiClient.interceptors.request.use( async (config) => {
     }
     return config;
 });
+
+apiClient.createSocket = async function createAuthSocket(chatRoomId: number) {
+    const token = await getValidAccessToken();
+    const socket = new WebSocket(`${wsUrl}/chat/${chatRoomId}/?token=${token}`);
+
+    return socket;
+}
 
 export default apiClient;

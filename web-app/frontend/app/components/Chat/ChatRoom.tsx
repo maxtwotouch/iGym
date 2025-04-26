@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import Select from 'react-select';
-import { backendUrl, wsUrl } from "~/config";
+import { wsUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
+import { on } from "events";
 
 type ChatRoomProps = {
     chatRoomId: number;
@@ -59,18 +61,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-
         const fetchChat = async () => {
             try {
-                const currentChatResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const currentChat = await currentChatResponse.json();
+                const currentChatResponse = await apiClient.get(`/chat/${chatRoomId}/`);
+
+                if (currentChatResponse.status !== 200) {
+                    throw `Failed to fetch chat room. Status: ${currentChatResponse.status}`;
+                }
+
+                const currentChat = currentChatResponse.data;
                 setRoomName(currentChat.name);
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -79,10 +78,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchParticipants = async () => {
             try {
-                const participantsResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/participants/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const participants = await participantsResponse.json();
+                const participantsResponse = await apiClient.get(`/chat/${chatRoomId}/participants/`);
+
+                if (participantsResponse.status !== 200) {
+                    throw `Failed to fetch participants. Status: ${participantsResponse.status}`;
+                }
+
+                const participants = participantsResponse.data;
                 setUsers(participants);
             
             } catch (error) {
@@ -92,10 +94,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchUserWorkouts = async () => {
             try {
-                const userWorkoutsResponse = await fetch(`${backendUrl}/workout/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const userWorkouts = await userWorkoutsResponse.json();
+                const userWorkoutsResponse = await apiClient.get(`/workout/`);
+
+                if (userWorkoutsResponse.status !== 200) {
+                    throw `Failed to fetch workouts. Status: ${userWorkoutsResponse.status}`;
+                }
+
+                const userWorkouts = await userWorkoutsResponse.data;
+
                 setWorkouts(userWorkouts.map((workout: { 
                         id: number; 
                         name: string 
@@ -111,10 +117,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchMessages = async () => {
             try {
-                const messagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/messages/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const messages = await messagesResponse.json();
+                const messagesResponse = await apiClient.get(`/chat/${chatRoomId}/messages/`);
+
+                if (messagesResponse.status !== 200) {
+                    throw `Failed to fetch messages. Status: ${messagesResponse.status}`;
+                }
+
+                const messages = await messagesResponse.data;
+
                 setMessages(messages.map((
                     message: { 
                         type: "message"; 
@@ -135,10 +145,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const fetchWorkoutMessages = async () => {
             try {
-                const workoutMessagesResponse = await fetch(`${backendUrl}/chat/${chatRoomId}/workout_messages/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const workoutMessages = await workoutMessagesResponse.json();
+                const workoutMessagesResponse = await apiClient.get(`/chat/${chatRoomId}/workout_messages/`);
+
+                if (workoutMessagesResponse.status !== 200) {
+                    throw `Failed to fetch workout messages. Status: ${workoutMessagesResponse.status}`;
+                }
+
+                const workoutMessages = await workoutMessagesResponse.data;
+
                 setChatWorkouts(
                     workoutMessages.map((workoutMessage:{
                         id: number; 
@@ -165,10 +179,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
         const notificationsList = async () => {
             try {
-                const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const notificationsUserData = await notificationsUserResponse.json();
+                const notificationsUserResponse = await apiClient.get(`/notification/`);
+
+                if (notificationsUserResponse.status !== 200) {
+                    throw `Failed to fetch notifications. Status: ${notificationsUserResponse.status}`;
+                }
+
+                const notificationsUserData = await notificationsUserResponse.data;
+
                 notificationsUserData.map((notification: any) => {
                     setNotifications((prev) => [...prev, {
                         id: notification.id,
@@ -196,74 +214,71 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
     // Connect to the WebSocket, listen for new messages, and close the connection when the user leaves the chat room
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-
-        if (socketRef.current) { // Close the existing WebSocket connection
-            socketRef.current.close();
-        }
-
-        const socket = new WebSocket(`${wsUrl}/chat/${chatRoomId}/?token=${token}`); // Connect to the WebSocket
-        socketRef.current = socket; 
-
-        socketRef.current.onmessage = (event) => { // Listen for new messages
-            const message = JSON.parse(event.data); 
-
-            if (message.type === "notification") { // No notification list inside the chat room
-                console.log("Received notification:", message);
-                return;
+        const handleSocket = async () => {
+            if (socketRef.current) { // Close the existing WebSocket connection
+                socketRef.current.close();
             }
 
-            else if (message.type === "message") { // Handle normal text messages
-                const newMessage: Message = { 
-                    type: "message", 
-                    content: String(message.content), 
-                    sender: String(message.sender), 
-                    date_sent: message.date_sent || new Date().toISOString() 
-                };
+            const socket = await apiClient.createSocket(chatRoomId);
+            socketRef.current = socket; 
 
-                setMessages((prevMessages) => [...prevMessages, newMessage]);
-            } 
-            else if (message.type === "workout") { // Handle workout messages
-                const newWorkoutMessage: ChatWorkout = {
-                    type: "workout",
-                    id: message.workout.id,
-                    owners: message.workout.owners,
-                    name: message.workout.name,
-                    sender: String(message.sender),
-                    date_sent: message.workout.date_sent ? message.workout.date_sent : new Date().toISOString(),
-                };
-                setChatWorkouts((prevWorkouts) => [...prevWorkouts, newWorkoutMessage]);
-            } 
-            else if (message.type === "confirmation") { // Handle workout confirmation messages (confirming added workout)
-                const userName = message.added_to_workout;
-                const workoutName = message.workout.name;
+            socketRef.current.onmessage = (event) => { // Listen for new messages
+                const message = JSON.parse(event.data); 
 
-                const confirmationMessage: Message = {
-                    type: "confirmation",
-                    content: `${userName} has accepted the workout: ${workoutName}`,
-                    sender: `${userName}`,
-                    date_sent: new Date().toISOString(),
-                };
-                
-                setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
+                if (message.type === "notification") { // No notification list inside the chat room
+                    console.log("Received notification:", message);
+                    return;
+                }
+
+                else if (message.type === "message") { // Handle normal text messages
+                    const newMessage: Message = { 
+                        type: "message", 
+                        content: String(message.content), 
+                        sender: String(message.sender), 
+                        date_sent: message.date_sent || new Date().toISOString() 
+                    };
+
+                    setMessages((prevMessages) => [...prevMessages, newMessage]);
+                } 
+                else if (message.type === "workout") { // Handle workout messages
+                    const newWorkoutMessage: ChatWorkout = {
+                        type: "workout",
+                        id: message.workout.id,
+                        owners: message.workout.owners,
+                        name: message.workout.name,
+                        sender: String(message.sender),
+                        date_sent: message.workout.date_sent ? message.workout.date_sent : new Date().toISOString(),
+                    };
+                    setChatWorkouts((prevWorkouts) => [...prevWorkouts, newWorkoutMessage]);
+                } 
+                else if (message.type === "confirmation") { // Handle workout confirmation messages (confirming added workout)
+                    const userName = message.added_to_workout;
+                    const workoutName = message.workout.name;
+
+                    const confirmationMessage: Message = {
+                        type: "confirmation",
+                        content: `${userName} has accepted the workout: ${workoutName}`,
+                        sender: `${userName}`,
+                        date_sent: new Date().toISOString(),
+                    };
+                    
+                    setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
+                }
+
+                else if (message.type === "leave") { // Handle leave messages (people leaving the chat room)
+                    const username = message.left_the_group_chat;
+
+                    const leaveMessage: Message = {
+                        type: "leave",
+                        content: `${username} has left the chat room`,
+                        sender: `${username}`,
+                        date_sent: new Date().toISOString(),
+                    };
+
+                    setMessages((prevMessages) => [...prevMessages, leaveMessage]);
+                }
             }
-
-            else if (message.type === "leave") { // Handle leave messages (people leaving the chat room)
-                const username = message.left_the_group_chat;
-
-                const leaveMessage: Message = {
-                    type: "leave",
-                    content: `${username} has left the chat room`,
-                    sender: `${username}`,
-                    date_sent: new Date().toISOString(),
-                };
-
-                setMessages((prevMessages) => [...prevMessages, leaveMessage]);
-            }
+            handleSocket();
         };
 
         return () => {
@@ -277,10 +292,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                 // Deleting every notification from the chat room for the current user
                 notifications.forEach(async (notification) => {
                     if (notification.chat_room_id === chatRoomId) {
-                        await fetch(`${backendUrl}/notification/delete/${notification.id}/`, {
-                            method: "DELETE",
-                            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-                        });
+                        await apiClient.delete(`/notification/${notification.id}/`);
                     }
                 });
             } catch (error) {
@@ -331,21 +343,19 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     }
 
     const leaveChatRoom = async (chatRoomId: number) => {
-        const token = localStorage.getItem("accessToken");
         const user_id = localStorage.getItem("user_id");
         const user_type = localStorage.getItem("userType");
     
         if (user_type === "user") {
             try {
-                const response = await fetch(`${backendUrl}/user/${user_id}/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await apiClient.get(`/user/${user_id}/`);
+                
     
-                if (!response.ok) {
-                    throw new Error(`Profile fetch failed with status ${response.status}`);
+                if (response.status !== 200) {
+                    throw new Error(`Failed to fetch user data. Status: ${response.status}`);
                 }
     
-                const user = await response.json();
+                const user = await response.data;
                 if (user.profile.pt_chatroom === chatRoomId) {
                     alert("Cannot leave the chat room with your personal trainer!");
                     return;
@@ -363,15 +373,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                 console.log("Client has already left the chat room");
             } else {
                 try {
-                    const response = await fetch(`${backendUrl}/user/${client.id}/`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-    
-                    if (!response.ok) {
-                        throw new Error(`Client fetch failed with status ${response.status}`);
+                    const response = await apiClient.get(`/user/${client.id}/`);
+
+                    if (response.status !== 200) {
+                        throw new Error(`Failed to fetch client data. Status: ${response.status}`);
                     }
     
-                    const clientData = await response.json();
+                    const clientData = await response.data;
     
                     if (clientData.profile.pt_chatroom === chatRoomId) {
                         alert("Cannot leave: the client still has this chat room as their PT chat.");
@@ -394,16 +402,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             message: `${currentUserUsername} has left the chat room`
         }));
     
-        const response = await fetch(`${backendUrl}/chat/delete/${chatRoomId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-    
-        if (response.ok) {
-            onLeave();
-        } else {
-            console.error("Failed to delete chat room");
+        const response = await apiClient.delete(`/chat/delete/${chatRoomId}/`);
+
+        if (response.status !== 204) {
+            throw `Failed to delete chat room. Status: ${response.status}`;
         }
+
+        onLeave();
     };
 
     const getUsernameById = (userId: number) => {
