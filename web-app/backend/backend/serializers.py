@@ -192,11 +192,15 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
 class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
     workout_title = serializers.ReadOnlyField(source="workout_template.name")
 
-        # Set the access and refresh token expiration times
-        data["accessExp"] = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
-        data["refreshExp"] = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
-        
-        return data
+    class Meta:
+        model = PersonalTrainerScheduledWorkout
+        fields = ["id", "client", "pt", "workout_template", "workout_title", "scheduled_date"]
+        extra_kwargs = {"pt": {"read_only": True}}
+
+
+# ----------------------------
+# Messaging & notification API
+# ----------------------------
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
