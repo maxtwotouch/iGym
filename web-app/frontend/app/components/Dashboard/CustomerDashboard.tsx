@@ -213,7 +213,7 @@ export const CustomerDashboard: React.FC = () => {
                 console.error("Error deleting notification:", error);
             }
     
-            navigate(`/chat/${chatRoomId}`);
+            navigate(`/chat/`);  // ${chatRoomId} Placeholder just send user to chat page before fix
         };
 
         const formatTimeAgo = (date: Date) => {
