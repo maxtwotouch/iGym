@@ -1,6 +1,6 @@
 import { backendUrl } from "~/config";
 
-const url = `${backendUrl}/token/`;
+const url = `${backendUrl}/auth/token/`;
 
 // Function to fetcb access token from the backend
 export const fetchToken = async (credentials: { username: string; password: string }) => {
