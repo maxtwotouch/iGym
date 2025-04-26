@@ -31,8 +31,11 @@ if (isProduction) {
         : import.meta.env.VITE_WS_URL || 'wss://localhost/ws'; // Use the WS URL from the Vite environment variables
 } else {
     // If we are not in production, use the Vite environment variable for testing or default localhost URL
-    wsUrl = import.meta.env.VITE_BACKEND_WS_URL || 'ws://127.0.0.1:8000'
+    wsUrl =
+    import.meta.env.VITE_BACKEND_WS_URL
+      || "ws://127.0.0.1:8000/ws";
 }
+
 
 console.log("Backend URL:", backendUrl); // Log the backend URL for debugging
 console.log("WebSocket URL:", wsUrl); // Log the WebSocket URL for debugging
