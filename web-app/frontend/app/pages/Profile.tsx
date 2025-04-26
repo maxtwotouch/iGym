@@ -2,357 +2,300 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
-
 import { backendUrl } from "~/config";
-import NavBar from "~/components/common/NavBar";
-import Footer from "~/components/common/Footer";
 
 interface UserProfile {
-  id: number;  
+  id: number;
+  first_name: string;
+  last_name: string;
   username: string;
-  email: string;
+  email?: string;
   profile?: {
     weight?: number;
     height?: number;
-    profile_picture: string;
+    profile_picture?: string;
   };
 }
 
+// Utility to capitalize the start of each word
+const formatLabel = (field: string) =>
+  field
+    .split("_")
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 
-export default function ProfilePage() {
-  const [id, setID] = useState<string | null>(null);  
+const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [profile, setProfile]           = useState<UserProfile | null>(null);
+  const [loading, setLoading]           = useState(true);
+  const [editing, setEditing]           = useState(false);
+  const [error, setError]               = useState<string | null>(null);
+  const [success, setSuccess]           = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Reference to hidden file input (for uploading images)
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // The local form fields for weight & height
-  const [formData, setFormData] = useState({
-    weight: "",
-    height: ""
+  // form state
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name:  "",
+    username:   "",
+    password:   "",
+    confirm:    "",
+    weight:     "",
+    height:     "",
   });
 
-  // 1) Fetch user profile on mount
+  // load profile
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (!token) {
-      console.log("No access token found; redirecting to /login");
+    const id    = localStorage.getItem("user_id");
+    if (!token || !id) {
       navigate("/login");
       return;
     }
 
-    const id = localStorage.getItem("user_id")
-    setID(id);
-
-    const fetchProfile = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`${backendUrl}/user/${id}/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Profile fetch failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log("Profile data received:", data);
-
+    fetch(`${backendUrl}/user/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then((data: UserProfile) => {
         setProfile(data);
-
-        // Initialize form fields from data.profile
-        setFormData({
-          weight: data.profile?.weight?.toString() || "",
-          height: data.profile?.height?.toString() || ""
+        setForm({
+          first_name: data.first_name || "",
+          last_name:  data.last_name  || "",
+          username:   data.username,
+          password:   "",
+          confirm:    "",
+          weight:     data.profile?.weight?.toString() || "",
+          height:     data.profile?.height?.toString() || "",
         });
-      } catch (err: any) {
-        console.error("Error fetching profile:", err);
-        setError(err.message || "Failed to load profile");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfile();
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, [navigate]);
 
-  // 2) Handle weight/height changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setForm(f => ({ ...f, [name]: value }));
   };
 
-  // 3) Handle file input -> preview
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate the file is an image
-    if (!file.type.match('image.*')) {
+    if (!file || !file.type.startsWith("image/")) {
       setError("Please select an image file");
       return;
     }
-
-    // Generate a local preview
     const reader = new FileReader();
-    reader.onload = (event) => {
-      setPreviewImage(event.target?.result as string);
-    };
+    reader.onload = () => setPreviewImage(reader.result as string);
     reader.readAsDataURL(file);
   };
 
-  // 4) Submit updates -> PATCH request
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
+    setSuccess(null);
+    if (form.password && form.password !== form.confirm) {
+      setError("Passwords must match");
+      return;
+    }
 
     const token = localStorage.getItem("accessToken");
-    if (!token) {
-        console.log("No access token found, redirecting to /login");
-        navigate("/login");
-        return;
+    const id    = localStorage.getItem("user_id");
+    if (!token || !id) return navigate("/login");
+
+    const data = new FormData();
+    data.append("first_name", form.first_name);
+    data.append("last_name",  form.last_name);
+    data.append("username",   form.username);
+    if (form.password) data.append("password", form.password);
+    data.append("profile.weight", form.weight);
+    data.append("profile.height", form.height);
+    if (fileInputRef.current?.files?.[0]) {
+      data.append("profile.profile_picture", fileInputRef.current.files[0]);
     }
 
     try {
-        const submitData = new FormData();
-
-        // Append weight and height inside "profile" structure
-        if (formData.weight) {
-            submitData.append("profile.weight", formData.weight);
-        }
-        if (formData.height) {
-            submitData.append("profile.height", formData.height);
-        }
-
-        // Append image file if selected
-        if (fileInputRef.current?.files?.[0]) {
-            submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
-        }
-
-        const response = await fetch(`${backendUrl}/user/update/${id}/`, {
-            method: "PATCH",
-            headers: {
-                Authorization: `Bearer ${token}`, 
-            },
-            body: submitData, 
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to update profile (status ${response.status})`);
-        }
-
-        const updatedProfile = await response.json();
-        console.log("Profile updated successfully:", updatedProfile);
-
-        setProfile(updatedProfile);
-        setIsEditing(false);
-        setSuccessMessage("Profile updated successfully!");
-        setPreviewImage(null);  // Clear local preview
+      const res = await fetch(`${backendUrl}/user/update/${id}/`, {
+        method:  "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body:    data
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Update failed");
+      }
+      const updated = await res.json();
+      setProfile(updated);
+      setSuccess("Profile saved!");
+      setEditing(false);
+      setPreviewImage(null);
     } catch (err: any) {
-        console.error("Error updating profile:", err);
-        setError(err.message || "Failed to update profile");
+      setError(err.message);
     }
-};
+  };
 
-  if (isLoading) {
+  // Render loading spinner only
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-        <NavBar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-        <Footer />
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-
-      <motion.div
-        className="flex-grow container mx-auto px-4 py-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <div className="md:flex">
-
-            {/* Profile Image Section */}
-            <div className="md:w-1/3 bg-gray-700 p-8 flex flex-col items-center justify-center">
-              <div className="relative mb-6">
-                <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500">
-                  {previewImage ? (
-                    <img
-                      src={previewImage}
-                      alt="Profile preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : profile?.profile?.profile_picture ? (
-                    <img
-                      src={profile.profile.profile_picture}
-                      alt={profile.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <img
-                      src={defaultProfilePicture}
-                      alt="Fallback"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-
-                {isEditing && (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2"
-                  >
-                    {/* Simple "upload" icon */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 
-                        2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 
-                        12H4V5h12v10z"
-                        clipRule="evenodd"
-                      />
-                      <path d="M7 9a1 1 0 011-1h4a1 
-                      1 0 110 2H8a1 1 0 01-1-1z" />
-                    </svg>
-                  </button>
-                )}
+    <motion.div
+      className="container mx-auto px-4 py-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div className="md:flex">
+          {/* Avatar Section */}
+          <div className="md:w-1/3 bg-gray-700 p-8 flex flex-col items-center">
+            <div className="relative">
+              <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500">
+                <img
+                  src={previewImage || profile?.profile?.profile_picture || defaultProfilePicture}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
               </div>
-
-              <h2 className="text-xl font-bold text-white mt-4">
-                {profile?.username}
-              </h2>
-              {profile?.email && (
-                <p className="text-gray-300 mt-1">{profile.email}</p>
-              )}
-
-              {!isEditing && (
+              {editing && (
                 <button
-                  onClick={() => setIsEditing(true)}
-                  className="mt-6 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full"
                 >
-                  Edit Profile
+                  ✎
                 </button>
               )}
             </div>
+            <h2 className="text-xl font-bold text-white mt-4">
+              {profile?.first_name} {profile?.last_name}
+            </h2>
+            <p className="text-gray-300">{profile?.email}</p>
+            {!editing && (
+              <button
+                onClick={() => setEditing(true)}
+                className="mt-6 px-6 py-2 bg-blue-500 rounded"
+              >
+                Edit Profile
+              </button>
+            )}
+          </div>
 
-            {/* Profile Details Section */}
-            <div className="md:w-2/3 p-8">
-              <h3 className="text-2xl font-bold text-white border-b border-gray-700 pb-4 mb-6">
-                {isEditing ? "Edit Profile" : "Profile Details"}
-              </h3>
+          {/* Profile Form */}
+          <div className="md:w-2/3 p-8">
+            {error && <div className="text-red-400 mb-4">{error}</div>}
+            {success && <div className="text-green-400 mb-4">{success}</div>}
 
-              {error && (
-                <div className="bg-red-900/50 border border-red-700 text-red-100 px-4 py-3 rounded mb-4">
-                  {error}
-                </div>
-              )}
+            <form onSubmit={handleSubmit}>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFile}
+                className="hidden"
+              />
 
-              {successMessage && (
-                <div className="bg-green-900/50 border border-green-700 text-green-100 px-4 py-3 rounded mb-4">
-                  {successMessage}
-                </div>
-              )}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/** Name & Username **/}
+                {['first_name', 'last_name', 'username'].map(field => {
+                  const label = formatLabel(field);
+                  return (
+                    <div key={field}>
+                      <label className="block text-gray-300 mb-1">{label}</label>
+                      {editing ? (
+                        <input
+                          name={field}
+                          value={(form as any)[field]}
+                          onChange={handleChange}
+                          className="w-full bg-gray-700 text-white p-2 rounded"
+                        />
+                      ) : (
+                        <p className="text-white">{(profile as any)[field]}</p>
+                      )}
+                    </div>
+                  );
+                })}
 
-              <form onSubmit={handleSubmit}>
-                {/* Hidden file input (if user chooses an image) */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Weight */}
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">
-                      Weight (kg)
-                    </label>
-                    {isEditing ? (
+                {/** Password Fields **/}
+                {editing && (
+                  <>
+                    <div>
+                      <label className="block text-gray-300 mb-1">New Password</label>
                       <input
-                        type="number"
-                        name="weight"
-                        value={formData.weight}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
-                          focus:outline-none focus:border-blue-500"
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        className="w-full bg-gray-700 text-white p-2 rounded"
                       />
-                    ) : (
-                      <p className="text-white">
-                        {profile?.profile?.weight ?? "Not specified"}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Height */}
-                  <div className="mb-4">
-                    <label className="block text-gray-300 mb-2">
-                      Height (cm)
-                    </label>
-                    {isEditing ? (
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-1">Confirm Password</label>
                       <input
-                        type="number"
-                        name="height"
-                        value={formData.height}
-                        onChange={handleInputChange}
-                        className="w-full bg-gray-700 text-white border border-gray-600 rounded px-4 py-2 
-                          focus:outline-none focus:border-blue-500"
+                        name="confirm"
+                        type="password"
+                        value={form.confirm}
+                        onChange={handleChange}
+                        className="w-full bg-gray-700 text-white p-2 rounded"
                       />
-                    ) : (
-                      <p className="text-white">
-                        {profile?.profile?.height ?? "Not specified"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Save/Cancel buttons */}
-                {isEditing && (
-                  <div className="flex justify-end space-x-4 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditing(false);
-                        setPreviewImage(null);
-                      }}
-                      className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
+                    </div>
+                  </>
                 )}
-              </form>
-            </div>
+
+                {/** Measurement Fields **/}
+                {['weight', 'height'].map(field => {
+                  const label = formatLabel(field);
+                  return (
+                    <div key={field}>
+                      <label className="block text-gray-300 mb-1">{label}</label>
+                      {editing ? (
+                        <input
+                          name={field}
+                          type="number"
+                          value={(form as any)[field]}
+                          onChange={handleChange}
+                          className="w-full bg-gray-700 text-white p-2 rounded"
+                        />
+                      ) : (
+                        <p className="text-white">{profile?.profile?.[field] ?? '—'}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {editing && (
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      setPreviewImage(null);
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="px-6 py-2 bg-gray-600 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-500 rounded"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              )}
+            </form>
           </div>
         </div>
-      </motion.div>
-
-    </div>
+      </div>
+    </motion.div>
   );
-}
+};
+
+export default ProfilePage;
