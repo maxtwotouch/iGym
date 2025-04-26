@@ -1,4 +1,4 @@
-import type { Route } from "./+types/ClientRoute";
+import type { Route } from "./+types/ClientsRoute";
 import Client from "../pages/Client";
 import LoadingSpinner from "~/components/common/LoadingSpinner";
 
@@ -18,11 +18,6 @@ const ClientRoute = ({
 export const clientLoader = async ({
   params,
 }: Route.LoaderArgs) => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) {
-    return null;
-  }
-
   try {
     return {}; // Optional: fetch and preload client-specific metadata if needed
   } catch (error) {

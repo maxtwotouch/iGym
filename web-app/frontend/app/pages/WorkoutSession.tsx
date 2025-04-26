@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from "~/config";
-import NavBar from "~/components/common/NavBar";
-import Footer from "~/components/common/Footer";
+import apiClient from "~/utils/api/apiClient";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -30,21 +28,13 @@ const WorkoutSession: React.FC = () => {
     useEffect(() => {
         setIsRunning(true);
         const fetchWorkout = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-                navigate("/login");
-                return;
-            }
-
             try {
-                const response = await fetch(`${backendUrl}/workout/${id}/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!response.ok) {
+                const response = await apiClient.get(`/workout/${id}/`);
+                if (response.status != 200) {
                     console.error("Failed to fetch workout details");
                     return;
                 }
-                const data = await response.json();
+                const data = await response.data;
                 setExercisesWorkout(data.exercises);
                 setWorkoutExerciseSessions(data.exercises.map((exerciseId: number) => ({
                     exercise: exerciseId,
@@ -63,20 +53,13 @@ const WorkoutSession: React.FC = () => {
         }, 1000);
 
         const fetchExercises = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-                navigate("/login");
-                return;
-            }
             try {
-                const response = await fetch(`${backendUrl}/exercise/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!response.ok) {
+                const response = await apiClient.get(`exercise`);
+                if (response.status != 200) {
                     console.error("Failed to fetch exercises");
                     return;
                 }
-                const data = await response.json();
+                const data = await response.data;
                 setAvailableExercises(data);
             } catch (error) {
                 console.error("Error fetching exercises:", error);
@@ -162,36 +145,31 @@ const WorkoutSession: React.FC = () => {
         });
     };
 
-    const createWorkoutSession = async (token: string, totalCalories: number): Promise<number | null> => {
+    const createWorkoutSession = async (totalCalories: number): Promise<number | null> => {
         try {
             // Convert timer (seconds) to HH:MM:SS format
             const hours = Math.floor(timer / 3600);
             const minutes = Math.floor((timer % 3600) / 60);
             const seconds = timer % 60;
             const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes
-            .toString()
-            .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            const response = await fetch(`${backendUrl}/session/workout/create/`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ 
+                .toString()
+                .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const response = await apiClient.post(`/session/workout/create/`, 
+                {
                     workout: id,
                     calories_burned: totalCalories,
                     duration: formattedDuration
-                }),
-        });
+                }
+            )
 
-        if (!response.ok) {
-            console.error("Failed to create workout session");
-            return null;
-        }
+            if (response.status != 201) {
+                console.error("Failed to create workout session");
+                return null;
+            }
 
-        const data = await response.json();
-        return data.id;
-        
+            const data = await response.data;
+            return data.id;
+            
         } catch(error) {
             console.error("Error creating workout session:", error);
             return null;
@@ -199,25 +177,20 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
-    const createSets = async (token: string, exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
+    const createSets = async (exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
         try {
             const requests = sets.map(set => {
-                return fetch(`${backendUrl}/session/set/create/`, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
+                return apiClient.post(`/session/set/create/`,
+                    {
                         exercise_session: exerciseSessionId,
                         weight: Number(set.weight),
                         repetitions: Number(set.repetitions),
-                    }),
-                });
+                    }
+                )
             });
             
             const responses = await Promise.all(requests);
-            const allSuccessful = responses.every(response => response.ok);
+            const allSuccessful = responses.every(response => response.status == 201);
 
             if (!allSuccessful) {
                 console.error("Failed to create one or more sets");
@@ -233,31 +206,26 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
-    const createExerciseSessions = async (token: string, workoutSessionId: number): Promise<number | null> => {
+    const createExerciseSessions = async (workoutSessionId: number): Promise<number | null> => {
         try {
             const requests = workoutExerciseSessions.map(async session => {
-                const response = await fetch(`${backendUrl}/session/exercise/create/`, {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ 
+                const response = await apiClient.post(`/session/exercise/create/`,
+                    {
                         exercise: session.exercise,
                         workout_session: workoutSessionId,
-                    }),
-                });
+                    }
+                )
                 
-                if(!response.ok) {
+                if(response.status != 201) {
                     console.error("Failed to create exercise session for exercise", session.exercise);
                     return null;
                 }
 
-                const data = await response.json();
+                const data = await response.data;
                 console.log("Exercise Session Created:", data);
                 
                 //  Create sets for this exercise session
-                await createSets(token, data.id, session.sets);
+                await createSets(data.id, session.sets);
 
                 return data.id;
             });
@@ -296,23 +264,17 @@ const WorkoutSession: React.FC = () => {
         console.log("Handling log session");
         e.preventDefault();
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            navigate("/login");
-            return;
-        }
-
         const totalCaloriesBurned = calculateTotalCalories();
         console.log("total calories burned: ", totalCaloriesBurned);
 
-        const workoutSessionId = await createWorkoutSession(token, totalCaloriesBurned);
+        const workoutSessionId = await createWorkoutSession(totalCaloriesBurned);
 
         if(!workoutSessionId) {
             alert("Failed to create workout session. Please try again."); 
             return;
         }
 
-        await createExerciseSessions(token, workoutSessionId);
+        await createExerciseSessions(workoutSessionId);
 
         navigate("/dashboard");
     };

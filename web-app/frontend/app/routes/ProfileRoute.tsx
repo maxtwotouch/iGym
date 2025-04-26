@@ -18,10 +18,6 @@ const ProfileRoute = ({
 export const clientLoader = async ({
   params,   
 }: Route.LoaderArgs) => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) {
-      return null;
-  }
   try {
     return {}
   } catch (error) {

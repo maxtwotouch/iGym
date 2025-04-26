@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import Select from 'react-select';
-import { wsUrl } from "~/config";
 import apiClient from "~/utils/api/apiClient";
-import { on } from "events";
 
 type ChatRoomProps = {
     chatRoomId: number;
@@ -278,8 +276,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                     setMessages((prevMessages) => [...prevMessages, leaveMessage]);
                 }
             }
-            handleSocket();
         };
+
+        handleSocket();
 
         return () => {
             if (socketRef.current) {socketRef.current.close();} // Close the WebSocket connection when the user leaves the chat room
@@ -292,7 +291,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                 // Deleting every notification from the chat room for the current user
                 notifications.forEach(async (notification) => {
                     if (notification.chat_room_id === chatRoomId) {
-                        await apiClient.delete(`/notification/${notification.id}/`);
+                        await apiClient.delete(`/notification/delete/${notification.id}/`);
                     }
                 });
             } catch (error) {
@@ -307,10 +306,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
         if (!newMessage.trim()) return; // Don't send empty messages
         if (!socketRef.current) return; // Not allow for sending messages if the socket is not connected
 
-        socketRef.current.send(JSON.stringify({  
-            type: "message",
-            message: newMessage, 
-        }));
+        try {
+            socketRef.current.send(JSON.stringify({  
+                type: "message",
+                message: newMessage, 
+            }));
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+
         setNewMessage("");
     };
 

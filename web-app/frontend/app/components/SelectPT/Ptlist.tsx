@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router";
-import { backendUrl } from "~/config";
+
+import apiClient from "~/utils/api/apiClient";
 
 type PT = {
   id: number;
@@ -23,7 +23,6 @@ const PT_TYPE_MAP: Record<string, string> = {
 };
 
 const PtList: React.FC = () => {
-  const navigate = useNavigate();
   const [pts, setPts] = useState<PT[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -31,17 +30,10 @@ const PtList: React.FC = () => {
   const [selectedPt, setSelectedPt] = useState<PT | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-    fetch(`${backendUrl}/trainer/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    apiClient.get("/trainer/")
       .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
+        if (res.status != 200) throw new Error();
+        return res.data;
       })
       .then((data) => {
         const trainers: PT[] = data.map((pt: any) => ({
@@ -56,7 +48,7 @@ const PtList: React.FC = () => {
         setPts(trainers);
       })
       .catch((e) => console.error("Failed to load PTs", e));
-  }, [navigate]);
+  }, []);
 
   const filteredPts = pts
     .filter((pt) => {

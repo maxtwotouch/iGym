@@ -3,9 +3,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
 
-import { backendUrl } from "~/config";
-import NavBar from "~/components/common/NavBar";
-import Footer from "~/components/common/Footer";
+import apiClient from "~/utils/api/apiClient";
+import { useAuth } from "~/context/AuthContext"
 
 interface UserProfile {
   id: number;  
@@ -20,7 +19,6 @@ interface UserProfile {
 
 
 export default function ProfilePage() {
-  const [id, setID] = useState<string | null>(null);  
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,6 +26,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // Reference to hidden file input (for uploading images)
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,28 +39,16 @@ export default function ProfilePage() {
 
   // 1) Fetch user profile on mount
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      console.log("No access token found; redirecting to /login");
-      navigate("/login");
-      return;
-    }
-
-    const id = localStorage.getItem("user_id")
-    setID(id);
-
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${backendUrl}/user/${id}/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await apiClient.get(`/user/${user?.userId}/`)
 
-        if (!response.ok) {
+        if (response.status != 200) {
           throw new Error(`Profile fetch failed with status ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.data;
         console.log("Profile data received:", data);
 
         setProfile(data);
@@ -113,13 +100,6 @@ export default function ProfilePage() {
     setError(null);
     setSuccessMessage(null);
 
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-        console.log("No access token found, redirecting to /login");
-        navigate("/login");
-        return;
-    }
-
     try {
         const submitData = new FormData();
 
@@ -136,19 +116,13 @@ export default function ProfilePage() {
             submitData.append("profile.profile_picture", fileInputRef.current.files[0]);
         }
 
-        const response = await fetch(`${backendUrl}/user/update/${id}/`, {
-            method: "PATCH",
-            headers: {
-                Authorization: `Bearer ${token}`, 
-            },
-            body: submitData, 
-        });
+        const response = await apiClient.patch(`/user/update/${user?.userId}/`, submitData);
 
-        if (!response.ok) {
+        if (response.status != 200) {
             throw new Error(`Failed to update profile (status ${response.status})`);
         }
 
-        const updatedProfile = await response.json();
+        const updatedProfile = await response.data;
         console.log("Profile updated successfully:", updatedProfile);
 
         setProfile(updatedProfile);
@@ -163,12 +137,8 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-        <NavBar />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-        <Footer />
+      <div className="flex-grow flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }

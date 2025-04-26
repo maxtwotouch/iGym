@@ -1,26 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import React from "react";
 
 import { CustomerDashboard } from "~/components/Dashboard/CustomerDashboard";
 import { TrainerDashboard } from "~/components/Dashboard/TrainerDashboard";
+import { useAuth } from "~/context/AuthContext";
 
-type Props = {
-    userType: string;
-}
-
-export const Dashboard: React.FC<Props> = ({
-    userType
-}) => {
-    const navigate = useNavigate();
-
-    if (!userType) {
-        navigate("/login");
-        return null;
-    }
+export const Dashboard: React.FC = () => {
+    const { user } = useAuth();
 
     return (
         <div>
-        {userType === "user" ? <CustomerDashboard /> : <TrainerDashboard />}
+        {user?.userType === "user" ? <CustomerDashboard /> : <TrainerDashboard />}
         </div>
     );
 };
