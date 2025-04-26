@@ -36,13 +36,11 @@ export const Calendar = () => {
 
   // load events once
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return navigate("/login");
     (async () => {
       setLoading(true);
       try {
-        const sched = await fetchScheduledWorkouts(token);
-        const sess = await mapWorkoutSessionsToCalendarEvents(token);
+        const sched = await fetchScheduledWorkouts();
+        const sess = await mapWorkoutSessionsToCalendarEvents();
         setEvents([...sched, ...sess]);
       } catch (e: any) {
         console.error(e);
@@ -54,24 +52,14 @@ export const Calendar = () => {
 
   // load workout templates
   useEffect(() => {
-    const fetchAvailableWorkouts = async () => {
+    (async () => {
       try {
-        const response = await apiClient.get("/workout/");
-        
-        if (response.status !== 200) {
-          throw new Error("Failed to fetch available workouts");
-        }
-
-        const data = await response.data;
-
-        setAvailableWorkouts(
-          data.map((w: any) => ({
-            id: w.id,
-            title: w.name
-          }))
-        );
-      } catch (err: any) {
-        console.error(err);
+        const res = await apiClient.get("/workout/");
+        if (res.status !== 200) throw new Error();
+        const data = await res.data;
+        setAvailableWorkouts(data.map((w: any) => ({ id: w.id, title: w.name })));
+      } catch {
+        console.error("Could not load workouts");
       }
     })();
   }, []);
@@ -111,55 +99,34 @@ export const Calendar = () => {
     const isoLocal = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
       .toISOString()
       .slice(0, 16);
-    setSelectedDateTime(localDateTime);
-
-    if (userType === "trainer") {
-      setShowPtScheduleModal(true); // pt
-    } else {
-      setShowScheduleModal(true); // client
-    }
+    setSelectedDateTime(isoLocal);
+    setShowSchedule(true);
   };
 
-  // POST to schedule a workout
-  const handleScheduleWorkout = async () => {
-    if (!selectedWorkoutId || !selectedDateTime) return;
-
-    // Convert local date/time from input to full ISO string
-    const fullDate = new Date(selectedDateTime);
-    const isoDateTime = fullDate.toISOString();
-
-    // Check if the selected date is in the past
-    const now = new Date();
-    if (fullDate < now) {
-      alert("You cannot schedule a workout in the past."); // Set error message
+  const schedule = async () => {
+    if (!selectedWorkoutId) return;
+    const dt = new Date(selectedDateTime);
+    if (dt < new Date()) {
+      alert("Can't schedule in the past");
       return;
     }
     try {
-      const response = await fetch(`${backendUrl}/schedule/workout/create/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(postData)
+      const res = await apiClient.post("/schedule/workout/create/", {
+        workout_template: selectedWorkoutId,
+        scheduled_date: dt.toISOString(),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to schedule workout");
-      }
-      const newSession = await response.json();
-
-      const newEvent = {
-        id: `scheduled-${newSession.id}`,
-        workout_id: newSession.workout_template,
-        title: newSession.workout_title,
-        start: newSession.scheduled_date,
-      };
-
-      setCalendarEvents((prev) => [...prev, newEvent]);
-
-      // Reset modal state
-      setShowScheduleModal(false);
+      if (res.status !== 201) throw new Error();
+      const ns = await res.data;
+      setEvents(e => [
+        ...e,
+        {
+          id: `scheduled-${ns.id}`,
+          workout_id: ns.workout_template,
+          title: ns.workout_title,
+          start: ns.scheduled_date,
+        },
+      ]);
+      setShowSchedule(false);
       setSelectedWorkoutId(null);
       setSelectedDateTime("");
     } catch (e: any) {

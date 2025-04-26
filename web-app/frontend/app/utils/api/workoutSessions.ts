@@ -4,7 +4,7 @@ import type { WorkoutSession } from "~/types"; // Import type for workout sessio
 // Fetch workout sessions from the backend
 export const fetchWorkoutSessions = async (): Promise<WorkoutSession[] | null> => {
     try {
-        const response = await apiClient.get("/workouts_sessions/");
+        const response = await apiClient.get("/session/workout/");
 
         if (response.status !== 200) {
             console.error("Failed to fetch workout sessions");
