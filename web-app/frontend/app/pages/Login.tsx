@@ -1,60 +1,57 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { motion } from "framer-motion";
-
-import { backendUrl } from "~/config";
+import { useAuth } from "~/context/AuthContext";
 
 export const LoginForm = () => {
   const [username, setUsername] = useState(""); 
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get("redirectTo") || "/dashboard";
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
     try {
-      const url = `${backendUrl}/token/`;
-      console.log("Login URL:", url); // Log the URL for debugging
+      await login({ username, password });
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      navigate(from, { replace: true });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Login successful:", data);
+      // if (response.ok) {
+      //   const data = await response.json();
+      //   console.log("Login successful:", data);
 
-        // Store JWT tokens
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-        localStorage.setItem("username", data.username);
-        localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
+      //   // Store JWT tokens
+      //   localStorage.setItem("accessToken", data.access);
+      //   localStorage.setItem("refreshToken", data.refresh);
+      //   localStorage.setItem("username", data.username);
+      //   localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
         
-        console.log(data);
+      //   console.log(data);
 
-        // Store user type
-        if (data.profile?.role) {
-          localStorage.setItem("userType", data.profile.role);
-        } else if (data.trainer_profile?.role) {
-          if (data.trainer_profile.role === "personal_trainer") {
-            localStorage.setItem("userType", "trainer");
-          }
-        }
+      //   // Store user type
+      //   if (data.profile?.role) {
+      //     localStorage.setItem("userType", data.profile.role);
+      //   } else if (data.trainer_profile?.role) {
+      //     if (data.trainer_profile.role === "personal_trainer") {
+      //       localStorage.setItem("userType", "trainer");
+      //     }
+      //   }
 
-        // Store weight for user role
-        if (data.profile?.role === "user") {
-          console.log("storing the user's weight");
-          localStorage.setItem("weight", data.profile.weight ?? "unknown");
-        }
+      //   // Store weight for user role
+      //   if (data.profile?.role === "user") {
+      //     console.log("storing the user's weight");
+      //     localStorage.setItem("weight", data.profile.weight ?? "unknown");
+      //   }
 
-        navigate("/dashboard");
-      } else {
-        const errorData = await response.json();
-        console.error("Login failed:", errorData);
-        alert("Login failed: " + (errorData.detail || "Unknown error"));
-      }
+      //   navigate("/dashboard");
+      // } else {
+      //   const errorData = await response.json();
+      //   console.error("Login failed:", errorData);
+      //   alert("Login failed: " + (errorData.detail || "Unknown error"));
+      // }
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");

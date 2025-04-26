@@ -35,7 +35,7 @@ urlpatterns = [
     path("user/register/", CreateUserView.as_view(), name="register_user"),
     path("personal_trainer/register/", CreatePersonalTrainerView.as_view(), name="register_personal_trainer"),
     path("token/", CustomTokenObtainPairView.as_view(), name="get_token"),
-    path("user/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("auth/", include("rest_framework.urls")),
     path("workouts/", WorkoutListView.as_view(), name="workout-list"),
     path("exercises/", ExerciseListView.as_view(), name="exercise-list"),

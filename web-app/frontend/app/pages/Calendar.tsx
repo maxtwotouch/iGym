@@ -10,7 +10,7 @@ import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts"; // Impor
 
 import { mapWorkoutSessionsToCalendarEvents } from "~/utils/calendarHelper";
 
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
 
 export const Calendar = () => {
     const navigate = useNavigate();
@@ -30,17 +30,10 @@ export const Calendar = () => {
 
     // Fetch both scheduled workouts and workout sessions
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            navigate("/login");
-            return;
-        }
-    
-
     const loadEvents = async () => {
       setIsLoading(true);
-      const scheduledEvents = await fetchScheduledWorkouts(token);
-      const sessionEvents = await mapWorkoutSessionsToCalendarEvents(token);
+      const scheduledEvents = await fetchScheduledWorkouts();
+      const sessionEvents = await mapWorkoutSessionsToCalendarEvents();
       // Merge both arrays into one event list
       setCalendarEvents([...scheduledEvents, ...sessionEvents]);
       setIsLoading(false);
@@ -51,18 +44,16 @@ export const Calendar = () => {
 
   // Load available workout templates for scheduling
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
     const fetchAvailableWorkouts = async () => {
       try {
-        const response = await fetch(`${backendUrl}/workouts/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) {
+        const response = await apiClient.get("/workouts/");
+        
+        if (response.status !== 200) {
           throw new Error("Failed to fetch available workouts");
         }
-        const data = await response.json();
+
+        const data = await response.data;
+
         setAvailableWorkouts(
           data.map((w: any) => ({
             id: w.id,
@@ -90,8 +81,7 @@ export const Calendar = () => {
 
   // POST to schedule a workout
   const handleScheduleWorkout = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token || !selectedWorkoutId || !selectedDateTime) return;
+    if (!selectedWorkoutId || !selectedDateTime) return;
 
     // Convert local date/time from input to full ISO string
     const fullDate = new Date(selectedDateTime);
@@ -110,19 +100,13 @@ export const Calendar = () => {
     };
 
     try {
-      const response = await fetch(`${backendUrl}/scheduled_workout/create/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(postData)
-      });
 
-      if (!response.ok) {
+      const response = await apiClient.post('/scheduled_workout/create/', postData);
+
+      if (response.status !== 201) {
         throw new Error("Failed to schedule workout");
       }
-      const newSession = await response.json();
+      const newSession = await response.data;
 
       const newEvent = {
         id: `scheduled-${newSession.id}`,

@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import UserProfile, PersonalTrainerProfile, Workout, Exercise, WorkoutSession
 from .models import ExerciseSession, Set, ChatRoom, Message, WorkoutMessage, ScheduledWorkout, Notification
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.conf import settings
 
 # The default user-set-up if we only have one type of user
 
@@ -141,6 +142,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         elif hasattr(user, "trainer_profile"):
             role = user.trainer_profile.role
             data["trainer_profile"] = {"role": role}
+
+        # Set the access and refresh token expiration times
+        data["accessExp"] = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
+        data["refreshExp"] = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
         
         return data
 

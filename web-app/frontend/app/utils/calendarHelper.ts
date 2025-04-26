@@ -1,18 +1,11 @@
-import { backendUrl } from "~/config"
-
 import { fetchWorkouts } from "./api/workouts";
 import { fetchWorkoutSessions } from "./api/workoutSessions";
 
-export const mapWorkoutSessionsToCalendarEvents = async (token: string) => {
-    if (!token) {
-        console.error("No access token found");
-        return [];
-    }
-
+export const mapWorkoutSessionsToCalendarEvents = async () => {
     try {
         const [workouts, workoutSessions] = await Promise.all([
-            fetchWorkouts(token),
-            fetchWorkoutSessions(token)
+            fetchWorkouts(),
+            fetchWorkoutSessions()
         ]);
 
         if (!workouts || !workoutSessions) {

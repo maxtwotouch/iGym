@@ -46,12 +46,12 @@ export const clientLoader = async ({
       return null;
   }
   try {
-    console.log(localStorage)
+      console.log(localStorage)
 
       const userType = localStorage.getItem("userType");
 
-      const workoutSessions = await fetchWorkoutSessions(token);
-      const workouts = await fetchWorkouts(token);
+      const workoutSessions = await fetchWorkoutSessions();
+      const workouts = await fetchWorkouts();
       const exercises = await fetchExercises(token);
 
       return { workoutSessions, workouts, exercises, userType };

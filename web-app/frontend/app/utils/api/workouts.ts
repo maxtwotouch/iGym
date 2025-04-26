@@ -1,25 +1,17 @@
-import { backendUrl } from '~/config'; // Import backendUrl from config
 import type { Workout } from "~/types"; // Import type for workouts
+import apiClient from "./apiClient";
 
 // Function to delete a workout
-export const deleteWorkout = async (token: string | null, workoutId: number): Promise<Workout[] | null> => {
-    if (!token) {
-        console.error("Could not delete workout: No access token found");
-        return null;
-    }
-    
+export const deleteWorkout = async (workoutId: number): Promise<Workout[] | null> => {
     try {
-        const response = await fetch(`${backendUrl}/workouts/delete/${workoutId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await apiClient.delete(`/workouts/delete/${workoutId}/`);
     
-        if (!response.ok) {
+        if (response.status !== 204) {
             console.error("Failed to delete workout");
             return null;
         }
     
-        const data = await response.json(); // Assuming the backend returns some confirmation message
+        const data = await response.data; // Assuming the backend returns some confirmation message
 
         console.log("Workout deleted successfully:", data);
 
@@ -32,23 +24,16 @@ export const deleteWorkout = async (token: string | null, workoutId: number): Pr
 
 
  // Fetch workouts from the backend
-export const fetchWorkouts = async (token: string | null): Promise<Workout[] | null> => {
-    if (!token) {
-        console.error("Could not fetch workouts: No access token found");
-        return null;
-    }
-
+export const fetchWorkouts = async (): Promise<Workout[] | null> => {
     try {
-        const response = await fetch(`${backendUrl}/workouts/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await apiClient.get("/workouts/");
 
-        if (!response.ok) {
+        if (response.status !== 200) {
             console.error("Failed to fetch workouts");
             return null;
         }
 
-        const data = await response.json(); 
+        const data = await response.data; 
         
         return data; // Return the fetched workouts
     } catch (error) {
