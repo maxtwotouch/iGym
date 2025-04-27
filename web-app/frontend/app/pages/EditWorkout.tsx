@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from "~/config";
 
-
-
+import apiClient from "~/utils/api/apiClient";
 
 // Interface to define the structure of an exercise object
 interface Exercise {
@@ -24,24 +22,16 @@ const EditWorkout: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken"); // Retrieve JWT token
-    if (!token) {
-      navigate("/login"); 
-      return;
-    }
-
     const fetchExercises = async () => {
       try {
-          const response = await fetch(`${backendUrl}/workout/${id}/exercises/`, {
-              headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await apiClient.get(`/workout/${id}/exercises/`)
       
-          if (!response.ok) {
-              console.error("Failed to fetch exercises");
-              return;
+          if (response.status != 200) {
+            console.error("Failed to fetch exercises");
+            return;
           }
 
-          const data = await response.json();
+          const data = await response.data;
           setSelectedExercises(data);
       } catch (error) {
           console.error("Error fetching exercises:", error);
@@ -50,15 +40,14 @@ const EditWorkout: React.FC = () => {
 
     const fetchWorkoutData = async () => {
       try {
-        const response = await fetch(`${backendUrl}/workout/${id}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) {
-          console.error("Failed to fetch workout data");
+        const response = await apiClient.get(`/workout/${id}/`)
+        
+        if (response.status != 200) {
+          console.error("Failed to fetch workout");
           return;
         }
 
-        const data = await response.json();
+        const data = await response.data;
         
         if (!location.state) {
           setNewWorkoutName(data.name);
@@ -87,30 +76,19 @@ const EditWorkout: React.FC = () => {
   }, [loading]);
 
   const handleSaveWorkout = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
     try {
-      const response = await fetch(`${backendUrl}/workout/update/${id}/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await apiClient.put(`/workout/update/${id}/`, 
+        {
           name: newWorkoutName,
-          exercises: exercises,
-        }),
-      });
+          exercises: exercises
+        }
+      );
 
-      const data = await response.json();
+      const data = await response.data;
 
-      if(!response.ok) {
+      if(response.status != 200) {
         const fieldErrors = [];
 
         for (const key in data) {

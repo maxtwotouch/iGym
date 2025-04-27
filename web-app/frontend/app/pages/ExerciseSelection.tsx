@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { ExerciseSearchBar } from "~/components/Exercises/ExerciseSearchBar"; // Import the ExerciseSearchBar component
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
 
-  
 // Interface to define the structure of an exercise object
 interface Exercise {
     name: string;
@@ -35,28 +34,16 @@ const ExerciseSelection: React.FC = () => {
     const location = useLocation();
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken"); // Retrieve JWT token
-        if (!token) { 
-            navigate("/login"); 
-            return;
-        }
-
-        console.log("backend url, ", backendUrl);
-
-
         const fetchExercises = async () => {
             try {
-                const response = await fetch(`${backendUrl}/exercise/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                console.log("Response status:", response.status);
-                if (!response.ok) {
+                const response = await apiClient.get(`/exercise/`);
+
+                if (response.status != 200) {
                     console.error("Failed to fetch exercises");
                     return;
                 }
-                console.log(localStorage.getItem("accessToken"));
-                const data = await response.json();
-                    console.log("Exercises received:", data); 
+
+                const data = await response.data;
                     setAvailableExercises(data); 
             } catch (error) {
                 console.error("Error fetching exercises:", error);
@@ -70,7 +57,7 @@ const ExerciseSelection: React.FC = () => {
         }
 
         fetchExercises();
-    }, [navigate]); 
+    }, []); 
 
     const filteredExercises = availableExercises
         .filter((exercise) =>

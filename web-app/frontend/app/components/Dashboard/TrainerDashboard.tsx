@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLoaderData } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from '~/config'; // Import backendUrl from config
+
+import apiClient from "~/utils/api/apiClient";
 
 import type { Workout, Exercise, WorkoutSession, chatRoom, Notification, User } from "~/types"; // Import types for workouts and exercises
 
@@ -26,42 +27,29 @@ export const TrainerDashboard: React.FC = () => {
     const [ptScheduledWorkouts, setPtScheduledWorkouts] = useState<any[]>([]);
     const [showAll, setShowAll] = useState(false);
 
-    const token = localStorage.getItem("accessToken");
-
     // Function to delete a workout
-    const deleteWorkout = async (workoutId: number) => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-        navigate("/login");
-        return;
-        }
-    
+    const deleteWorkout = async (workoutId: number) => {    
         try {
-        const response = await fetch(`${backendUrl}/workout/delete/${workoutId}/`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
-        });
-    
-        if (!response.ok) {
-            console.error("Failed to delete workout");
-            return;
+          const response = await apiClient.delete(`/workout/delete/${workoutId}/`);
+      
+          if (response.status !== 204) {
+              console.error("Failed to delete workout");
+              return;
+          }
+      
+          // Update the workouts state to remove the deleted workout
+          setWorkouts(workouts.filter((workout) => workout.id !== workoutId));
+          } catch (error) {
+          console.error("Error deleting workout:", error);
         }
-    
-        // Update the workouts state to remove the deleted workout
-        setWorkouts(workouts.filter((workout) => workout.id !== workoutId));
-        } catch (error) {
-        console.error("Error deleting workout:", error);
-        }
-  };
+    };
 
     useEffect(() => {
 
         const notificationsList = async () => {
             try {
-              const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const notificationsUserData = await notificationsUserResponse.json();
+              const notificationsUserResponse = await apiClient.get("/notification/");
+              const notificationsUserData = await notificationsUserResponse.data;
               notificationsUserData.map((notification: any) => {
                 setNotifications((prev) => [...prev, {
                   id: notification.id,
@@ -77,46 +65,29 @@ export const TrainerDashboard: React.FC = () => {
               console.error("Error fetching notifications:", error);
             }
           }
-          const fetchUserChatRooms = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-              alert("Access token not found in localStorage");
-              navigate("/login");
-            }
-        
+          const fetchUserChatRooms = async () => {        
             try {
-              const chatRoomsResponse = await fetch(`${backendUrl}/chat/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const chatRoomsData = await chatRoomsResponse.json();
+              const chatRoomsResponse = await apiClient.get("/chat/");
+              const chatRoomsData = chatRoomsResponse.data;
               setChatRooms(chatRoomsData);
             } catch (error) {
               console.error("Error fetching chat rooms:", error);
             }
           }
         
-            notificationsList();
-            fetchUserChatRooms();
+          notificationsList();
+          fetchUserChatRooms();
     }, [navigate]);
 
     const fetchPtScheduledWorkouts = async () => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
         try {
           const [scheduledRes, clientsRes] = await Promise.all([
-            fetch(`${backendUrl}/shedule/pt_workout/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            fetch(`${backendUrl}/trainer/clients/`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
+            apiClient.get("/schedule/pt_workout/"),
+            apiClient.get("trainer/clients/"),
           ]);
       
-          const scheduledData = await scheduledRes.json();
-          const clientsData: User[] = await clientsRes.json();
+          const scheduledData = await scheduledRes.data;
+          const clientsData: User[] = await clientsRes.data;
       
           const withUsernames = scheduledData.map((item: any) => {
             const client = clientsData.find(c => c.id === item.client);
@@ -140,15 +111,9 @@ export const TrainerDashboard: React.FC = () => {
   useEffect(() => {
     if (chatRooms.length === 0) return; 
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-
     const roomIds = chatRooms.map((room) => room.id); // Room IDs which User is participant of
 
-    roomIds.forEach((idRoom) => {
+    roomIds.forEach(async (idRoom) => {
       const existingSocket = socketsRef.current.get(idRoom);
       if (existingSocket) { // Close existing WebSocket connection, for the same chat room
         existingSocket.close();
@@ -159,7 +124,7 @@ export const TrainerDashboard: React.FC = () => {
         return;
       }
 
-      const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${idRoom}/?token=${token}`); 
+      const socket = await apiClient.createSocket(idRoom); // Create a new WebSocket connection
       socketsRef.current.set(idRoom, socket);
 
       socket.onmessage = (event) => {{ 
@@ -221,10 +186,7 @@ export const TrainerDashboard: React.FC = () => {
 			// Deleting every notification from the chat room for the current user
 			notifications.forEach(async (notification) => {
 				if (notification.chat_room_id === chatRoomId) {
-					await fetch(`${backendUrl}/notification/delete/${notification.id}/`, {
-						method: "DELETE",
-						headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-					});
+          await apiClient.delete(`/notification/delete/${notification.id}/`);
 				}
 			});
 		} catch (error) {

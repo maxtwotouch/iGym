@@ -2,14 +2,9 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { backendUrl } from "~/config";
 
-  // Interface to define the structure of an exercise object
-  interface Exercise {
-    id: number;
-    name: string;
-    muscle_category: string;
-}
+import { fetchExercises } from "~/utils/api/exercises";
+import type { Exercise } from "~/types"; // Import type for exercises
 
 const MUSCLE_CATEGORIES = ["legs", "arms", "shoulders", "back", "abs", "chest"];
 const MUSCLE_CATEGORY_MAP: { [key: string]: string } = {
@@ -26,25 +21,16 @@ function ExerciseList() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
+        (async () => {
+            const exercises = await fetchExercises();
 
-        const fetchExercises = async () => {
-            try {
-                const response = await fetch(`${backendUrl}/exercise/`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!response.ok) {
-                    console.error("Failed to fetch exercises");
-                    return;
-                }
-                const data = await response.json();
-                setExercises(data);
-            } catch (error) {
-                console.error("Error fetching exercises:", error);
+            if (!exercises) {
+                console.error("Failed to fetch exercises");
+                return;
             }
-        };
 
-        fetchExercises();
+            setExercises(exercises);
+        })();
     }, [navigate]);
 
     // Group exercises by muscle category

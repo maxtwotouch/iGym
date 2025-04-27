@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import Select from 'react-select';
-import { backendUrl } from '~/config';
+import apiClient from '~/utils/api/apiClient';
 
 type User = {
     id: number;
@@ -25,17 +25,14 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     const [resetDropDown, setResetDropDown] = useState(0); 
 
     const fetchChatRooms = async () => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-        
         try {
-            const chatRoomResponse = await fetch(`${backendUrl}/chat/`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const chatRoom = await chatRoomResponse.json();
+            const chatRoomResponse = await apiClient.get(`/chat/`);
+
+            if (chatRoomResponse.status !== 200) {
+                throw new Error("Failed to fetch chat rooms");
+            }
+
+            const chatRoom = await chatRoomResponse.data;
             setChatRooms(chatRoom);
         } catch (error) {
             console.error("Error fetching chat rooms:", error);
@@ -43,18 +40,15 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     };
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-    
         const fetchUsers = async () => {
             try {
-                const userObjectsResponse = await fetch(`${backendUrl}/user/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                const userObjects = await userObjectsResponse.json();
+                const userObjectsResponse = await apiClient.get(`/user/`);
+
+                if (userObjectsResponse.status !== 200) {
+                    throw new Error("Failed to fetch users");
+                }
+
+                const userObjects = await userObjectsResponse.data;
                 setUsers(userObjects);
     
                 // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
@@ -83,27 +77,20 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await fetch(`${backendUrl}/chat/create/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
-                },
-                body: JSON.stringify({
-                    name: newChatRoomName,
-                    participants: participantIds
-                })
+            const response = await apiClient.post("/chat/create/", {
+                name: newChatRoomName,
+                participants: participantIds
             });
 
-            if (response.ok) {
-                // Reset form
-                setNewChatRoomName(""); 
-                setSelectedParticipants([]);
-
-                fetchChatRooms(); 
-            } else {
+            if (response.status !== 201) {
                 console.error("Failed to create chat room");
+                return;
             }
+
+            setNewChatRoomName(""); // Reset chat room name
+            setSelectedParticipants([]); // Reset selected participants
+
+            fetchChatRooms(); // Fetch updated chat rooms
         } else {
             console.error("Chat room name and participants are required");
         }

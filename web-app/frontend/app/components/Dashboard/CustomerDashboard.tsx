@@ -1,12 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import { useNavigate, useLoaderData } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from '~/config'; // Import backendUrl from config
+
+import apiClient from "~/utils/api/apiClient";
 import ChatRoom from "../Chat/ChatRoom";
 
 import type { Workout, Exercise, WorkoutSession, ExerciseSession, Set, User, Notification, chatRoom } from "~/types"; // Import types for workouts and exercises
 
 import { deleteWorkout } from "~/utils/api/workouts";
+
+import { useAuth } from "~/context/AuthContext";
 
 export const CustomerDashboard: React.FC = () => {
     const loaderData = useLoaderData<{
@@ -27,22 +30,13 @@ export const CustomerDashboard: React.FC = () => {
     const [chatRooms, setChatRooms] = useState<chatRoom[]>([]);
     const socketsRef = useRef<Map<number, WebSocket>>(new Map());
     const navigate = useNavigate();
-
-    const token = localStorage.getItem("accessToken");
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchUserChatRooms = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-              alert("Access token not found in localStorage");
-              navigate("/login");
-            }
-        
             try {
-              const chatRoomsResponse = await fetch(`${backendUrl}/chat/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const chatRoomsData = await chatRoomsResponse.json();
+              const chatRoomsResponse = await apiClient.get("/chat/");
+              const chatRoomsData = chatRoomsResponse.data;
               setChatRooms(chatRoomsData);
             } catch (error) {
               console.error("Error fetching chat rooms:", error);
@@ -51,20 +45,14 @@ export const CustomerDashboard: React.FC = () => {
 
           const fetchTrainer = async () => {
             try {
-              const userResponse = await fetch(`${backendUrl}/user/${localStorage.getItem("user_id")}/`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const userData = await userResponse.json();
+              const userResponse = await apiClient.get(`/user/${user?.userId}/`);
+              const userData = await userResponse.data;
         
               console.log("user data:", userData);
         
               // Translate from profile id to user id
-              const trainersResponse = await fetch(`${backendUrl}/trainer/`, {
-                  method: "GET",
-                  headers: { Authorization: `Bearer ${token}` },
-              });
-              const trainerData = await trainersResponse.json();
+              const trainersResponse = await apiClient.get("/trainer/");
+              const trainerData = await trainersResponse.data;
         
               trainerData.find((trainer: any) => { 
                   if (trainer.trainer_profile.id === userData.profile.personal_trainer) {
@@ -78,11 +66,8 @@ export const CustomerDashboard: React.FC = () => {
 
           const fetchChatRoomPt = async () => {
             try {
-              const userResponse = await fetch(`${backendUrl}/user/${localStorage.getItem("user_id")}/`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const userData = await userResponse.json();
+              const userResponse = await apiClient.get(`/user/${user?.userId}/`);
+              const userData = await userResponse.data;
               const roomId = userData.profile.pt_chatroom;
               setRoomId(roomId);
             } catch (error) {
@@ -92,10 +77,8 @@ export const CustomerDashboard: React.FC = () => {
 
           const notificationsList = async () => {
             try {
-              const notificationsUserResponse = await fetch(`${backendUrl}/notification/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const notificationsUserData = await notificationsUserResponse.json();
+              const notificationsUserResponse = await apiClient.get("/notification/");
+              const notificationsUserData = await notificationsUserResponse.data;
               notificationsUserData.map((notification: any) => {
                 setNotifications((prev) => [...prev, {
                   id: notification.id,
@@ -123,15 +106,9 @@ export const CustomerDashboard: React.FC = () => {
   useEffect(() => {
     if (chatRooms.length === 0) return; 
 
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            alert("Access token not found in localStorage");
-            navigate("/login");
-        }
-
     const roomIds = chatRooms.map((room) => room.id); // Room IDs which User is participant of
 
-    roomIds.forEach((idRoom) => {
+    roomIds.forEach(async (idRoom) => {
       const existingSocket = socketsRef.current.get(idRoom);
       if (existingSocket) { // Close existing WebSocket connection, for the same chat room
         existingSocket.close();
@@ -142,7 +119,7 @@ export const CustomerDashboard: React.FC = () => {
         return;
       }
 
-      const socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${idRoom}/?token=${token}`); 
+      const socket = await apiClient.createSocket(idRoom); // Create a new WebSocket connection
       socketsRef.current.set(idRoom, socket);
 
       socket.onmessage = (event) => {{ 
@@ -172,11 +149,11 @@ export const CustomerDashboard: React.FC = () => {
       };
     });
 
-        return () => { // Close all WebSockets when the user exits the dashboard
-            socketsRef.current.forEach((socket) => {
-        socket.close();
-      });
-        };
+    return () => { // Close all WebSockets when the user exits the dashboard
+        socketsRef.current.forEach((socket) => {
+          socket.close();
+        });
+    };
   }, [chatRooms]);
 
  	// Filter out duplicate notifications (notifications from the same chat room, only show the most recent one)
@@ -203,10 +180,7 @@ export const CustomerDashboard: React.FC = () => {
                 // Deleting every notification from the chat room for the current user
                 notifications.forEach(async (notification) => {
                     if (notification.chat_room_id === chatRoomId) {
-                        await fetch(`${backendUrl}/notification/delete/${notification.id}/`, {
-                            method: "DELETE",
-                            headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-                        });
+                        apiClient.delete(`/notification/delete/${notification.id}/`);
                     }
                 });
             } catch (error) {
@@ -426,7 +400,7 @@ export const CustomerDashboard: React.FC = () => {
                                             
                                                 {/* Delete Workout Button */}
                                                 <motion.button
-                                                    onClick={() => deleteWorkout(token, workout.id).then(() => setWorkouts(workouts.filter((w) => w.id !== workout.id)))}
+                                                    onClick={() => deleteWorkout(workout.id).then(() => setWorkouts(workouts.filter((w) => w.id !== workout.id)))}
                                                     className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
                                                     whileHover={{ scale: 1.05 }}
                                                 >

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import {useParams, useNavigate} from "react-router";
 import { useState, useEffect } from "react";
-import { backendUrl } from '~/config';
+import apiClient from '~/utils/api/apiClient';
 
 // Interface to define the structure of an exercise object
   interface Exercise {
@@ -14,27 +14,19 @@ import { backendUrl } from '~/config';
 
 export const Exercise = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const [exercise, setExercise] = useState<Exercise | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken"); // Retrieve JWT token
-        if (!token) {
-          navigate("/login"); 
-          return;
-        }
-
         const fetchExerciseData = async () => {
             try {
-              const response = await fetch(`${backendUrl}/exercise/${id}/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              if (!response.ok) {
-                console.error("Failed to fetch workout data");
+              const response = await apiClient.get(`/exercise/${id}/`);
+              
+              if (response.status !== 200) {
+                console.error("Failed to fetch exercise data");
                 return;
               }
       
-              const data = await response.json();
+              const data = await response.data;
               setExercise(data)
       
             } catch (error) {
@@ -43,7 +35,7 @@ export const Exercise = () => {
           };
         
             fetchExerciseData()
-        },  [id, navigate]); 
+        },  [id]); 
     
     // If exercise is not loaded yet, show a loading message
     if (!exercise) {

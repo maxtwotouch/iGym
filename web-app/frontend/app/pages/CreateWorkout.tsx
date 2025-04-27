@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
 
 // Interface to define the structure of an exercise object
 interface Exercise {
@@ -17,44 +17,28 @@ const CreateWorkout: React.FC = () => {
     const location = useLocation();
 
     useEffect(() => {
-      const token = localStorage.getItem("accessToken"); 
-        if (!token) { 
-        navigate("/login");
-        return;
-      }
       if (location.state) {
         setSelectedExercises(location.state.selectedExercises);
         setNewWorkoutName(location.state.newWorkoutName);
       }
-    }, [navigate]);
+    }, []);
 
   const handleAddWorkout = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent the default form submission behavior
 
-    const token = localStorage.getItem("accessToken"); 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
     try {
-      const response = await fetch(`${backendUrl}/workout/create/`, { 
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await apiClient.post(`/workout/create/`,
+        {
           name: newWorkoutName,
           exercises: exercises,
-        }),
-      });
+        }
+      );
 
-      const data = await response.json();
+      const data = await response.data;
 
-      if(!response.ok) {
+      if(response.status != 201) {
         const fieldErrors = [];
 
         for (const key in data) {

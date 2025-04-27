@@ -6,9 +6,6 @@ import { fetchWorkoutSessions } from "~/utils/api/workoutSessions"; // Import th
 import { fetchWorkouts, deleteWorkout } from "~/utils/api/workouts"; // Import the function to fetch workouts
 import { fetchExercises } from "~/utils/api/exercises"; // Import the function to fetch exercises
 
-import { useNavigate } from "react-router";
-import { useEffect } from "react";
-
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Dashboard" },
@@ -19,42 +16,18 @@ export function meta({}: Route.MetaArgs) {
 const DashboardRoute = ({
   loaderData,
 }: Route.ComponentProps) => {
-  const userType = loaderData?.userType;
-
-  let routeToLogin = false;
-
-  if (!userType) {
-    routeToLogin = true;
-    return <HydrateFallback />; // Show loading spinner if userType is not available  
-  }
-
-  useEffect(() => {
-      if (routeToLogin) {
-        const navigate = useNavigate();
-        navigate("/login");
-      }
-  }, [userType]);
-
-  return <Dashboard userType={userType} />;
+  return <Dashboard/>;
 }
 
 export const clientLoader = async ({
   params,   
 }: Route.LoaderArgs) => {
-  const token = localStorage.getItem("accessToken");
-  if (!token) {
-      return null;
-  }
   try {
-      console.log(localStorage)
-
-      const userType = localStorage.getItem("userType");
-
       const workoutSessions = await fetchWorkoutSessions();
       const workouts = await fetchWorkouts();
-      const exercises = await fetchExercises(token);
+      const exercises = await fetchExercises();
 
-      return { workoutSessions, workouts, exercises, userType };
+      return { workoutSessions, workouts, exercises };
   } catch (error) {
       console.error("Error loading data:", error);
       return null;

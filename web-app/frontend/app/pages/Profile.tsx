@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
+import { useAuth } from "~/context/AuthContext";
 
 interface UserProfile {
   id: number;
@@ -35,6 +36,8 @@ const ProfilePage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { user } = useAuth();
+
   // form state
   const [form, setForm] = useState({
     first_name: "",
@@ -48,17 +51,8 @@ const ProfilePage: React.FC = () => {
 
   // load profile
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const id    = localStorage.getItem("user_id");
-    if (!token || !id) {
-      navigate("/login");
-      return;
-    }
-
-    fetch(`${backendUrl}/user/${id}/`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
+    apiClient.get(`/user/${user?.userId}/`)
+      .then(res => res.data)
       .then((data: UserProfile) => {
         setProfile(data);
         setForm({
@@ -100,10 +94,6 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
-    const id    = localStorage.getItem("user_id");
-    if (!token || !id) return navigate("/login");
-
     const data = new FormData();
     data.append("first_name", form.first_name);
     data.append("last_name",  form.last_name);
@@ -116,16 +106,12 @@ const ProfilePage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${backendUrl}/user/update/${id}/`, {
-        method:  "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-        body:    data
-      });
-      if (!res.ok) {
-        const text = await res.text();
+      const res = await apiClient.patch(`/user/update/${user?.userId}/`, data );
+      if (res.status != 200) {
+        const text = await res.statusText;
         throw new Error(text || "Update failed");
       }
-      const updated = await res.json();
+      const updated = await res.data;
       setProfile(updated);
       setSuccess("Profile saved!");
       setEditing(false);

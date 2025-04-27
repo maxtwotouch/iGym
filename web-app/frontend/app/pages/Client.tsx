@@ -1,9 +1,9 @@
 
-import { backendUrl } from "~/config";
+import apiClient from "~/utils/api/apiClient";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -17,7 +17,6 @@ interface Client {
 
 function Client() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
 
     const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
     const [error, setError] = useState("");
@@ -31,22 +30,15 @@ function Client() {
     const [client, setClient] = useState<Client | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
         const fetchScheduledWorkouts = async () => {
             try {
-                const response = await fetch(`${backendUrl}/trainer/client/${id}/scheduled_workouts/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-        
-                if (!response.ok) {
+                const response = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
+
+                if (response.status !== 200) {
                     throw new Error("Failed to fetch client's scheduled workouts");
                 }
         
-                const data = await response.json();
+                const data = await response.data;
                 const now = new Date();
                 
                 // Filter out scheduled workouts in the past
@@ -56,11 +48,9 @@ function Client() {
                 const scheduledWorkouts = await Promise.all(
                     futureWorkouts.map(async (item: any) => {
                         try {
-                            const exercisesResponse = await fetch(`${backendUrl}/workout/${item.workout_template}/exercises/`, { 
-                                headers: { Authorization: `Bearer ${token}` }
-                            });
+                            const exercisesResponse = await apiClient.get(`/workout/${item.workout_template}/exercises/`);
         
-                            if (!exercisesResponse.ok) {
+                            if (exercisesResponse.status !== 200) {
                                 console.error("Failed to fetch exercises from workout");
                                 return {
                                     id: `scheduled-${item.id}`,
@@ -71,7 +61,7 @@ function Client() {
                                 };
                             }
         
-                            const exercises = await exercisesResponse.json();
+                            const exercises = await exercisesResponse.data;
         
                             return {
                                 id: `scheduled-${item.id}`,
@@ -104,16 +94,14 @@ function Client() {
         const fetchClientDetails = async () => {
             // Fetch information about the client
             try {
-                const response = await fetch(`${backendUrl}/user/${id}/`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await apiClient.get(`/user/${id}/`);
 
-                if(!response.ok) {
+                if(response.status !== 200) {
                     console.error("Failed to fetch client details");
                     return;
                 }
 
-                const data = await response.json();
+                const data = await response.data;
                 setClient(data);
             } catch (error) {
                 console.error("Error fetching client details:", error);
@@ -121,23 +109,17 @@ function Client() {
         };
 
         const fetchClientWorkoutSessions = async () => {
-            const token = localStorage.getItem("accessToken");
-            if (!token) {
-              navigate("/login");
-              return [];
-            }
-
             try {
                 // Fetch both  the client's workouts and workout sessions in parallel
                 const [workoutsRes, sessionsRes] = await Promise.all([
-                  fetch(`${backendUrl}/trainer/client/${id}/workouts/`, { headers: { Authorization: `Bearer ${token}` } }),
-                  fetch(`${backendUrl}/trainer/client/${id}/workout_sessions/`, { headers: { Authorization: `Bearer ${token}` } }),
+                    apiClient.get(`/trainer/client/${id}/workouts/`),
+                    apiClient.get(`/trainer/client/${id}/workout_sessions/`),
                 ]);
 
                 // Convert responses to JSON
                 const [workouts, workoutSessions] = await Promise.all([
-                    workoutsRes.json(),
-                    sessionsRes.json(),
+                    workoutsRes.data,
+                    sessionsRes.data,
                 ]);
 
                 // Map workout ID to its name for quick lookup
@@ -166,8 +148,8 @@ function Client() {
                     const endTime = new Date(startTime.getTime() + durationMs);
                     
                     // Fetch the exercises contained in the workout
-                    const exercisesResponse = await fetch(`${backendUrl}/workout/${session.workout}/exercises/`, { headers: { Authorization: `Bearer ${token}` } });
-                    const exercises = await exercisesResponse.json();
+                    const exercisesResponse = await apiClient.get(`/workout/${session.workout}/exercises/`);
+                    const exercises = await exercisesResponse.data;
 
                     if(!exercises) {
                         console.log("Failed to fetch exercises from workout");
@@ -204,7 +186,7 @@ function Client() {
 
         fetchClientDetails();
         loadEvents();
-    }, [navigate, id]);
+    }, [id]);
 
     // When user clicks a date on the calendar
     const handleDateClick = (arg: any) => {

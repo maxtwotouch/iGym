@@ -1,20 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import Sidebar from "~/components/Chat/ChatRoomsSidebar";
 import ChatRoom from "~/components/Chat/ChatRoom";
-import Footer from "~/components/common/Footer";
 
 const Chat = () => {
     const navigate = useNavigate();
     const [selectedChatRoom, setSelectedChatRoom] = useState<number | null>(null);
-
-    useEffect(() => {
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            navigate("/login"); 
-        }
-    }, [navigate]);
 
     const handleLeaveChatRoom = () => {
         setSelectedChatRoom(null); 
