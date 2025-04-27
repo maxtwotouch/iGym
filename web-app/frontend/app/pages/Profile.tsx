@@ -5,7 +5,7 @@ import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
 import apiClient from "~/utils/api/apiClient";
 import { useAuth } from "~/context/AuthContext";
 
-interface UserProfile {
+type UserProfileResponse = {
   id: number;
   first_name: string;
   last_name: string;
@@ -16,9 +16,13 @@ interface UserProfile {
     height?: number;
     profile_picture?: string;
   };
-}
+  trainer_profile?: {
+    experience: string;
+    pt_type: string;
+    profile_picture?: string;
+  };
+};
 
-// Utility to capitalize the start of each word
 const formatLabel = (field: string) =>
   field
     .split("_")
@@ -27,56 +31,89 @@ const formatLabel = (field: string) =>
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const [profile, setProfile]           = useState<UserProfile | null>(null);
-  const [loading, setLoading]           = useState(true);
-  const [editing, setEditing]           = useState(false);
-  const [error, setError]               = useState<string | null>(null);
-  const [success, setSuccess]           = useState<string | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { user } = useAuth();
+  const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isTrainer, setIsTrainer] = useState(false);
 
-  // form state
   const [form, setForm] = useState({
     first_name: "",
-    last_name:  "",
-    username:   "",
-    password:   "",
-    confirm:    "",
-    weight:     "",
-    height:     "",
+    last_name: "",
+    username: "",
+    password: "",
+    confirm: "",
+    weight: "",
+    height: "",
+    experience: "",
+    pt_type: "",
   });
 
-  // load profile
   useEffect(() => {
-    apiClient.get(`/user/${user?.userId}/`)
-      .then(res => res.data)
-      .then((data: UserProfile) => {
-        setProfile(data);
-        setForm({
-          first_name: data.first_name || "",
-          last_name:  data.last_name  || "",
-          username:   data.username,
-          password:   "",
-          confirm:    "",
-          weight:     data.profile?.weight?.toString() || "",
-          height:     data.profile?.height?.toString() || "",
-        });
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [navigate]);
+    if (!user?.userId) {
+      navigate("/login");
+      return;
+    }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const initForm = (data: UserProfileResponse) => {
+      setProfileData(data);
+      setForm({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        username: data.username,
+        password: "",
+        confirm: "",
+        weight: data.profile?.weight?.toString() || "",
+        height: data.profile?.height?.toString() || "",
+        experience: data.trainer_profile?.experience || "",
+        pt_type: data.trainer_profile?.pt_type || "",
+      });
+    };
+
+    const load = async () => {
+      try {
+        const userRes = await apiClient.get<UserProfileResponse>(
+          `/user/${user.userId}/`
+        );
+        setIsTrainer(false);
+        initForm(userRes.data);
+      } catch (e: any) {
+        if (e.response?.status === 404) {
+          try {
+            const ptRes = await apiClient.get<UserProfileResponse>(
+              `/trainer/${user.userId}/`
+            );
+            setIsTrainer(true);
+            initForm(ptRes.data);
+          } catch (e2: any) {
+            setError(e2.message);
+          }
+        } else {
+          setError(e.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [user, navigate]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) {
+    if (!file?.type.startsWith("image/")) {
       setError("Please select an image file");
       return;
     }
@@ -96,36 +133,44 @@ const ProfilePage: React.FC = () => {
 
     const data = new FormData();
     data.append("first_name", form.first_name);
-    data.append("last_name",  form.last_name);
-    data.append("username",   form.username);
+    data.append("last_name", form.last_name);
+    data.append("username", form.username);
     if (form.password) data.append("password", form.password);
-    data.append("profile.weight", form.weight);
-    data.append("profile.height", form.height);
-    if (fileInputRef.current?.files?.[0]) {
-      data.append("profile.profile_picture", fileInputRef.current.files[0]);
+
+    if (isTrainer) {
+      data.append("trainer_profile.experience", form.experience);
+      data.append("trainer_profile.pt_type", form.pt_type);
+    } else {
+      data.append("profile.weight", form.weight);
+      data.append("profile.height", form.height);
+    }
+
+    const file = fileInputRef.current?.files?.[0];
+    if (file) {
+      const key = isTrainer
+        ? "trainer_profile.profile_picture"
+        : "profile.profile_picture";
+      data.append(key, file);
     }
 
     try {
-      const res = await apiClient.patch(`/user/update/${user?.userId}/`, data );
-      if (res.status != 200) {
-        const text = await res.statusText;
-        throw new Error(text || "Update failed");
-      }
-      const updated = await res.data;
-      setProfile(updated);
+      const endpoint = isTrainer
+        ? `/trainer/update/${user.userId}/`
+        : `/user/update/${user.userId}/`;
+      const res = await apiClient.patch<UserProfileResponse>(endpoint, data);
+      setProfileData(res.data);
       setSuccess("Profile saved!");
       setEditing(false);
       setPreviewImage(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (e: any) {
+      setError(e.message);
     }
   };
 
-  // Render loading spinner only
-  if (loading) {
+  if (loading || !profileData) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+        <div className="animate-spin h-16 w-16 border-t-4 border-blue-500 rounded-full"></div>
       </div>
     );
   }
@@ -138,12 +183,17 @@ const ProfilePage: React.FC = () => {
     >
       <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="md:flex">
-          {/* Avatar Section */}
           <div className="md:w-1/3 bg-gray-700 p-8 flex flex-col items-center">
             <div className="relative">
               <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500">
                 <img
-                  src={previewImage || profile?.profile?.profile_picture || defaultProfilePicture}
+                  src={
+                    previewImage ||
+                    (isTrainer
+                      ? profileData.trainer_profile?.profile_picture
+                      : profileData.profile?.profile_picture) ||
+                    defaultProfilePicture
+                  }
                   alt="avatar"
                   className="w-full h-full object-cover"
                 />
@@ -158,9 +208,9 @@ const ProfilePage: React.FC = () => {
               )}
             </div>
             <h2 className="text-xl font-bold text-white mt-4">
-              {profile?.first_name} {profile?.last_name}
+              {profileData.first_name} {profileData.last_name}
             </h2>
-            <p className="text-gray-300">{profile?.email}</p>
+            <p className="text-gray-300">{profileData.email}</p>
             {!editing && (
               <button
                 onClick={() => setEditing(true)}
@@ -171,7 +221,6 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
-          {/* Profile Form */}
           <div className="md:w-2/3 p-8">
             {error && <div className="text-red-400 mb-4">{error}</div>}
             {success && <div className="text-green-400 mb-4">{success}</div>}
@@ -186,72 +235,98 @@ const ProfilePage: React.FC = () => {
               />
 
               <div className="grid md:grid-cols-2 gap-6">
-                {/* Name & Username */}
-                {['first_name', 'last_name', 'username'].map(field => {
-                  const label = formatLabel(field);
-                  return (
-                    <div key={field}>
-                      <label className="block text-gray-300 mb-1">{label}</label>
-                      {editing ? (
-                        <input
-                          name={field}
-                          value={(form as any)[field]}
-                          onChange={handleChange}
-                          className="w-full bg-gray-700 text-white p-2 rounded"
-                        />
-                      ) : (
-                        <p className="text-white">{(profile as any)[field]}</p>
-                      )}
-                    </div>
-                  );
-                })}
+                {["first_name", "last_name", "username"].map(f => (
+                  <div key={f}>
+                    <label className="block text-gray-300 mb-1">
+                      {formatLabel(f)}
+                    </label>
+                    {editing ? (
+                      <input
+                        name={f}
+                        value={(form as any)[f]}
+                        onChange={handleChange}
+                        className="w-full bg-gray-700 text-white p-2 rounded"
+                      />
+                    ) : (
+                      <p className="text-white">{(profileData as any)[f]}</p>
+                    )}
+                  </div>
+                ))}
 
-                {/* Password Fields */}
-                {editing && (
+                {isTrainer ? (
                   <>
                     <div>
-                      <label className="block text-gray-300 mb-1">New Password</label>
-                      <input
-                        name="password"
-                        type="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white p-2 rounded"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-gray-300 mb-1">Confirm Password</label>
-                      <input
-                        name="confirm"
-                        type="password"
-                        value={form.confirm}
-                        onChange={handleChange}
-                        className="w-full bg-gray-700 text-white p-2 rounded"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Measurement Fields */}
-                {['weight', 'height'].map(field => {
-                  const label = formatLabel(field);
-                  return (
-                    <div key={field}>
-                      <label className="block text-gray-300 mb-1">{label}</label>
+                      <label className="block text-gray-300 mb-1">
+                        Experience
+                      </label>
                       {editing ? (
                         <input
-                          name={field}
-                          type="number"
-                          value={(form as any)[field]}
+                          name="experience"
+                          value={form.experience}
                           onChange={handleChange}
                           className="w-full bg-gray-700 text-white p-2 rounded"
                         />
                       ) : (
-                        <p className="text-white">{profile?.profile?.[field] ?? '—'}</p>
+                        <p className="text-white">
+                          {profileData.trainer_profile!.experience}
+                        </p>
                       )}
                     </div>
-                  );
-                })}
+
+                    <div>
+                      <label className="block text-gray-300 mb-1">
+                        PT Type
+                      </label>
+                      {editing ? (
+                        <select
+                          name="pt_type"
+                          value={form.pt_type}
+                          onChange={handleChange}
+                          className="w-full bg-gray-700 text-white p-2 rounded"
+                        >
+                          {[
+                            ["general", "General Fitness Trainer"],
+                            ["strength", "Strength & Conditioning"],
+                            ["functional", "Functional Coach"],
+                            ["bodybuilding", "Bodybuilding Coach"],
+                            ["physio", "Physical Therapist"],
+                          ].map(([val, label]) => (
+                            <option key={val} value={val}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <p className="text-white">
+                          {profileData.trainer_profile!.pt_type}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {["weight", "height"].map(f => (
+                      <div key={f}>
+                        <label className="block text-gray-300 mb-1">
+                          {formatLabel(f)}
+                        </label>
+                        {editing ? (
+                          <input
+                            name={f}
+                            type="number"
+                            value={(form as any)[f]}
+                            onChange={handleChange}
+                            className="w-full bg-gray-700 text-white p-2 rounded"
+                          />
+                        ) : (
+                          <p className="text-white">
+                            {profileData.profile?.[f] ?? "—"}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
 
               {editing && (
