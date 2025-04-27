@@ -4,7 +4,7 @@ node_modules/
 # Build output
 dist/
 lib/
-.DS_Store
+
 
 # Logs
 logs
