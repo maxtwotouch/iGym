@@ -1,385 +1,230 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { useAuth } from "~/context/AuthContext";
 import apiClient from "~/utils/api/apiClient";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
 
-import defaultProfilePicture from "~/assets/defaultProfilePicture.png"
+type Profile = { profile_picture?: string | null };
+type User =    { id: number; username: string; profile: Profile };
+type TrainerProfile = { id: number; experience: string; profile_picture?: string | null };
+type Trainer = { id: number; username: string; trainer_profile: TrainerProfile };
 
-type Profile = {
-    profile_picture?: string | null;
-  };
+export const NavBar: React.FC = () => {
+  const { user, logout } = useAuth();            // must provide .userId
+  const location          = useLocation();
+  const dropdownRef       = useRef<HTMLDivElement>(null);
+  const timeoutRef        = useRef<number|null>(null);
 
-type Trainer = {
-    id: number;
-    username: string;
-    trainer_profile: TrainerProfile;
-}
+  const [userType,       setUserType]       = useState<"user"|"trainer"|null>(null);
+  const [username,       setUsername]       = useState("");
+  const [profileImage,   setProfileImage]   = useState(defaultProfilePicture);
+  const [trainer,        setTrainer]        = useState<Trainer|null>(null);
+  const [clients,        setClients]        = useState<User[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownLocked, setIsDropdownLocked] = useState(false);
 
-type TrainerProfile = {
-    id : number;
-    experience: string;
-}
-  
-type User = {
-    id: number;
-    username: string;
-    profile: Profile;
-  };
-
-export const NavBar = () => {
-    const [username, setUsername] = useState<string>("");
-    const [clients, setClients] = useState<User []>([]);
-    const [trainer, setTrainer] = useState<Trainer | null>(null);
-    const [userType, setUserType] = useState<string | null>(null);
-    const location = useLocation();
-
-    const [profileImage, setProfileImage] = useState<string | null>(null);
-
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isDropdownLocked, setIsDropdownLocked] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const timeoutRef = useRef<number | null>(null);
-
-    const { user, logout } = useAuth();
-
-    const handleLogout = () => {
-        logout();
-    };
-
-    useEffect(() => {
-        const storedUserType = localStorage.getItem('userType');
-        if (storedUserType) {
-            setUserType(storedUserType);
-        }
-    }, []);
-
-    useEffect(() => {
-        const fetchTrainerOrClients = async () => {
-            try {
-                if (userType === 'user') {
-                    const userResponse = await apiClient.get(`/user/${user?.userId}/`)
-                    const userData = userResponse.data;
-
-                    // Translate from profile id to user id
-                    const trainersResponse = await apiClient.get(`/trainer/`);
-                    const trainerData = await trainersResponse.data;
-
-                    trainerData.find((trainer: any) => { 
-                        if (trainer.trainer_profile.id === userData.profile.personal_trainer) {
-                            setTrainer({ id: trainer.id, username: trainer.username, trainer_profile: trainer.trainer_profile });
-                        }
-                    });
-                } 
-                else if (userType === 'trainer') {
-                    const clientsArrayResponse = await apiClient.get(`/trainer/clients/`);
-                    const clientsArrayData = await clientsArrayResponse.data;
-
-                    clientsArrayData.map((client: any) => {
-                        setClients((prevClients) => [...prevClients, { id: client.id, username: client.username, profile: client.profile }]);
-                    });
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
-         
-        fetchTrainerOrClients();
-    }, [userType]); 
-
-    useEffect(() => {
-        // Close the dropdown if clicking outside
-        function handleClickOutside(event: MouseEvent) {
-          if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-            setIsDropdownOpen(false);
-            setIsDropdownLocked(false);
-          }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-    
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-        };
-      }, []);
-
-    useEffect(() => {
-    // Cleanup any pending timeouts
-    return () => {
-        if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        }
-    };
-    }, []);
-
-    useEffect(() => {
-        // Fetch the user data
-        const fetchUserData = async () => {
+  // --- 1) On mount: fetch either /user/:id/ or fallback to /trainer/:id/ ---
+  useEffect(() => {
+    if (!user?.userId) return;
+    const load = async () => {
+      try {
+        // Try normal user endpoint
+        const res = await apiClient.get<User>(`/user/${user.userId}/`);
+        setUserType("user");
+        setUsername(res.data.username);
+        setProfileImage(res.data.profile.profile_picture || defaultProfilePicture);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          // Fallback to trainer
           try {
-            // Parse user from string to JSON
-            const response = await apiClient.get(`/user/${user?.userId}/`);
-            if (response.status != 200) {
-              throw new Error("Failed to fetch user data");
-            }
-    
-            const userData: User = response.data;
-            setUsername(userData.username);
-    
-            // If the backend user profile doesn't have an image, use our fallback
-            if (userData.profile?.profile_picture) {
-              setProfileImage(userData.profile.profile_picture);
-            } else {
-              setProfileImage(defaultProfilePicture); // Local fallback image
-            }
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            // If an error occurs, you could also show the fallback image
-            setProfileImage(defaultProfilePicture);
+            const res2 = await apiClient.get<Trainer>(`/trainer/${user.userId}/`);
+            setUserType("trainer");
+            setUsername(res2.data.username);
+            setProfileImage(res2.data.trainer_profile.profile_picture || defaultProfilePicture);
+          } catch (e2: any) {
+            console.error("Failed to fetch trainer:", e2);
           }
-        };
-    
-        fetchUserData();
-      }, []);
-    
-        // Toggle dropdown on click
-  const handleToggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-    setIsDropdownLocked((prev) => !prev);
-  };
+        } else {
+          console.error("Failed to fetch user:", err);
+        }
+      }
+    };
+    load();
+  }, [user?.userId]);
 
-  // Hover logic
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  // --- 2) Once we know our type, fetch the other list: trainer→clients, user→their trainer ---
+  useEffect(() => {
+    if (!userType || !user?.userId) return;
+    const loadList = async () => {
+      try {
+        if (userType === "user") {
+          const u = await apiClient.get<User>(`/user/${user.userId}/`);
+          const allTrainers = await apiClient.get<Trainer[]>(`/trainer/`);
+          const me = u.data;
+          // `profile.personal_trainer` holds the trainer_profile.id on the server
+          const found = allTrainers.data.find(
+            t => t.trainer_profile.id === (me.profile as any).personal_trainer
+          );
+          if (found) setTrainer(found);
+        } else {
+          // Trainer → list clients
+          const c = await apiClient.get<User[]>(`/trainer/clients/`);
+          setClients(c.data);
+        }
+      } catch (e) {
+        console.error("Error fetching trainer/clients:", e);
+      }
+    };
+    loadList();
+  }, [userType, user?.userId]);
+
+  // --- 3) Dropdown open/close handlers ---
+  useEffect(() => {
+    const onClickOutside = (ev: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(ev.target as Node)) {
+        setIsDropdownOpen(false);
+        setIsDropdownLocked(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(o => !o);
+    setIsDropdownLocked(l => !l);
+  };
+  const onMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setIsDropdownOpen(true);
   };
-
-  const handleMouseLeave = () => {
-    if (isDropdownLocked) return;
-    timeoutRef.current = window.setTimeout(() => {
-      setIsDropdownOpen(false);
-    }, 150);
+  const onMouseLeave = () => {
+    if (!isDropdownLocked) {
+      timeoutRef.current = window.setTimeout(() => setIsDropdownOpen(false), 150);
+    }
   };
+
+  // --- 4) Logout ---
+  const handleLogout = () => logout();
 
 
   return (
     <motion.nav
-        className="bg-gradient-to-br from-gray-900 to-gray-800 py-4 shadow-md text-white"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
+      className="bg-gradient-to-br from-gray-900 to-gray-800 py-4 shadow-md text-white"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
     >
-        <div className="container mx-auto flex items-center space-x-6">
+      <div className="container mx-auto flex items-center space-x-6">
+        {/* Logo */}
+        <motion.div initial={{ x: -20 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
+          <Link to="/dashboard" className="text-2xl font-bold">iGym</Link>
+        </motion.div>
 
-            {/* Logo */}
-            <motion.div
-                initial={{ x: -20 }}
-                animate={{ x: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                <Link className="text-2xl font-bold" to="/dashboard">iGym</Link>
-            </motion.div>
+        {/* Main nav links */}
+        <motion.div
+          className="flex space-x-4 items-center"
+          initial={{ y: -10 }} animate={{ y: 0 }} transition={{ duration: 0.5 }}
+        >
+          <Link to="/dashboard"      className={`hover:text-blue-400 ${location.pathname==='/dashboard'      && "text-blue-400"}`}>Home</Link>
+          <Link to="/exercises"     className={`hover:text-blue-400 ${location.pathname==='/exercises'     && "text-blue-400"}`}>Exercises</Link>
+          <Link to="/calendar"      className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}>Calendar</Link>
+          <Link to="/chat"          className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}>Chat</Link>
 
-            {/* Navigation Links */}
-            <motion.div
-                className="flex space-x-4 items-center"
-                initial={{ y: -10 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                <Link 
-                    className={`hover:text-blue-400 ${location.pathname === '/dashboard' && 'text-blue-400'}`} 
-                    to="/dashboard"
-                    data-name="Home Page"
-                    >
-                    Home
+          {userType==="user" && (
+            <>
+              <Link to="/personalTrainers" className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}>Personal Trainers</Link>
+              {trainer && (
+                <Link to={`/personal_trainer/${trainer.id}/`} className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 flex items-center">
+                  {trainer.username} 💪
                 </Link>
-                
-                <Link 
-                    className={`hover:text-blue-400 ${location.pathname === '/exercises' ? 'text-blue-400' : ''}`} 
-                    to="/exercises"
-                    data-name="Exercises Page"
-                    >
-                    Exercises
-                </Link>
-                <Link 
-                    className={`hover:text-blue-400 ${location.pathname === '/calendar' && 'text-blue-400'}`} 
-                    to="/calendar"
-                    data-name="Calendar"
-                    >
-                    Calendar
-                </Link>
-                
-                <Link 
-                    className={`hover:text-blue-400 ${location.pathname === '/chat' && 'text-blue-400'}`}
-                    to="/chat"
-                    data-name="Chat Page"
-                    >
-                    Chat
-                </Link>
-                
-                {/* Selecting PT only for User */}
-                {userType === "user" && (
-                <Link 
-                    className={`hover:text-blue-400 ${location.pathname === '/personalTrainers' && 'text-blue-400'}`}
-                    to="/personalTrainers"
-                    data-name="Personal Trainers"
-                    >
-                    Personal Trainers
-                </Link>
-                )}
+              )}
+            </>
+          )}
 
-                {/* Showing my PT for user */}
-                {userType === "user" && trainer && (
-                <Link
-                    to={`/personal_trainer/${trainer.id}/`}
-                    className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 transition flex items-center"
-                >
-                    {trainer.username} 💪
-                </Link>
-                )}
-
-                {/* Dropdown for PT, shows a list of his clients */}
-                {userType === "trainer" && (
-                    <div className="relative group">
-                        <button 
-                            className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 transition"
-                            name="clientButton"
-                        >
-                            My Clients
-                        </button>   
-                        <motion.ul
-                            className="absolute left-0 top-full bg-gray-800 py-2 rounded shadow-lg hidden group-hover:block z-10"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                        {clients.length ? (
-                            clients.map((client) => (
-                                <li 
-                                    key={client.id}
-                                    data-id={client.id}
-                                >
-                                    <Link
-                                        className="block px-4 py-1 hover:bg-gray-700 transition"
-                                        to={`/clients/${client.id}`}
-                                    >
-                                        {client.username}
-                                    </Link>
-                                </li>
-                            ))
-                        ) : (
-                            <li className="px-4 py-1 text-gray-400">No clients</li>
-                        )}
-                        </motion.ul>
-                    </div>
-                )}
-            </motion.div>
-
-            {/* Right: Profile Image / Dropdown */}
-            <div
-                ref={dropdownRef}
-                className="relative"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-            >
-                <div
-                    className="flex items-center cursor-pointer"
-                    onClick={handleToggleDropdown}
-                >
-                {/* Profile Picture with fallback */}
-                <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
-                {profileImage ? (
-                    <img
-                    src={profileImage}
-                    alt={username}
-                    className="h-full w-full object-cover"
-                    />
-                ) : (
-                <div className="h-full w-full bg-blue-600 flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">
-                        {username}
-                    </span>
-                </div>
-                )}
+          {userType==="trainer" && (
+            <div className="relative group">
+              <button className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">My Clients</button>
+              <motion.ul
+                className="absolute left-0 top-full bg-gray-800 py-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-hover:block z-10"
+                initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}
+              >
+                {clients.length>0 
+                  ? clients.map(c => (
+                      <li key={c.id}>
+                        <Link to={`/clients/${c.id}`} className="block px-4 py-1 hover:bg-gray-700">
+                          {c.username}
+                        </Link>
+                      </li>
+                    ))
+                  : <li className="px-4 py-1 text-gray-400">No clients</li>
+                }
+              </motion.ul>
             </div>
-            
-            {/* Username text */}
+          )}
+        </motion.div>
+
+        <div className="flex-1" />
+
+        {/* Profile picture + dropdown */}
+        <div
+          ref={dropdownRef}
+          className="relative flex items-center"
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        >
+          <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
+            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
+              <img src={profileImage} alt={username} className="w-full h-full object-cover" />
+            </div>
             <span className="ml-2 hidden md:inline text-sm font-medium">{username}</span>
-
-            {/* Dropdown arrow */}
-            <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className={`h-4 w-4 ml-1 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 className={`h-4 w-4 ml-1 transition-transform ${isDropdownOpen?"rotate-180":""}`}
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M19 9l-7 7-7-7" />
             </svg>
-            </div>
+          </div>
 
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-                <div
-                className="absolute right-0 top-full pt-2 z-10"
-                style={{ minWidth: "200px" }}
-                >
-                <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden">
-                    <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700 hover:text-white"
-                        >
-                        <div className="flex items-center">
-                            <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                            </svg>
-                            View Profile
-                        </div>
-                    </Link>
-                    <div className="border-t border-gray-700 my-1"></div>
-                    <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 hover:text-red-300"
-                        name="logoutButton"
-                        >
-                        <div className="flex items-center">
-                            <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                            />
-                        </svg>
-                        Logout
-                    </div>
-                    </button>
-                </div>
-                </div>
-            )}
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-full pt-2 z-10" style={{minWidth:200}}>
+              <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden">
+                <Link to="/profile" className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    View Profile
+                  </div>
+                </Link>
+                <div className="border-t border-gray-700 my-1" />
+                <button onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700">
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </div>
+                </button>
+              </div>
             </div>
+          )}
         </div>
+      </div>
     </motion.nav>
-);
-}
+  );
+};
 
 export default NavBar;

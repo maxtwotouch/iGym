@@ -29,6 +29,11 @@ class PersonalTrainerProfile(models.Model):
     role = models.CharField(max_length=20, default="trainer")
     pt_type = models.CharField(max_length=20, choices=PT_TYPES, default="general")
 
+    profile_picture = models.ImageField(      upload_to="trainer_profile_pictures/",
+        blank=True,
+        null=True
+  )
+
 # Model for normal users
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

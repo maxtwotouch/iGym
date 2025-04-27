@@ -91,7 +91,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalTrainerProfile
-        fields = ["id", "experience", "pt_type"]
+        fields = ["id", "experience", "pt_type", "profile_picture"] 
 
 
 class PersonalTrainerSerializer(serializers.ModelSerializer):
