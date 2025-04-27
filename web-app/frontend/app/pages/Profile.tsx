@@ -200,7 +200,7 @@ const ProfilePage: React.FC = () => {
               />
 
               <div className="grid md:grid-cols-2 gap-6">
-                {/** Name & Username **/}
+                {/* Name & Username */}
                 {['first_name', 'last_name', 'username'].map(field => {
                   const label = formatLabel(field);
                   return (
@@ -220,7 +220,7 @@ const ProfilePage: React.FC = () => {
                   );
                 })}
 
-                {/** Password Fields **/}
+                {/* Password Fields */}
                 {editing && (
                   <>
                     <div>
@@ -246,7 +246,7 @@ const ProfilePage: React.FC = () => {
                   </>
                 )}
 
-                {/** Measurement Fields **/}
+                {/* Measurement Fields */}
                 {['weight', 'height'].map(field => {
                   const label = formatLabel(field);
                   return (
