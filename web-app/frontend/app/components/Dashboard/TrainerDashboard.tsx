@@ -6,8 +6,7 @@ import apiClient from "~/utils/api/apiClient";
 
 import type { Workout, Exercise, WorkoutSession, chatRoom, Notification, User } from "~/types"; // Import types for workouts and exercises
 
-import { deleteWorkout } from "~/utils/api/workouts"; // Import the function to delete workouts
-
+import { useAuth } from "~/context/AuthContext"; // Import the AuthContext to get user info
 
 export const TrainerDashboard: React.FC = () => {
     const loaderData = useLoaderData<{
@@ -17,8 +16,6 @@ export const TrainerDashboard: React.FC = () => {
     }>();
 
     const [workouts, setWorkouts] = useState<Workout[]>(loaderData.workouts || []);
-    const exercises = loaderData.exercises || [];
-    const username = localStorage.getItem("username") || "trainer";
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [uniqueNotifications, setUniqueNotifications] = useState<Notification[]>([]);
@@ -26,6 +23,7 @@ export const TrainerDashboard: React.FC = () => {
     const socketsRef = useRef<Map<number, WebSocket>>(new Map());
     const [ptScheduledWorkouts, setPtScheduledWorkouts] = useState<any[]>([]);
     const [showAll, setShowAll] = useState(false);
+    const { user } = useAuth(); // Get user info from AuthContext
 
     // Function to delete a workout
     const deleteWorkout = async (workoutId: number) => {    
@@ -141,7 +139,7 @@ export const TrainerDashboard: React.FC = () => {
             workout_message: notification.workout?.name || null,
           };
 
-          if (notification.sender == localStorage.getItem("username")) {
+          if (notification.sender == user?.username) {
             return;
           }
 

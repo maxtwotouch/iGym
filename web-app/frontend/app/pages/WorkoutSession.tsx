@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import apiClient from "~/utils/api/apiClient";
+import { useAuth } from "~/context/AuthContext";
 
 // Interfaces for Exercise and Workout Sessions
 interface Exercise {
@@ -24,6 +25,7 @@ const WorkoutSession: React.FC = () => {
     const navigate = useNavigate(); 
     const [timer, setTimer] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         setIsRunning(true);
@@ -250,7 +252,7 @@ const WorkoutSession: React.FC = () => {
         let totalCalories = 0;
         let MET = 3.0
 
-        const weight = localStorage.getItem("weight");
+        const weight = user?.profile.weight;
 
         // Check that  weigth is not an empty string, null, undefined, 0 or NaN and convert it to a float
         const weightValue = weight ? parseFloat(weight) : 0;

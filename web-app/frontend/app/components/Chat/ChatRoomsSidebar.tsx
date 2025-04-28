@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
 import Select from 'react-select';
 import apiClient from '~/utils/api/apiClient';
+import { useAuth } from '~/context/AuthContext';
 
 type User = {
     id: number;
@@ -23,6 +24,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     const [users, setUsers] = useState<User[]>([]);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [resetDropDown, setResetDropDown] = useState(0); 
+    const { user } = useAuth();
 
     const fetchChatRooms = async () => {
         try {
@@ -52,7 +54,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 setUsers(userObjects);
     
                 // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
-                const current_user_id = localStorage.getItem("user_id");
+                const current_user_id = user?.userId;
                 const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
                 if (current_user) {
                     setCurrentUser(current_user);

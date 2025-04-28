@@ -22,7 +22,6 @@ export const CustomerDashboard: React.FC = () => {
     const [workouts, setWorkouts] = useState<Workout[]>(loaderData?.workouts || []);
     const exercises: Exercise[] = loaderData?.exercises || [];
     const workoutSessions: WorkoutSession[] = loaderData?.workoutSessions || [];
-    const username = localStorage.getItem("username") || "user";
     const [trainer, setTrainer] = useState<User | null>(null);
     const [roomId, setRoomId] = useState<number | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -136,7 +135,7 @@ export const CustomerDashboard: React.FC = () => {
             workout_message: notification.workout?.name || null,
           };
 
-          if (notification.sender == localStorage.getItem("username")) {
+          if (notification.sender == user?.username) {
             return;
           }
 

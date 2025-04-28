@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import Select from 'react-select';
 import apiClient from "~/utils/api/apiClient";
+import { useAuth } from "~/context/AuthContext";
 
 type ChatRoomProps = {
     chatRoomId: number;
@@ -57,6 +58,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const [isWorkoutsVisible, setIsWorkoutsVisible] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchChat = async () => {
@@ -331,36 +333,31 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const acceptWorkout = async (workout: ChatWorkout) => {
         if (!socketRef.current) return; // Not allow for sending messages if the socket is not connected
 
-        if (workout.owners.includes(Number(localStorage.getItem("user_id")))) {
+        if (workout.owners.includes(Number(user?.userId))) {
             alert("You already own this workout!");
             return;
         }
         
-        const currentUserId = Number(localStorage.getItem("user_id"));
-        const currentUserUsername = localStorage.getItem("username");
         socketRef.current.send(JSON.stringify({
             type: "confirmation",
             workout_id: workout.id,
-            user_id: currentUserId,
-            message: `${currentUserUsername} has accepted the workout: ${workout.name}`
+            user_id: user?.userId,
+            message: `${user?.username} has accepted the workout: ${workout.name}`
         }));
     }
 
-    const leaveChatRoom = async (chatRoomId: number) => {
-        const user_id = localStorage.getItem("user_id");
-        const user_type = localStorage.getItem("userType");
-    
-        if (user_type === "user") {
+    const leaveChatRoom = async (chatRoomId: number) => {    
+        if (user?.userType === "user") {
             try {
-                const response = await apiClient.get(`/user/${user_id}/`);
+                const response = await apiClient.get(`/user/${user?.userId}/`);
                 
     
                 if (response.status !== 200) {
                     throw new Error(`Failed to fetch user data. Status: ${response.status}`);
                 }
     
-                const user = await response.data;
-                if (user.profile.pt_chatroom === chatRoomId) {
+                const userData = await response.data;
+                if (userData.profile.pt_chatroom === chatRoomId) {
                     alert("Cannot leave the chat room with your personal trainer!");
                     return;
                 }
@@ -370,8 +367,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
         }
         
         // Find the other participant (the client) and check if the client have this chat room as their pt_chat room, if so, stop the leave
-        else if (user_type === "trainer") {
-            const client = users.find(user => user.id !== Number(user_id));
+        else if (user?.userType === "trainer") {
+            const client = users.find(x => x.id !== user.userId);
     
             if (!client) {
                 console.log("Client has already left the chat room");
@@ -398,12 +395,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     
         if (!socketRef.current) return;
     
-        const currentUserUsername = localStorage.getItem("username");
-        const currentUserId = Number(localStorage.getItem("user_id"));
         socketRef.current.send(JSON.stringify({
             type: "leave",
-            user_id: currentUserId,
-            message: `${currentUserUsername} has left the chat room`
+            user_id: user?.userId,
+            message: `${user?.username} has left the chat room`
         }));
     
         const response = await apiClient.delete(`/chat/delete/${chatRoomId}/`);
@@ -461,7 +456,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             const message_sender_id = Number(message.sender);
                             console.log("sender:", message.sender);
                             sender = getUsernameById(message_sender_id);
-                            isOwnMessage = sender === localStorage.getItem("username");
+                            isOwnMessage = sender === user?.username;
                         }
                             
                         // Display text messages
