@@ -220,7 +220,7 @@ export const TrainerDashboard: React.FC = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
             >
-                Hello, Trainer {username}
+                Hello, Trainer {user?.username}
             </motion.h1>
 
 				{/* Left section */}

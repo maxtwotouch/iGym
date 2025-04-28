@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 import apiClient from "~/utils/api/apiClient";
+import { useAuth } from "~/context/AuthContext";
 
 type PT = {
   id: number;
@@ -28,6 +29,7 @@ const PtList: React.FC = () => {
   const [filterType, setFilterType] = useState("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [selectedPt, setSelectedPt] = useState<PT | null>(null);
+  const { updateUserContext} = useAuth();
 
   useEffect(() => {
     apiClient.get("/trainer/")
@@ -64,6 +66,10 @@ const PtList: React.FC = () => {
     if (!selectedPt) return;
     // ... your existing newPt() logic goes here ...
     // e.g. call your API, create chat, etc.
+
+    // After the PT data has been posted to the backend, update the user context
+    // This will reload the user context and trigger a re-render
+    await updateUserContext();
   };
 
   return (

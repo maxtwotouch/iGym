@@ -348,24 +348,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
     const leaveChatRoom = async (chatRoomId: number) => {    
         if (user?.userType === "user") {
-            try {
-                const response = await apiClient.get(`/user/${user?.userId}/`);
-                
-    
-                if (response.status !== 200) {
-                    throw new Error(`Failed to fetch user data. Status: ${response.status}`);
-                }
-    
-                const userData = await response.data;
-                if (userData.profile.pt_chatroom === chatRoomId) {
-                    alert("Cannot leave the chat room with your personal trainer!");
-                    return;
-                }
-            } catch (err: any) {
-                console.error("Error fetching profile:", err);
+            if (user?.profile.pt_chatroom === chatRoomId) {
+                alert("Cannot leave the chat room with your personal trainer!");
+                return;
             }
         }
-        
         // Find the other participant (the client) and check if the client have this chat room as their pt_chat room, if so, stop the leave
         else if (user?.userType === "trainer") {
             const client = users.find(x => x.id !== user.userId);

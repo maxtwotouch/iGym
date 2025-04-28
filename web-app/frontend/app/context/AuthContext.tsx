@@ -1,8 +1,9 @@
 // AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate } from "react-router";
 import { fetchToken } from "~/utils/api/token"; // Assume these functions exist and return a Promise
 import { getValidAccessToken } from "~/utils/authService"; // Assume this function exists and returns a valid access token or null
+import apiClient from "~/utils/api/apiClient";
 
 // Define the types for tokens and user info
 interface AuthTokens {
@@ -13,12 +14,11 @@ interface AuthTokens {
     accessTokenRefreshed: number; // Timestamp when the access token was last refreshed
     refreshTokenRefreshed: number; // Timestamp when the refresh token was last refreshed
 }
-
 interface User {
     userId: number;
     username: string;
     profile: any;
-    userType?: string; // Optional, depending on your user model
+    userType: string;
     firstName: string;
     lastName: string;
 }
@@ -28,10 +28,12 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     // Log in using credentials; fetchToken() will return tokens and user data
-    login: (credentials: { username: string; password: string }) => Promise<void>;
+    login: (credentials: { username: string; password: string }) => Promise<boolean>;
     logout: () => void;
     // Returns a valid access token (or tries to refresh it) or logs out if not possible.
     getToken: () => Promise<string | null>;
+    // Update the user context with new data
+    updateUserContext: () => Promise<void>;
 }
 
 // Create the authentication context (undefined until provided)
@@ -84,7 +86,7 @@ const login = async (credentials: { username: string; password: string }) => {
             refreshTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
         };
         setTokens(newTokens);
-        const newUser: User = {
+        const user: User = {
             userId: tokenResponse.id,
             username: tokenResponse.username,
             profile: tokenResponse.profile,
@@ -92,12 +94,14 @@ const login = async (credentials: { username: string; password: string }) => {
             firstName: tokenResponse.first_name,
             lastName: tokenResponse.last_name
         };
-        setUser(newUser);
+        // Update the user context
+        setUser(user);
         // Persist credentials in localStorage for a smoother user experience
         localStorage.setItem("authTokens", JSON.stringify(newTokens));
-        localStorage.setItem("user", JSON.stringify(newUser));
+        return true;
     } catch (error) {
         console.error("Login failed:", error);
+        return false;
     // Optionally, set an error state or message for the login component
     } finally {
         setLoading(false);
@@ -109,7 +113,6 @@ const logout = () => {
     setTokens(null);
     setUser(null);
     localStorage.removeItem("authTokens");
-    localStorage.removeItem("user");
     navigate("/login");
 };
 
@@ -123,6 +126,38 @@ const getToken = async () => {
     return token;
 };
 
+const updateUserContext = async () => {
+    // Check if user is logged in
+    if (!user) {
+        throw new Error("User is not logged in");
+    }
+    // Check if userId is defined
+    if (!user.userId) {
+        throw new Error("User ID is undefined");
+    }
+
+    // Fetch new user data from the API
+    const response = await apiClient.get(`/user/${user?.userId}/`);
+    // Check if the response is successful
+    if (response.status !== 200) {
+        throw new Error(`Failed to fetch user data. Status: ${response.status}`);
+    }
+    // Update the user data
+    const userData = await response.data;
+
+    const newUser: User = {
+        userId: userData.id,
+        username: userData.username,
+        profile: userData.profile,
+        userType: userData.profile?.role,
+        firstName: userData.first_name,
+        lastName: userData.last_name
+    };
+
+    // Update the user context
+    setUser(newUser);
+}
+
 const contextValue: AuthContextType = {
     tokens,
     user,
@@ -130,6 +165,7 @@ const contextValue: AuthContextType = {
     login,
     logout,
     getToken,
+    updateUserContext,
 };
 
 return (

@@ -16,8 +16,6 @@ export const NavBar: React.FC = () => {
   const dropdownRef       = useRef<HTMLDivElement>(null);
   const timeoutRef        = useRef<number|null>(null);
 
-  const [userType,       setUserType]       = useState<"user"|"trainer"|null>(null);
-  const [username,       setUsername]       = useState("");
   const [profileImage,   setProfileImage]   = useState(defaultProfilePicture);
   const [trainer,        setTrainer]        = useState<Trainer|null>(null);
   const [clients,        setClients]        = useState<User[]>([]);
@@ -28,40 +26,19 @@ export const NavBar: React.FC = () => {
   useEffect(() => {
     if (!user?.userId) return;
     const load = async () => {
-      try {
-        // Try normal user endpoint
-        const res = await apiClient.get<User>(`/user/${user.userId}/`);
-        setUserType("user");
-        setUsername(res.data.username);
-        setProfileImage(res.data.profile.profile_picture || defaultProfilePicture);
-      } catch (err: any) {
-        if (err.response?.status === 404) {
-          // Fallback to trainer
-          try {
-            const res2 = await apiClient.get<Trainer>(`/trainer/${user.userId}/`);
-            setUserType("trainer");
-            setUsername(res2.data.username);
-            setProfileImage(res2.data.trainer_profile.profile_picture || defaultProfilePicture);
-          } catch (e2: any) {
-            console.error("Failed to fetch trainer:", e2);
-          }
-        } else {
-          console.error("Failed to fetch user:", err);
-        }
-      }
+      setProfileImage(user?.profile.profile_picture || defaultProfilePicture);
     };
     load();
   }, [user?.userId]);
 
   // --- 2) Once we know our type, fetch the other list: trainer→clients, user→their trainer ---
   useEffect(() => {
-    if (!userType || !user?.userId) return;
+    if (!user?.userType || !user?.userId) return;
     const loadList = async () => {
       try {
-        if (userType === "user") {
-          const u = await apiClient.get<User>(`/user/${user.userId}/`);
+        if (user?.userType === "user") {
           const allTrainers = await apiClient.get<Trainer[]>(`/trainer/`);
-          const me = u.data;
+          const me = user;
           // `profile.personal_trainer` holds the trainer_profile.id on the server
           const found = allTrainers.data.find(
             t => t.trainer_profile.id === (me.profile as any).personal_trainer
@@ -77,7 +54,7 @@ export const NavBar: React.FC = () => {
       }
     };
     loadList();
-  }, [userType, user?.userId]);
+  }, [user]);
 
   // --- 3) Dropdown open/close handlers ---
   useEffect(() => {
@@ -138,7 +115,7 @@ export const NavBar: React.FC = () => {
           <Link to="/calendar"      className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}>Calendar</Link>
           <Link to="/chat"          className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}>Chat</Link>
 
-          {userType==="user" && (
+          {user?.userType==="user" && (
             <>
               <Link to="/personalTrainers" className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}>Personal Trainers</Link>
               {trainer && (
@@ -149,7 +126,7 @@ export const NavBar: React.FC = () => {
             </>
           )}
 
-          {userType==="trainer" && (
+          {user?.userType==="trainer" && (
             <div className="relative group">
               <button className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">My Clients</button>
               <motion.ul
@@ -182,9 +159,9 @@ export const NavBar: React.FC = () => {
         >
           <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
-              <img src={profileImage} alt={username} className="w-full h-full object-cover" />
+              <img src={profileImage} alt={user?.username} className="w-full h-full object-cover" />
             </div>
-            <span className="ml-2 hidden md:inline text-sm font-medium">{username}</span>
+            <span className="ml-2 hidden md:inline text-sm font-medium">{user?.username}</span>
             <svg xmlns="http://www.w3.org/2000/svg"
                  className={`h-4 w-4 ml-1 transition-transform ${isDropdownOpen?"rotate-180":""}`}
                  fill="none" viewBox="0 0 24 24" stroke="currentColor">

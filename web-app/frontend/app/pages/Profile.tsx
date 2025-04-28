@@ -31,7 +31,7 @@ const formatLabel = (field: string) =>
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUserContext } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
@@ -155,14 +155,17 @@ const ProfilePage: React.FC = () => {
 
     try {
       const endpoint = isTrainer
-        ? `/trainer/update/${user.userId}/`
-        : `/user/update/${user.userId}/`;
+        ? `/trainer/update/${user?.userId}/`
+        : `/user/update/${user?.userId}/`;
       const res = await apiClient.patch<UserProfileResponse>(endpoint, data);
       setProfileData(res.data);
       setSuccess("Profile saved!");
       setEditing(false);
       setPreviewImage(null);
+      // After saving, update the user context
+      await updateUserContext();
     } catch (e: any) {
+      console.error("Error saving profile:", e);
       setError(e.message);
     }
   };

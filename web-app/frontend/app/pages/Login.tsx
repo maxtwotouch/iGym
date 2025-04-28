@@ -15,9 +15,15 @@ export const LoginForm = () => {
     e.preventDefault();
   
     try {
-      await login({ username, password });
-
-      navigate(from, { replace: true });
+      await login({ username, password }).then((success) => {
+        console.log("Login success:", success);
+        if (success) {
+          // Redirect to the page they were trying to access
+          navigate(from);
+        } else {
+          alert("Login failed. Please check your credentials.");
+        }
+      });
 
       // if (response.ok) {
       //   const data = await response.json();
