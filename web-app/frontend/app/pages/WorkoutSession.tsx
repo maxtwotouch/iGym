@@ -56,7 +56,7 @@ const WorkoutSession: React.FC = () => {
 
         const fetchExercises = async () => {
             try {
-                const response = await apiClient.get(`exercise`);
+                const response = await apiClient.get(`/exercise/`);
                 if (response.status != 200) {
                     console.error("Failed to fetch exercises");
                     return;
@@ -257,9 +257,13 @@ const WorkoutSession: React.FC = () => {
         // Check that  weigth is not an empty string, null, undefined, 0 or NaN and convert it to a float
         const weightValue = weight ? parseFloat(weight) : 0;
         
-        totalCalories = MET * weightValue * (timer / 3600);
+        const rawCalories = MET * weightValue * (timer / 3600);
 
-        return totalCalories;
+        // Make sure that the calories are not negative and round to 2 decimal places
+        const clampedCalories = Math.max(0, rawCalories);
+        const roundedCalories = parseFloat(clampedCalories.toFixed(2));
+
+        return roundedCalories;
     }
 
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
