@@ -175,7 +175,11 @@ export const Calendar = () => {
           {calendarDays.map((day, i) => {
             const iso = day.toISOString().slice(0, 10);
             const isCur = day.getMonth() === currentMonth.getMonth();
-            const isToday = iso === new Date().toISOString().slice(0, 10);
+            const todayLocal = new Date();
+            const todayISO = new Date(todayLocal.getFullYear(), todayLocal.getMonth(), todayLocal.getDate())
+                    .toISOString()
+                    .slice(0, 10);
+            const isToday = iso === todayISO;
             const dayEvents = eventsByDate[iso] || [];
 
             return (
