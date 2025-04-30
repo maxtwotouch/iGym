@@ -154,35 +154,37 @@ class Chatconsumer(AsyncWebsocketConsumer):
         # Broadcast notification to the rest of the users in the chat room, excluding the sender. And saving the notification to the database
         if type == "message":
             notification = await self.save_notification(sender, message_content, workout) 
-
-            await self.channel_layer.group_send(
-                self.room_id,
-                {
-                    "type": "notification",
-                    "id": notification.id,
-                    "sender": sender.username,
-                    "message": message_content,
-                    "chat_room_name": self.room.name,
-                    "chat_room_id": self.room.id,
-                    "date_sent": datetime.now().isoformat()
-                }
-            ) 
+            
+            if notification:  # Only send if notification was created
+                await self.channel_layer.group_send(
+                    self.room_id,
+                    {
+                        "type": "notification",
+                        "id": notification.id,
+                        "sender": sender.username,
+                        "message": message_content,
+                        "chat_room_name": self.room.name,
+                        "chat_room_id": self.room.id,
+                        "date_sent": datetime.now().isoformat()
+                    }
+                ) 
         elif type == "workout":
             notification = await self.save_notification(sender, message_content, workout)
-
-            workout_serialized = await self.get_serialized_workout(workout)
-            await self.channel_layer.group_send(
-                self.room_id,
-                {
-                    "type": "notification",
-                    "id": notification.id,
-                    "sender": sender.username,
-                    "workout": workout_serialized,
-                    "chat_room_name": self.room.name,
-                    "chat_room_id": self.room.id,
-                    "date_sent": datetime.now().isoformat()
-                }
-            )
+            
+            if notification:  # Only send if notification was created
+                workout_serialized = await self.get_serialized_workout(workout)
+                await self.channel_layer.group_send(
+                    self.room_id,
+                    {
+                        "type": "notification",
+                        "id": notification.id,
+                        "sender": sender.username,
+                        "workout": workout_serialized,
+                        "chat_room_name": self.room.name,
+                        "chat_room_id": self.room.id,
+                        "date_sent": datetime.now().isoformat()
+                    }
+                )
     
     async def chat_message(self, event):
         message_content = event["content"]
@@ -268,16 +270,18 @@ class Chatconsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_notification(self, sender, message, workout):
         notification = None
+        other_participants = False
         # Must save to database for each User in the chat room, exluding the sender
         for user in self.room.participants.all():
             if user != sender:
+                other_participants = True
                 # Save either a message or a workout (see model Notification)
                 if message:
                     notification = Notification.objects.create(user=user, sender=sender, message=message, chat_room_name=self.room.name, chat_room_id=self.room.id)
                 if workout:
                     notification = Notification.objects.create(user=user, sender=sender, workout_message=workout, chat_room_name=self.room.name, chat_room_id=self.room.id)
 
-        return notification # Retrieve notification so that its ID can be sent to the client
+        return notification if other_participants else None # Retrieve notification so that its ID can be sent to the client
 
     @database_sync_to_async
     def get_serialized_workout(self, workout):
