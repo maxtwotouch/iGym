@@ -15,6 +15,7 @@ export default [
             route("about", "routes/AboutRoute.tsx"),
             route("calendar", "routes/CalendarRoute.tsx"),
             route("chat", "routes/ChatRoute.tsx"),
+            route("chat/:id", "routes/ChatRoomRoute.tsx"),
             route("workouts/create", "routes/CreateWorkoutRoute.tsx"),
             route("workouts/create/exercises", "routes/ExerciseSelectionRoute.tsx"),
             route("workouts/update/:id", "routes/EditWorkoutRoute.tsx"),
