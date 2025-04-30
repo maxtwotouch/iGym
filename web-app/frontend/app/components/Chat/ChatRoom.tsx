@@ -214,77 +214,97 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
     // Connect to the WebSocket, listen for new messages, and close the connection when the user leaves the chat room
     useEffect(() => {
+        let isComponentMounted = true;  // Flag to track if component is still mounted
+
         const handleSocket = async () => {
-            if (socketRef.current) { // Close the existing WebSocket connection
+            // Clean up any existing socket
+            if (socketRef.current) {
                 socketRef.current.close();
+                socketRef.current = null;
             }
 
-            const socket = await apiClient.createSocket(chatRoomId);
-            socketRef.current = socket; 
-
-            socketRef.current.onmessage = (event) => { // Listen for new messages
-                const message = JSON.parse(event.data); 
-
-                if (message.type === "notification") { // No notification list inside the chat room
-                    console.log("Received notification:", message);
+            try {
+                const socket = await apiClient.createSocket(chatRoomId);
+                
+                // Don't set up the socket if component was unmounted
+                if (!isComponentMounted) {
+                    socket.close();
                     return;
                 }
 
-                else if (message.type === "message") { // Handle normal text messages
-                    const newMessage: Message = { 
-                        type: "message", 
-                        content: String(message.content), 
-                        sender: String(message.sender), 
-                        date_sent: message.date_sent || new Date().toISOString() 
-                    };
+                socketRef.current = socket;
 
-                    setMessages((prevMessages) => [...prevMessages, newMessage]);
-                } 
-                else if (message.type === "workout") { // Handle workout messages
-                    const newWorkoutMessage: ChatWorkout = {
-                        type: "workout",
-                        id: message.workout.id,
-                        owners: message.workout.owners,
-                        name: message.workout.name,
-                        sender: String(message.sender),
-                        date_sent: message.workout.date_sent ? message.workout.date_sent : new Date().toISOString(),
-                    };
-                    setChatWorkouts((prevWorkouts) => [...prevWorkouts, newWorkoutMessage]);
-                } 
-                else if (message.type === "confirmation") { // Handle workout confirmation messages (confirming added workout)
-                    const userName = message.added_to_workout;
-                    const workoutName = message.workout.name;
+                socket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
 
-                    const confirmationMessage: Message = {
-                        type: "confirmation",
-                        content: `${userName} has accepted the workout: ${workoutName}`,
-                        sender: `${userName}`,
-                        date_sent: new Date().toISOString(),
-                    };
-                    
-                    setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
+                    if (message.type === "notification") { // No notification list inside the chat room
+                        console.log("Received notification:", message);
+                        return;
+                    }
+
+                    else if (message.type === "message") { // Handle normal text messages
+                        const newMessage: Message = { 
+                            type: "message", 
+                            content: String(message.content), 
+                            sender: String(message.sender), 
+                            date_sent: message.date_sent || new Date().toISOString() 
+                        };
+
+                        setMessages((prevMessages) => [...prevMessages, newMessage]);
+                    } 
+                    else if (message.type === "workout") { // Handle workout messages
+                        const newWorkoutMessage: ChatWorkout = {
+                            type: "workout",
+                            id: message.workout.id,
+                            owners: message.workout.owners,
+                            name: message.workout.name,
+                            sender: String(message.sender),
+                            date_sent: message.workout.date_sent ? message.workout.date_sent : new Date().toISOString(),
+                        };
+                        setChatWorkouts((prevWorkouts) => [...prevWorkouts, newWorkoutMessage]);
+                    } 
+                    else if (message.type === "confirmation") { // Handle workout confirmation messages (confirming added workout)
+                        const userName = message.added_to_workout;
+                        const workoutName = message.workout.name;
+
+                        const confirmationMessage: Message = {
+                            type: "confirmation",
+                            content: `${userName} has accepted the workout: ${workoutName}`,
+                            sender: `${userName}`,
+                            date_sent: new Date().toISOString(),
+                        };
+                        
+                        setMessages((prevMessages) => [...prevMessages, confirmationMessage]);
+                    }
+
+                    else if (message.type === "leave") { // Handle leave messages (people leaving the chat room)
+                        const username = message.left_the_group_chat;
+
+                        const leaveMessage: Message = {
+                            type: "leave",
+                            content: `${username} has left the chat room`,
+                            sender: `${username}`,
+                            date_sent: new Date().toISOString(),
+                        };
+
+                            setMessages((prevMessages) => [...prevMessages, leaveMessage]);
+                    }
                 }
-
-                else if (message.type === "leave") { // Handle leave messages (people leaving the chat room)
-                    const username = message.left_the_group_chat;
-
-                    const leaveMessage: Message = {
-                        type: "leave",
-                        content: `${username} has left the chat room`,
-                        sender: `${username}`,
-                        date_sent: new Date().toISOString(),
-                    };
-
-                    setMessages((prevMessages) => [...prevMessages, leaveMessage]);
-                }
+            } catch (error) {
+                console.error("Socket connection error:", error);
             }
         };
 
         handleSocket();
 
+        // Cleanup function that runs when component unmounts or when effect re-runs
         return () => {
-            if (socketRef.current) {socketRef.current.close();} // Close the WebSocket connection when the user leaves the chat room
-        }
+            isComponentMounted = false;  // Mark component as unmounted
+            if (socketRef.current) {
+                socketRef.current.close();
+                socketRef.current = null;
+            }
+        };
     }, [chatRoomId]);
 
     useEffect(() => {
@@ -441,7 +461,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                         }
                         else { // Normal messages and workout messages
                             const message_sender_id = Number(message.sender);
-                            console.log("sender:", message.sender);
                             sender = getUsernameById(message_sender_id);
                             isOwnMessage = sender === user?.username;
                         }
