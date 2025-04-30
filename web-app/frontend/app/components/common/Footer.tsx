@@ -15,25 +15,8 @@ const Footer = () => {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5 }}
             >
-                <motion.div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center md:text-left">
+                <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
                     {/* Column 1 */}
-                    <motion.div
-                        initial={{ y: 20 }}
-                        animate={{ y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <h4 
-                            className="text-lg font-semibold mb-3"
-                        >
-                            Contact Us
-                        </h4>
-                        <ul className="text-gray-400 space-y-1">
-                            <li>UiT The Arctic University of Norway</li>
-                            <li>Hansine Hansens veg 18</li>
-                            <li>9019 Tromsø, Norway</li>
-                        </ul>
-                    </motion.div>
-                    {/* Column 2 */}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
@@ -51,26 +34,26 @@ const Footer = () => {
                             </li>
                         </ul>
                     </motion.div>
-                    {/* Column 3 */}
+                    {/* Column 2 */}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
                         transition={{ duration: 0.7 }}
                     >
-                        <h4 className="text-lg font-semibold mb-3">Placeholder</h4>
+                        <h4 className="text-lg font-semibold mb-3">Credits</h4>
                         <ul className="text-gray-400">
-                            <li>Placeholder content</li>
+                            <li>Exercise descriptions and images provided by SimplyFitness</li>
                         </ul>
                     </motion.div>
-                    {/* Column 4 */}
+                    {/* Column 3 */}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <h4 className="text-lg font-semibold mb-3">Placeholder</h4>
+                        <h4 className="text-lg font-semibold mb-3">Disclaimer</h4>
                         <ul className="text-gray-400">
-                            <li>Placeholder content</li>
+                            <li>This is a student project for INF-2900 at UiT Tromsø</li>
                         </ul>
                     </motion.div>
                 </motion.div>
@@ -82,7 +65,7 @@ const Footer = () => {
                     transition={{ delay: 0.5, duration: 0.5 }}
                 >
                     <p className="text-sm">
-                        &copy;{new Date().getFullYear()} iGym - All Rights Reserved
+                        &copy;{new Date().getFullYear()} iGym - Student Project
                     </p>
                 </motion.div>
             </motion.div>
