@@ -62,10 +62,13 @@ type Notification = {
   type PT = {
     id: number;
     name: string;
+    first_name: string;
+    last_name: string;
     trainer_profile?: {
         id: number;
         experience: string;
         pt_type: string;
+        profile_picture: string;
     };
   };
 

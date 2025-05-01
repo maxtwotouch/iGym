@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { backendUrl } from "~/config";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
 
 import apiClient from "~/utils/api/apiClient";
 import { useAuth } from "~/context/AuthContext";
@@ -35,10 +36,13 @@ const PtList: React.FC = () => {
         const trainers: PT[] = data.map((pt: any) => ({
           id: pt.id,
           name: pt.username,
+          first_name: pt.first_name,
+          last_name: pt.last_name,
           trainer_profile: {
             id: pt.trainer_profile.id,
             experience: pt.trainer_profile.experience,
             pt_type: pt.trainer_profile.pt_type,
+            profile_picture: pt.trainer_profile.profile_picture,
           },
         }));
         setPts(trainers);
@@ -218,26 +222,47 @@ const PtList: React.FC = () => {
                       <motion.div 
                           key={pt.id} 
                           data-id={pt.id}
-                          className={`p-6 rounded-lg cursor-pointer shadow-lg flex flex-col space-y-2 transition ${
-                              selectedPt?.id === pt.id ? "bg-gray-700" : "bg-gray-800 hover:bg-gray-700"}`} 
+                          className={`p-6 rounded-lg cursor-pointer shadow-lg flex flex-row justify-between items-center space-x-4 transition-all duration-300 ${
+                              selectedPt?.id === pt.id 
+                              ? "bg-gray-700 transform scale-105" 
+                              : "bg-gray-800 hover:bg-gray-700"}`} 
                           whileHover={{ scale: 1.02 }}
                           onClick={() => setSelectedPt(selectedPt?.id === pt.id ? null : pt)}
                       >
-                          <div>
-                              <h3 className="text-xl font-semibold">{pt.name} - {PT_TYPE_MAP[pt.trainer_profile?.pt_type || "N/A"]}</h3>
+                          <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                  <h3 className="text-2xl font-bold text-white">
+                                      {pt.first_name} {pt.last_name}
+                                  </h3>
+                                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-700 text-gray-300">
+                                      {PT_TYPE_MAP[pt.trainer_profile?.pt_type || "N/A"]}
+                                  </span>
+                              </div>
                               <p className="text-sm text-gray-400">{pt.trainer_profile?.experience || "N/A"}</p>
                               
                               {selectedPt?.id === pt.id && (
                                   <motion.button
-                                  className="w-full py-2 mt-4 bg-green-600 rounded hover:bg-green-700 transition"
+                                  className="w-full py-3 mt-4 bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300 shadow-lg"
                                   name="selectPtButton"
                                   whileHover={{ scale: 1.05 }}
                                   onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
                                   >
-                                  Confirm Your Personal Trainer
+                                  <span className="flex items-center justify-center space-x-2">
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
+                                      </svg>
+                                      <span>Confirm Your Personal Trainer</span>
+                                  </span>
                               </motion.button>
                               )}
 
+                          </div>
+                          <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-600 transform hover:scale-110 transition-transform duration-300">
+                              <img 
+                                  src={pt.trainer_profile?.profile_picture || defaultProfilePicture}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                              />
                           </div>
                       </motion.div>
                   ))
