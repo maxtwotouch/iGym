@@ -55,11 +55,6 @@ const ProfilePage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!user?.userId) {
-      navigate("/login");
-      return;
-    }
-
     const initForm = (data: UserProfileResponse) => {
       setProfileData(data);
       setForm({
@@ -77,25 +72,22 @@ const ProfilePage: React.FC = () => {
 
     const load = async () => {
       try {
-        const userRes = await apiClient.get<UserProfileResponse>(
-          `/user/${user.userId}/`
-        );
-        setIsTrainer(false);
-        initForm(userRes.data);
-      } catch (e: any) {
-        if (e.response?.status === 404) {
-          try {
-            const ptRes = await apiClient.get<UserProfileResponse>(
-              `/trainer/${user.userId}/`
-            );
-            setIsTrainer(true);
-            initForm(ptRes.data);
-          } catch (e2: any) {
-            setError(e2.message);
-          }
-        } else {
-          setError(e.message);
+        if (user?.userType === "user") {
+          const userRes = await apiClient.get<UserProfileResponse>(
+            `/user/${user.userId}/`
+          );
+          setIsTrainer(false);
+          initForm(userRes.data);
+        } else if (user?.userType === "trainer") {
+          const ptRes = await apiClient.get<UserProfileResponse>(
+            `/trainer/${user.userId}/`
+          );
+          setIsTrainer(true);
+          initForm(ptRes.data);
         }
+      } catch (e: any) {
+        console.error("Failed to load profile data", e);
+        setError("Failed to load profile data");
       } finally {
         setLoading(false);
       }

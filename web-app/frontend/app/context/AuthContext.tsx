@@ -23,6 +23,24 @@ interface User {
     lastName: string;
 }
 
+type UserProfileResponse = {
+    id: number;
+    first_name: string;
+    last_name: string;
+    username: string;
+    email?: string;
+    profile?: {
+        weight?: number;
+        height?: number;
+        profile_picture?: string;
+    };
+    trainer_profile?: {
+        experience: string;
+        pt_type: string;
+        profile_picture?: string;
+    };
+};
+
 interface AuthContextType {
     tokens: AuthTokens | null;
     user: User | null;
@@ -86,18 +104,20 @@ const login = async (credentials: { username: string; password: string }) => {
             refreshTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
         };
         setTokens(newTokens);
-        const user: User = {
+        let newUser: User = {
             userId: tokenResponse.id,
             username: tokenResponse.username,
-            profile: tokenResponse.profile,
-            userType: tokenResponse.profile?.role,
+            profile: tokenResponse.profile || tokenResponse.trainer_profile,
+            userType: tokenResponse.profile?.role || tokenResponse.trainer_profile?.role,
             firstName: tokenResponse.first_name,
             lastName: tokenResponse.last_name
         };
         // Update the user context
-        setUser(user);
+        setUser(newUser);
+
         // Persist credentials in localStorage for a smoother user experience
         localStorage.setItem("authTokens", JSON.stringify(newTokens));
+
         return true;
     } catch (error) {
         console.error("Login failed:", error);
@@ -109,11 +129,11 @@ const login = async (credentials: { username: string; password: string }) => {
 };
 
   // logout() clears the authentication state and navigates to the login screen.
-const logout = () => {
+const logout = async () => {
+    await navigate("/login");
     setTokens(null);
     setUser(null);
     localStorage.removeItem("authTokens");
-    navigate("/login");
 };
 
   // getToken() handles token retrieval & refresh logic.
@@ -137,22 +157,26 @@ const updateUserContext = async () => {
     }
 
     // Fetch new user data from the API
-    const response = await apiClient.get(`/user/${user?.userId}/`);
-    // Check if the response is successful
+    const response = user?.userType === "user"
+        ? await apiClient.get(`/user/${user?.userId}/`)
+        : await apiClient.get(`/trainer/${user?.userId}/`);
+
     if (response.status !== 200) {
         throw new Error(`Failed to fetch user data. Status: ${response.status}`);
     }
     // Update the user data
-    const userData = await response.data;
+    const userData = await response.data as UserProfileResponse;
 
     const newUser: User = {
         userId: userData.id,
         username: userData.username,
-        profile: userData.profile,
-        userType: userData.profile?.role,
+        profile: userData.profile || userData.trainer_profile,
+        userType: user.profile?.role, // Role is only returned in the token endpoint
         firstName: userData.first_name,
         lastName: userData.last_name
     };
+
+    console.log(newUser);
 
     // Update the user context
     setUser(newUser);

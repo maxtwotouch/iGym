@@ -15,8 +15,7 @@ export const LoginForm = () => {
     e.preventDefault();
   
     try {
-      await login({ username, password }).then((success) => {
-        console.log("Login success:", success);
+      await login({ username, password }).then(async (success) => {
         if (success) {
           // Redirect to the page they were trying to access
           navigate(from);
