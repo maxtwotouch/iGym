@@ -1,338 +1,335 @@
-
-import apiClient from "~/utils/api/apiClient";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "react-router";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
+import apiClient from "~/utils/api/apiClient";
 
 interface Client {
-    id: number,
-    username: string,
+  id: number;
+  username: string;
 }
 
-
-function Client() {
-    const { id } = useParams<{ id: string }>();
-
-    const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
-    const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-  
-    // For modals & scheduling
-    const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-    const [showModal, setShowModal] = useState(false);
-    const [showScheduleModal, setShowScheduleModal] = useState(false);
-    const [selectedDateTime, setSelectedDateTime] = useState<string>("");
-    const [client, setClient] = useState<Client | null>(null);
-
-    useEffect(() => {
-        const fetchScheduledWorkouts = async () => {
-            try {
-                const response = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
-
-                if (response.status !== 200) {
-                    throw new Error("Failed to fetch client's scheduled workouts");
-                }
-        
-                const data = await response.data;
-                const now = new Date();
-                
-                // Filter out scheduled workouts in the past
-                const futureWorkouts = data.filter((item: any) => new Date(item.scheduled_date) >= now);
-                
-                // Wait for all  exercise requests to be sent
-                const scheduledWorkouts = await Promise.all(
-                    futureWorkouts.map(async (item: any) => {
-                        try {
-                            const exercisesResponse = await apiClient.get(`/workout/${item.workout_template}/exercises/`);
-        
-                            if (exercisesResponse.status !== 200) {
-                                console.error("Failed to fetch exercises from workout");
-                                return {
-                                    id: `scheduled-${item.id}`,
-                                    workout_id: item.workout_template,
-                                    title: item.workout_title,
-                                    start: item.scheduled_date,
-                                    exercises: []
-                                };
-                            }
-        
-                            const exercises = await exercisesResponse.data;
-        
-                            return {
-                                id: `scheduled-${item.id}`,
-                                workout_id: item.workout_template,
-                                title: item.workout_title,
-                                start: item.scheduled_date,
-                                exercises: exercises
-                            };
-                        } catch (error) {
-                            console.error("Error:", error);
-                            return {
-                                id: `scheduled-${item.id}`,
-                                workout_id: item.workout_template,
-                                title: item.workout_title,
-                                start: item.scheduled_date,
-                                exercises: []
-                            };
-                        }
-                    })
-                );
-                return scheduledWorkouts; 
-            } catch (err: any) {
-                console.error(err);
-                setError(err.message || "Failed to load client's scheduled workouts");
-                return [];
-            }
-        };
-        
-
-        const fetchClientDetails = async () => {
-            // Fetch information about the client
-            try {
-                const response = await apiClient.get(`/user/${id}/`);
-
-                if(response.status !== 200) {
-                    console.error("Failed to fetch client details");
-                    return;
-                }
-
-                const data = await response.data;
-                setClient(data);
-            } catch (error) {
-                console.error("Error fetching client details:", error);
-            }
-        };
-
-        const fetchClientWorkoutSessions = async () => {
-            try {
-                // Fetch both  the client's workouts and workout sessions in parallel
-                const [workoutsRes, sessionsRes] = await Promise.all([
-                    apiClient.get(`/trainer/client/${id}/workouts/`),
-                    apiClient.get(`/trainer/client/${id}/workout_sessions/`),
-                ]);
-
-                // Convert responses to JSON
-                const [workouts, workoutSessions] = await Promise.all([
-                    workoutsRes.data,
-                    sessionsRes.data,
-                ]);
-
-                // Map workout ID to its name for quick lookup
-                const workoutMap = new Map(workouts.map((workout: any) => [workout.id, workout.name]));
-
-                // Map workout sessions to calendar events
-                const sessionEvents = await Promise.all(workoutSessions.map(async(session: any) => {
-                    const startTime = new Date(session.start_time);
-                    let durationMs;
-                    if (!session.duration) {
-                    durationMs = 0; // Return 0 milliseconds for invalid duration
-                    }
-                
-                    else {
-                        const parts = session.duration.split(":");
-            
-                        // Parse hours, minutes, and seconds
-                        const hours = parseInt(parts[0], 10) || 0; // Default to 0 if NaN
-                        const minutes = parseInt(parts[1], 10) || 0; // Default to 0 if NaN
-                        const seconds = parseInt(parts[2], 10) || 0; // Default to 0 if NaN
-            
-                        durationMs = (hours * 3600000) + (minutes * 60000) + (seconds * 1000);
-                    }
-                    
-                    // Calculate end time
-                    const endTime = new Date(startTime.getTime() + durationMs);
-                    
-                    // Fetch the exercises contained in the workout
-                    const exercisesResponse = await apiClient.get(`/workout/${session.workout}/exercises/`);
-                    const exercises = await exercisesResponse.data;
-
-                    if(!exercises) {
-                        console.log("Failed to fetch exercises from workout");
-                    }
-                
-                    return {
-                        id: `session-${session.id}`,
-                        workout_id: session.workout,
-                        title: workoutMap.get(session.workout) || "Workout Session",
-                        start: startTime.toISOString(),
-                        end: endTime.toISOString(),
-                        duration: session.duration,
-                        exercises: exercises,
-                        exercise_sessions: session.exercise_sessions,
-                        calories_burned: session.calories_burned,
-                    };
-                    }));
-                
-                    return sessionEvents;
-                } catch (error) {
-                    console.error("Error fetching data:", error);
-                    return [];
-                }    
-        };
-
-        const loadEvents = async () => {
-            setIsLoading(true);
-            const scheduledEvents = await fetchScheduledWorkouts();
-            const sessionEvents = await fetchClientWorkoutSessions();
-
-            setCalendarEvents([...scheduledEvents, ...sessionEvents])
-            setIsLoading(false);
-        };
-
-        fetchClientDetails();
-        loadEvents();
-    }, [id]);
-
-    // When user clicks a date on the calendar
-    const handleDateClick = (arg: any) => {
-        const dateObj = arg.date;
-        // Convert to local "YYYY-MM-DDTHH:MM" format for the datetime-local input
-        const localDateTime = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-        setSelectedDateTime(localDateTime);
-        setShowScheduleModal(true);
-    };
-
-    // Show event details when clicked
-    const handleEventClick = (info: any) => {
-        const event = calendarEvents.find((w) => w.id.toString() === info.event.id);
-        if (event) {
-        setSelectedEvent(event);
-        setShowModal(true);
-        }
-    };
-
-    if (!client){
-        return <p>Loading client information...</p>;
-    }
-
-    return (
-        <motion.div className="d-flex flex-column min-vh-100">
-            <motion.div
-                className="flex-grow bg-gradient-to-br from-gray-900 to-gray-800 p-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                <motion.div
-                    className="container bg-dark text-white rounded-lg shadow p-4"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                    <h1 className="text-center mb-4">Client: {client.username}</h1>
-                    {error && <div className="alert alert-danger">{error}</div>}
-                    <div className="calendar-container bg-dark text-white">
-                        {isLoading ? (
-                            <div className="d-flex justify-content-center p-5">
-                                <div className="spinner-border text-light" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <FullCalendar
-                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
-                                headerToolbar={{
-                                    left: "prev,next today",
-                                    center: "title",
-                                     right: "dayGridMonth,timeGridWeek,timeGridDay"
-                                }}
-                                events={calendarEvents}
-                                eventClick={handleEventClick}
-                                dateClick={handleDateClick}
-                                height="auto"
-                             />
-                        )}
-                    </div>
-
-                    {/* Event details modal */}
-                    {showModal && selectedEvent && (
-                    <div className="modal d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content bg-dark text-white">
-                                <div className="modal-header">
-                                    <h5 className="modal-title">Name: {selectedEvent.title}</h5>
-                                    <button type="button" className="btn-close btn-close-white" onClick={() => setShowModal(false)}></button>
-                                </div>
-                                <div className="modal-body">
-                                    <p>
-                                        <strong>Date:</strong> {new Date(selectedEvent.start).toLocaleDateString()}
-                                    </p>
-                                    <p>
-                                        <strong>Time:</strong> {new Date(selectedEvent.start).toLocaleTimeString()}
-                                        {selectedEvent.end && !isNaN(new Date(selectedEvent.end).getTime()) ? ` - ${new Date(selectedEvent.end).toLocaleTimeString()}` : ""}
-                                    </p>
-
-                                    {selectedEvent.duration && (
-                                        <p>
-                                            <strong>Duration:</strong> {selectedEvent.duration}
-                                        </p>
-                                    )}
-                                    {selectedEvent.calories_burned != null && (
-                                        <p>
-                                            <strong>Calories Burned:</strong> {selectedEvent.calories_burned}
-                                        </p>
-                                    )}
-                                    {selectedEvent.exercises && selectedEvent.exercises.length > 0 ? (
-                                        <div>
-                                            <strong>Exercises:</strong>
-                                            <ul className="list-disc pl-5">
-                                                {selectedEvent.exercises.map((exercise: any) => (
-                                                    <li key={exercise.id}>
-                                                        {exercise.name}
-                                                        {selectedEvent.exercise_sessions && selectedEvent.exercise_sessions.length > 0 && (
-                                                            (() => {
-                                                                const exercise_session = selectedEvent.exercise_sessions.find(
-                                                                    (ex: any) => ex.exercise === exercise.id
-                                                                );
-                                                                return exercise_session ? (
-                                                                    <ul className="list-disc pl-5">
-                                                                        {exercise_session.sets.map((set: any, index: number) => (
-                                                                            <li key={index}>
-                                                                                Set: {index + 1}: Reps: {set.repetitions}, Weight: {set.weight} kg
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                ) : null;
-                                                            })()
-                                                        )}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ) : (
-                                        <p>No exercises found for this workout.</p>
-                                    )}
-
-
-
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-secondary" 
-                                            onClick={() => setShowModal(false)}
-                                            name="closeButton"
-                                        >
-                                            Close
-                                        </button>
-                                    </div>
-                                </div>
-                             </div>
-                        </div>
-                    )}
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-    
+type CalendarEvent = {
+  id: string;
+  workout_id: number;
+  title: string;
+  start: string;
+  end?: string;
+  duration?: string;
+  exercises?: any[];
+  exercise_sessions?: any[];
+  calories_burned?: number;
 };
 
-export default Client;
+export default function ClientCalendar() {
+  const { id } = useParams<{ id: string }>();
+  const [client, setClient] = useState<Client | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+
+  // Fetch client info, scheduled workouts & sessions
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      setIsLoading(true);
+      try {
+        // Client info
+        const userRes = await apiClient.get(`/user/${id}/`);
+        if (userRes.status === 200) {
+          setClient(userRes.data);
+        }
+
+        // Scheduled workouts
+        const schedRes = await apiClient.get(
+          `/trainer/client/${id}/scheduled_workouts/`
+        );
+        const now = new Date();
+        const future = (schedRes.data as any[]).filter(
+          (w) => new Date(w.scheduled_date) >= now
+        );
+        const scheduledEvents: CalendarEvent[] = await Promise.all(
+          future.map(async (item) => {
+            try {
+              const exRes = await apiClient.get(
+                `/workout/${item.workout_template}/exercises/`
+              );
+              return {
+                id: `scheduled-${item.id}`,
+                workout_id: item.workout_template,
+                title: item.workout_title,
+                start: item.scheduled_date,
+                exercises: exRes.data,
+              };
+            } catch {
+              return {
+                id: `scheduled-${item.id}`,
+                workout_id: item.workout_template,
+                title: item.workout_title,
+                start: item.scheduled_date,
+                exercises: [],
+              };
+            }
+          })
+        );
+
+        // Workout sessions
+        const [wkRes, sesRes] = await Promise.all([
+          apiClient.get(`/trainer/client/${id}/workouts/`),
+          apiClient.get(`/trainer/client/${id}/workout_sessions/`),
+        ]);
+        const workoutMap = new Map<number, string>(
+          (wkRes.data as any[]).map((w) => [w.id, w.name])
+        );
+        const sessionEvents: CalendarEvent[] = await Promise.all(
+          (sesRes.data as any[]).map(async (session) => {
+            const startTime = new Date(session.start_time);
+            const [h, m, s] = (session.duration || "00:00:00")
+              .split(":")
+              .map(Number);
+            const endTime = new Date(
+              startTime.getTime() + (h * 3600 + m * 60 + s) * 1000
+            );
+            let exercises = [];
+            try {
+              const exRes = await apiClient.get(
+                `/workout/${session.workout}/exercises/`
+              );
+              exercises = exRes.data;
+            } catch {}
+            return {
+              id: `session-${session.id}`,
+              workout_id: session.workout,
+              title:
+                workoutMap.get(session.workout) ?? "Workout Session",
+              start: startTime.toISOString(),
+              end: endTime.toISOString(),
+              duration: session.duration,
+              exercises,
+              exercise_sessions: session.exercise_sessions,
+              calories_burned: session.calories_burned,
+            };
+          })
+        );
+
+        setEvents([...scheduledEvents, ...sessionEvents]);
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message || "Failed to load calendar");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [id]);
+
+  // Month navigation
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), 1);
+  });
+  const prevMonth = () =>
+    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+  const nextMonth = () =>
+    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+
+  // Build a 6×7 grid of days
+  const calendarDays = useMemo(() => {
+    const y = currentMonth.getFullYear(),
+      mon = currentMonth.getMonth();
+    const first = new Date(y, mon, 1),
+      startDow = first.getDay();
+    const dim = new Date(y, mon + 1, 0).getDate(),
+      prevDim = new Date(y, mon, 0).getDate();
+    const cells: Date[] = [];
+    for (let i = startDow - 1; i >= 0; i--)
+      cells.push(new Date(y, mon - 1, prevDim - i));
+    for (let d = 1; d <= dim; d++) cells.push(new Date(y, mon, d));
+    let nxt = 1;
+    while (cells.length < 42) cells.push(new Date(y, mon + 1, nxt++));
+    return cells;
+  }, [currentMonth]);
+
+  // Group events by ISO date
+  const eventsByDate = useMemo(() => {
+    const m: Record<string, CalendarEvent[]> = {};
+    events.forEach((ev) => {
+      const key = new Date(ev.start).toLocaleDateString("sv-SE");
+      (m[key] ||= []).push(ev);
+    });
+    return m;
+  }, [events]);
+
+  if (!client) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        Loading client…
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="flex flex-col h-screen bg-gray-900 relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* NAV BAR */}
+      <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+        <button
+          onClick={prevMonth}
+          className="text-sm font-semibold text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+        >
+          ‹ Prev
+        </button>
+        <div className="text-lg font-medium text-white">
+          {currentMonth.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
+        </div>
+        <button
+          onClick={nextMonth}
+          className="text-sm font-semibold text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+        >
+          Next ›
+        </button>
+      </div>
+
+      {/* WEEKDAY HEADERS */}
+      <div className="grid grid-cols-7 bg-gray-800 text-gray-300 text-sm font-semibold text-center">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+          <div key={d} className="py-2 border-b border-gray-700">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* CALENDAR GRID */}
+      <div className="flex-1 overflow-y-auto bg-gray-800">
+        <div className="grid grid-cols-7 gap-px bg-gray-700 h-full">
+          {calendarDays.map((day, idx) => {
+            const key = day.toLocaleDateString("sv-SE");
+            const isCurr = day.getMonth() === currentMonth.getMonth();
+            const isToday =
+              key === new Date().toLocaleDateString("sv-SE");
+            const dayEvents = eventsByDate[key] || [];
+
+            return (
+              <div
+                key={idx}
+                className={`
+                  flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer
+                  ${!isCurr ? "opacity-50" : ""} ${
+                  isToday ? "ring-2 ring-blue-500" : ""
+                }
+                `}
+                onClick={() => {}}
+              >
+                <div className="text-gray-400 text-sm mb-1">
+                  {day.getDate()}
+                </div>
+                <div className="flex flex-col space-y-1 flex-1 overflow-y-auto">
+                  {dayEvents.slice(0, 3).map((ev) => (
+                    <div
+                      key={ev.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailEvent(ev);
+                        setShowDetail(true);
+                      }}
+                      className="block h-6 bg-blue-600 rounded text-white text-xs leading-6 px-1 truncate"
+                    >
+                      {ev.title}
+                    </div>
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <div className="text-gray-500 text-xs">
+                      +{dayEvents.length - 3} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* LOADING OVERLAY */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full" />
+        </div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {showDetail && detailEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <motion.div
+            className="bg-gray-800 text-white rounded-lg shadow-lg w-full max-w-md p-6"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">
+                {detailEvent.title}
+              </h2>
+              <button
+                className="text-white text-2xl leading-none"
+                onClick={() => setShowDetail(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-2">
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(detailEvent.start).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Time:</strong>{" "}
+                {new Date(detailEvent.start).toLocaleTimeString()}
+                {detailEvent.end &&
+                  ` – ${new Date(detailEvent.end).toLocaleTimeString()}`}
+              </p>
+              {detailEvent.duration && (
+                <p>
+                  <strong>Duration:</strong> {detailEvent.duration}
+                </p>
+              )}
+              {detailEvent.calories_burned != null && (
+                <p>
+                  <strong>Calories Burned:</strong>{" "}
+                  {detailEvent.calories_burned}
+                </p>
+              )}
+              {detailEvent.exercises?.length ? (
+                <>
+                  <strong>Exercises:</strong>
+                  <ul className="list-disc list-inside mt-1">
+                    {detailEvent.exercises.map((ex) => (
+                      <li key={ex.id}>{ex.name}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <p>No exercises found.</p>
+              )}
+            </div>
+            <div className="mt-6 text-right">
+              <button
+                onClick={() => setShowDetail(false)}
+                className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
