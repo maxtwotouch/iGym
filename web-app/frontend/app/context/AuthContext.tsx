@@ -70,16 +70,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedUser = localStorage.getItem("user");
         if (storedTokens && storedUser) {
             try {
-            const parsedTokens: AuthTokens = JSON.parse(storedTokens);
-            const parsedUser: User = JSON.parse(storedUser);
-            setTokens(parsedTokens);
-            setUser(parsedUser);
-            // If a valid token exists and the user is accessing the login page, redirect to dashboard.
-            if (window.location.pathname === "/login" && parsedTokens.accessTokenExpiry > Date.now()) {
-                navigate("/dashboard");
-            }
+                const parsedTokens: AuthTokens = JSON.parse(storedTokens);
+                const parsedUser: User = JSON.parse(storedUser);
+                setTokens(parsedTokens);
+                setUser(parsedUser);
+                // If a valid token exists and the user is accessing the login page, redirect to dashboard.
+                if (window.location.pathname === "/login" && parsedTokens.accessTokenExpiry > Date.now()) {
+                    navigate("/dashboard");
+                }
             } catch (error) {
-            console.error("Failed to parse stored auth data:", error);
+                console.error("Failed to parse stored auth data:", error);
             }
         }
         }
@@ -117,6 +117,8 @@ const login = async (credentials: { username: string; password: string }) => {
 
         // Persist credentials in localStorage for a smoother user experience
         localStorage.setItem("authTokens", JSON.stringify(newTokens));
+        // Persist user data in localStorage
+        localStorage.setItem("user", JSON.stringify(newUser));    // ← add this
 
         return true;
     } catch (error) {
@@ -134,6 +136,7 @@ const logout = async () => {
     setTokens(null);
     setUser(null);
     localStorage.removeItem("authTokens");
+    localStorage.removeItem("user");
 };
 
   // getToken() handles token retrieval & refresh logic.
@@ -180,6 +183,8 @@ const updateUserContext = async () => {
 
     // Update the user context
     setUser(newUser);
+    // Persist updated user data in localStorage
+    localStorage.setItem("user", JSON.stringify(newUser));
 }
 
 const contextValue: AuthContextType = {
