@@ -107,11 +107,20 @@ const ProfilePage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file?.type.startsWith("image/")) {
       setError("Please select an image file");
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setPreviewImage(reader.result as string);
-    reader.readAsDataURL(file);
+    // Check file size (4MB limit)
+    if (file.size > 4 * 1024 * 1024) {
+      setError("Image size must be less than 4MB");
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    else {  
+      const reader = new FileReader();
+      reader.onload = () => setPreviewImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
