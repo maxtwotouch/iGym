@@ -22,6 +22,11 @@ export const NavBar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDropdownLocked, setIsDropdownLocked] = useState(false);
 
+  const [isClientsDropdownOpen, setIsClientsDropdownOpen] = useState(false);
+  const [isClientsDropdownLocked, setIsClientsDropdownLocked] = useState(false);
+  const clientsDropdownRef = useRef<HTMLDivElement>(null);
+  const clientsTimeoutRef = useRef<number|null>(null);
+
   // --- 1) On mount: fetch either /user/:id/ or fallback to /trainer/:id/ ---
   useEffect(() => {
     if (!user?.userId) return;
@@ -88,6 +93,22 @@ export const NavBar: React.FC = () => {
     }
   };
 
+  const toggleClientsDropdown = () => {
+    setIsClientsDropdownOpen(o => !o);
+    setIsClientsDropdownLocked(l => !l);
+  };
+
+  const onClientsMouseEnter = () => {
+    if (clientsTimeoutRef.current) clearTimeout(clientsTimeoutRef.current);
+    setIsClientsDropdownOpen(true);
+  };
+
+  const onClientsMouseLeave = () => {
+    if (!isClientsDropdownLocked) {
+      clientsTimeoutRef.current = window.setTimeout(() => setIsClientsDropdownOpen(false), 150);
+    }
+  };
+
   // --- 4) Logout ---
   const handleLogout = () => logout();
 
@@ -115,35 +136,38 @@ export const NavBar: React.FC = () => {
           <Link to="/calendar"      className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}>Calendar</Link>
           <Link to="/chat"          className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}>Chat</Link>
 
-          {user?.userType==="user" && (
-            <>
-              <Link to="/personalTrainers" className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}>Personal Trainers</Link>
-              {trainer && (
-                <Link to={`/personal_trainer/${trainer.id}/`} className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 flex items-center">
-                  {trainer.username} 💪
-                </Link>
-              )}
-            </>
-          )}
-
           {user?.userType==="trainer" && (
-            <div className="relative group">
-              <button className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">My Clients</button>
-              <motion.ul
-                className="absolute left-0 top-full bg-gray-800 py-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-hover:block z-10"
-                initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.3 }}
+            <div 
+              ref={clientsDropdownRef}
+              className="relative"
+              onMouseEnter={onClientsMouseEnter}
+              onMouseLeave={onClientsMouseLeave}
+            >
+              <button 
+                className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
+                onClick={toggleClientsDropdown}
               >
-                {clients.length>0 
-                  ? clients.map(c => (
-                      <li key={c.id}>
-                        <Link to={`/clients/${c.id}`} className="block px-4 py-1 hover:bg-gray-700">
-                          {c.username}
-                        </Link>
-                      </li>
-                    ))
-                  : <li className="px-4 py-1 text-gray-400">No clients</li>
-                }
-              </motion.ul>
+                My Clients
+              </button>
+              {isClientsDropdownOpen && (
+                <motion.ul
+                  className="absolute left-0 top-full bg-gray-800 py-2 rounded shadow-lg z-10"
+                  initial={{ opacity:0, y:10 }}
+                  animate={{ opacity:1, y:0 }}
+                  transition={{ duration:0.3 }}
+                >
+                  {clients.length>0 
+                    ? clients.map(c => (
+                        <li key={c.id}>
+                          <Link to={`/clients/${c.id}`} className="block px-4 py-1 hover:bg-gray-700">
+                            {c.username}
+                          </Link>
+                        </li>
+                      ))
+                    : <li className="px-4 py-1 text-gray-400">No clients</li>
+                  }
+                </motion.ul>
+              )}
             </div>
           )}
         </motion.div>
