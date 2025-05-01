@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { LoadingScreen } from "~/components/LandingPage/LoadingScreen";
 import { motion } from "framer-motion";
+import logo from "~/assets/igym-logo-transparent.png";
+
 
 export const LandingPage = () => {
     const [loadingComplete, setLoadingComplete] = useState(false);
@@ -25,7 +27,11 @@ export const LandingPage = () => {
               animate={{ y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              iGym 💪
+                 <img
+            src={logo}
+            alt="iGym Logo"
+            className="w-80 h-auto mb-1"
+          />
             </motion.h1>
             <motion.p
               className="text-xl mb-8"
