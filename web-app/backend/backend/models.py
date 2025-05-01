@@ -29,7 +29,7 @@ class PersonalTrainerProfile(models.Model):
     role = models.CharField(max_length=20, default="trainer")
     pt_type = models.CharField(max_length=20, choices=PT_TYPES, default="general")
 
-    profile_picture = models.ImageField(      upload_to="trainer_profile_pictures/",
+    profile_picture = models.ImageField(      upload_to="profile_pictures/",
         blank=True,
         null=True
   )

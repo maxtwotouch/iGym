@@ -4,12 +4,13 @@ import { useNavigate } from "react-router";
 import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts";
 import { mapWorkoutSessionsToCalendarEvents } from "~/utils/calendarHelper";
 import apiClient from "~/utils/api/apiClient";
+import { toLocalISOString } from "~/utils/date";
 
 type CalendarEvent = {
   id: string;
   workout_id: number;
   title: string;
-  start: string;    // ISO string
+  start: string;
   end?: string;
   duration?: string;
 };
@@ -17,7 +18,6 @@ type CalendarEvent = {
 export const Calendar = () => {
   const navigate = useNavigate();
 
-  // state
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -27,14 +27,12 @@ export const Calendar = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // modals
   const [showSchedule, setShowSchedule] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
 
-  // load events once
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -50,7 +48,6 @@ export const Calendar = () => {
     })();
   }, [navigate]);
 
-  // load workout templates
   useEffect(() => {
     (async () => {
       try {
@@ -64,11 +61,9 @@ export const Calendar = () => {
     })();
   }, []);
 
-  // month nav
   const prevMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
-  // build 6×7 grid
   const calendarDays = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -85,20 +80,17 @@ export const Calendar = () => {
     return days;
   }, [currentMonth]);
 
-  // group events
   const eventsByDate = useMemo(() => {
     const m: Record<string, CalendarEvent[]> = {};
     events.forEach(ev => {
-      const key = ev.start.slice(0, 10);
-      (m[key] ||= []).push(ev);
+      const localDate = new Date(ev.start).toLocaleDateString("sv-SE");
+      (m[localDate] ||= []).push(ev);
     });
     return m;
   }, [events]);
 
   const onDayClick = (date: Date) => {
-    const isoLocal = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
+    const isoLocal = toLocalISOString(date);
     setSelectedDateTime(isoLocal);
     setShowSchedule(true);
   };
@@ -113,7 +105,7 @@ export const Calendar = () => {
     try {
       const res = await apiClient.post("/schedule/workout/create/", {
         workout_template: selectedWorkoutId,
-        scheduled_date: dt.toISOString(),
+        scheduled_date: selectedDateTime, // Already local format
       });
       if (res.status !== 201) throw new Error();
       const ns = await res.data;
@@ -150,35 +142,25 @@ export const Calendar = () => {
       >
         <h1 className="text-2xl font-bold text-center mb-4">Workout Calendar</h1>
 
-        {/* navigation */}
         <div className="flex items-center justify-between mb-2">
-          <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">
-            ‹ Prev
-          </button>
+          <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">‹ Prev</button>
           <div className="text-lg font-medium">
             {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
           </div>
-          <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">
-            Next ›
-          </button>
+          <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">Next ›</button>
         </div>
 
-        {/* weekdays */}
         <div className="grid grid-cols-7 text-center text-sm font-semibold border-b border-gray-700 pb-1">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
             <div key={d}>{d}</div>
           ))}
         </div>
 
-        {/* calendar grid */}
         <div className="grid grid-cols-7 gap-px bg-gray-700 flex-grow min-h-0">
           {calendarDays.map((day, i) => {
-            const iso = day.toISOString().slice(0, 10);
+            const iso = day.toLocaleDateString("sv-SE");
             const isCur = day.getMonth() === currentMonth.getMonth();
-            const todayLocal = new Date();
-            const todayISO = new Date(todayLocal.getFullYear(), todayLocal.getMonth(), todayLocal.getDate())
-                    .toISOString()
-                    .slice(0, 10);
+            const todayISO = new Date().toLocaleDateString("sv-SE");
             const isToday = iso === todayISO;
             const dayEvents = eventsByDate[iso] || [];
 
@@ -216,100 +198,6 @@ export const Calendar = () => {
             );
           })}
         </div>
-
-        {/* Schedule Modal */}
-        {showSchedule && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 text-white rounded-lg shadow-lg w-full max-w-md">
-              <div className="flex justify-between items-center border-b border-gray-700 px-4 py-2">
-                <h2 className="font-semibold">Schedule Workout</h2>
-                <button onClick={() => setShowSchedule(false)} className="text-xl">
-                  ×
-                </button>
-              </div>
-              <div className="p-4 space-y-4">
-                <div>
-                  <label className="block text-sm mb-1">Workout Template</label>
-                  <select
-                    className="w-full bg-gray-700 px-3 py-2 rounded focus:outline-none"
-                    value={selectedWorkoutId ?? ""}
-                    onChange={e => setSelectedWorkoutId(Number(e.target.value))}                >
-                    <option value="">— select —</option>
-                    {availableWorkouts.map(w => (
-                      <option key={w.id} value={w.id}>
-                        {w.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Date &amp; Time</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-gray-700 px-3 py-2 rounded focus:outline-none"
-                    value={selectedDateTime}
-                    onChange={e => setSelectedDateTime(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2 border-t border-gray-700 px-4 py-2">
-                <button
-                  onClick={() => setShowSchedule(false)}
-                  className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={schedule}
-                  className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
-                >
-                  Schedule
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Detail Modal */}
-        {showDetail && detailEvent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 text-white rounded-lg shadow-lg w-full max-w-md">
-              <div className="flex justify-between items-center border-b border-gray-700 px-4 py-2">
-                <h2 className="font-semibold">{detailEvent.title}</h2>
-                <button onClick={() => setShowDetail(false)} className="text-xl">
-                  ×
-                </button>
-              </div>
-              <div className="p-4 space-y-2">
-                <p>
-                  <strong>Date:</strong> {new Date(detailEvent.start).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Time:</strong> {new Date(detailEvent.start).toLocaleTimeString()}
-                </p>
-                {detailEvent.duration && (
-                  <p>
-                    <strong>Duration:</strong> {detailEvent.duration}
-                  </p>
-                )}
-              </div>
-              <div className="flex justify-end space-x-2 border-t border-gray-700 px-4 py-2">
-                <button
-                  onClick={() => setShowDetail(false)}
-                  className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => navigate(`/workouts/update/${detailEvent.workout_id}`)}
-                  className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
-                >
-                  View Details
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </motion.div>
     </motion.div>
   );
