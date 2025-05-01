@@ -103,23 +103,25 @@ const login = async (credentials: { username: string; password: string }) => {
             accessTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
             refreshTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
         };
+        const userType = tokenResponse.profile?.role || tokenResponse.trainer_profile?.role;
         setTokens(newTokens);
         let newUser: User = {
             userId: tokenResponse.id,
             username: tokenResponse.username,
             profile: tokenResponse.profile || tokenResponse.trainer_profile,
-            userType: tokenResponse.profile?.role || tokenResponse.trainer_profile?.role,
+            userType: userType,
             firstName: tokenResponse.first_name,
             lastName: tokenResponse.last_name
         };
         // Update the user context
         setUser(newUser);
 
+        console.log("Updated in login: ", newUser)
+
         // Persist credentials in localStorage for a smoother user experience
         localStorage.setItem("authTokens", JSON.stringify(newTokens));
         // Persist user data in localStorage
         localStorage.setItem("user", JSON.stringify(newUser));    // ← add this
-
         return true;
     } catch (error) {
         console.error("Login failed:", error);
@@ -174,12 +176,12 @@ const updateUserContext = async () => {
         userId: userData.id,
         username: userData.username,
         profile: userData.profile || userData.trainer_profile,
-        userType: user.profile?.role, // Role is only returned in the token endpoint
+        userType: user.userType, // Role is only returned in the token endpoint
         firstName: userData.first_name,
         lastName: userData.last_name
     };
 
-    console.log(newUser);
+    console.log("Updated in updateUserContext: ", newUser);
 
     // Update the user context
     setUser(newUser);
