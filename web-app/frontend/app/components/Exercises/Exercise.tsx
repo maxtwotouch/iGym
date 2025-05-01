@@ -3,6 +3,7 @@ import {useParams, useNavigate} from "react-router";
 import { useState, useEffect } from "react";
 import apiClient from '~/utils/api/apiClient';
 
+
 // Interface to define the structure of an exercise object
   interface Exercise {
     id: number;
@@ -41,18 +42,46 @@ export const Exercise = () => {
     if (!exercise) {
         return <p>Loading exercise data...</p>;
     }
-    return (
-        <div className="exercise-container">
-          <motion.h1
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            {exercise.name}
-          </motion.h1>
-          <h2>Muscle Group: {exercise.muscle_group}</h2>
-          <p>{exercise.description}</p>
-          <img src={`${exercise.image}`} alt={exercise.name} />
-        </div>
-      );
-};
+
+        return (
+            // Main container for the exercise details
+            <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-3xl">
+              
+              {/* Exercise Name */}
+              <motion.h1
+                className="text-4xl font-bold mb-4 text-white text-center"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                >
+                {exercise.name}
+              </motion.h1>
+              
+              {/* Exercise Image */}
+              <div className="flex justify-center mb-6">
+                <img
+                  src={`${exercise.image}`}
+                  alt={exercise.name}
+                  className="rounded-lg max-w-full h-auto object-cover"
+                  style={{ maxHeight: "300px", maxWidth: "300px" }}
+                />
+              </div>
+              
+              {/* Muscle Group */}
+              <h2 className="text-2xl font-semibold mb-4">
+                Muscle Groups: {" "}
+                <span className="font-normal text-white">
+                  {exercise.muscle_group}
+                </span>
+              </h2>
+            
+              {/* Exercise Description */}
+              <h2 className="text-2xl font-semibold mb-1">
+                Execution
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                {exercise.description}
+              </p>
+              </div>
+          );
+        };

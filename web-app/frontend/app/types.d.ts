@@ -7,10 +7,13 @@ export interface Workout {
 }
 
 // Interface to define the structure of an exercise object
-interface Exercise {
+export interface Exercise {
     id: number;
     name: string;
     muscle_category: string;
+    muscle_group: string
+    description: string
+    image: string //Url
 }
 
 // Interface to define the structure of a workout session object
@@ -55,4 +58,14 @@ type Notification = {
     username: string;
   };
 
+// Interface to define the structure of a personal trainer object
+  type PT = {
+    id: number;
+    name: string;
+    trainer_profile?: {
+        id: number;
+        experience: string;
+        pt_type: string;
+    };
+  };
 

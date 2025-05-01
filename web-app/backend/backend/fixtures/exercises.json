@@ -614,7 +614,7 @@
     {
         "model": "backend.Exercise",
         "fields": {
-            "name": "barbell Bulgarian Split Squat",
+            "name": "Barbell Bulgarian Split Squat",
             "description": "Rack the bar on your trapezius muscle and shoulders. Rest one leg on the bench behind you, with your laces down. Place your front foot (your squatting leg) about 3 footsteps in front of the bench. Keep a shoulder-width stance, your back foot should not be directly behind your front. Squat down with your standing leg while bracing your core and keeping your chest tall until your back knee almost touches the floor. Pause and push up through your front foot only and return to the starting position. Do not allow your knee to move in or out during the movement.",
             "muscle_category": "legs",
             "muscle_group": "Thigh and Glute Muscles (Primary). Core Muscles, Calves (Secondary)",

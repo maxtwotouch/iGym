@@ -18,7 +18,6 @@ export const Exercises: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <h2 className="text-xl font-bold text-white">Exercises</h2>
             
                 <ExerciseList />
             </motion.div>  

@@ -83,16 +83,15 @@ const ExerciseSelection: React.FC = () => {
     };
 
     return (
-        <motion.div className="dmin-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white flex flex-col">
             <motion.div
-                className="flex flex-col items-center justify-center p-8"
+                className="flex flex-col items-center text-white justify-center p-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1 }}
             >
                 {/* Title */}
                 <motion.h1
-                    className="text-4xl font-bold mb-6"
+                    className="text-4xl font-bold mb-6 text-center"
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
@@ -112,7 +111,7 @@ const ExerciseSelection: React.FC = () => {
                         <select
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
-                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700"
                         >
                             <option value="all">All Types</option>
                             {Object.entries(MUSCLE_CATEGORY_MAP).map(([key, value]) => (
@@ -125,7 +124,7 @@ const ExerciseSelection: React.FC = () => {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700"
                         >
                             <option value="asc">A-Z</option>
                             <option value="desc">Z-A</option>
@@ -135,7 +134,7 @@ const ExerciseSelection: React.FC = () => {
 
                 {/* Exercise List */}
                 <motion.div
-                    className="bg-gray-800 p-6 rounded-lg shadow-md w-1/3"
+                    className="bg-gray-800 p-4 rounded-lg shadow-md w-1/3"
                     id="exerciseList"
                     initial={{ scale: 0.9 }}
                     animate={{ scale: 1 }}
@@ -165,18 +164,21 @@ const ExerciseSelection: React.FC = () => {
                         <h2 className="text-sm text-gray-400">No exercises found.</h2>
                     )}
 
-                    {/* Confirm Selection Button */}
-                    <motion.button
-                        name="confirmSelectionButton"
-                        onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
-                        className="w-full py-2 mt-4 bg-blue-600 hover:bg-blue-700 rounded text-white"
-                        whileHover={{ scale: 1.05 }}
-                    >
-                        Confirm Selection
-                    </motion.button>
                 </motion.div>
+                {/* Confirm Selection Button */}
+                    {selectedExercises.length > 0 && (
+                        <div className="w-1/3 sticky bottom-0 bg-gray-800 p-4">
+                            <motion.button
+                                name="confirmSelectionButton"
+                                onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
+                                className="w-full py-2 mt-4 bg-blue-500 hover:bg-blue-600 rounded text-white"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                Confirm Selection
+                            </motion.button>
+                        </div>
+                    )}
             </motion.div>
-        </motion.div>
     );
 };  
 

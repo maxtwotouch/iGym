@@ -11,12 +11,6 @@ export const SelectPT: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="mb-10 text-center"
         >
-          <h1 className="text-5xl font-extrabold mb-4">
-            Select Your Personal Trainer
-          </h1>
-          <p className="text-lg text-gray-300">
-            Discover a trainer who perfectly matches your style and goals. Browse our curated list and choose the best fit for you.
-          </p>
         </motion.div>
         <PtList />
       </div>
