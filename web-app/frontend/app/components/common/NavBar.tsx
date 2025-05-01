@@ -14,18 +14,13 @@ export const NavBar: React.FC = () => {
   const { user, logout } = useAuth();            // must provide .userId
   const location          = useLocation();
   const dropdownRef       = useRef<HTMLDivElement>(null);
-  const timeoutRef        = useRef<number|null>(null);
+  const clientsDropdownRef = useRef<HTMLDivElement>(null);
 
   const [profileImage,   setProfileImage]   = useState(defaultProfilePicture);
   const [trainer,        setTrainer]        = useState<Trainer|null>(null);
   const [clients,        setClients]        = useState<User[]>([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDropdownLocked, setIsDropdownLocked] = useState(false);
-
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isClientsDropdownOpen, setIsClientsDropdownOpen] = useState(false);
-  const [isClientsDropdownLocked, setIsClientsDropdownLocked] = useState(false);
-  const clientsDropdownRef = useRef<HTMLDivElement>(null);
-  const clientsTimeoutRef = useRef<number|null>(null);
 
   // --- 1) On mount: fetch either /user/:id/ or fallback to /trainer/:id/ ---
   useEffect(() => {
@@ -61,52 +56,29 @@ export const NavBar: React.FC = () => {
     loadList();
   }, [user]);
 
-  // --- 3) Dropdown open/close handlers ---
+  // --- 3) Click outside handlers ---
   useEffect(() => {
-    const onClickOutside = (ev: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(ev.target as Node)) {
-        setIsDropdownOpen(false);
-        setIsDropdownLocked(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+      if (clientsDropdownRef.current && !clientsDropdownRef.current.contains(event.target as Node)) {
+        setIsClientsDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(o => !o);
-    setIsDropdownLocked(l => !l);
-  };
-  const onMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsDropdownOpen(true);
-  };
-  const onMouseLeave = () => {
-    if (!isDropdownLocked) {
-      timeoutRef.current = window.setTimeout(() => setIsDropdownOpen(false), 150);
-    }
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+    setIsClientsDropdownOpen(false);
   };
 
   const toggleClientsDropdown = () => {
-    setIsClientsDropdownOpen(o => !o);
-    setIsClientsDropdownLocked(l => !l);
-  };
-
-  const onClientsMouseEnter = () => {
-    if (clientsTimeoutRef.current) clearTimeout(clientsTimeoutRef.current);
-    setIsClientsDropdownOpen(true);
-  };
-
-  const onClientsMouseLeave = () => {
-    if (!isClientsDropdownLocked) {
-      clientsTimeoutRef.current = window.setTimeout(() => setIsClientsDropdownOpen(false), 150);
-    }
+    setIsClientsDropdownOpen(!isClientsDropdownOpen);
+    setIsProfileDropdownOpen(false);
   };
 
   // --- 4) Logout ---
@@ -136,35 +108,40 @@ export const NavBar: React.FC = () => {
           <Link to="/calendar"      className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}>Calendar</Link>
           <Link to="/chat"          className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}>Chat</Link>
 
+          {user?.userType==="user" && (
+            <>
+              <Link to="/personalTrainers" className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}>Personal Trainers</Link>
+            </>
+          )}
+
           {user?.userType==="trainer" && (
-            <div 
-              ref={clientsDropdownRef}
-              className="relative"
-              onMouseEnter={onClientsMouseEnter}
-              onMouseLeave={onClientsMouseLeave}
-            >
+            <div ref={clientsDropdownRef} className="relative">
               <button 
-                className="bg-gray-700 px-3 py-1 rounded hover:bg-gray-600"
                 onClick={toggleClientsDropdown}
+                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
               >
                 My Clients
               </button>
               {isClientsDropdownOpen && (
                 <motion.ul
-                  className="absolute left-0 top-full bg-gray-800 py-2 rounded shadow-lg z-10"
-                  initial={{ opacity:0, y:10 }}
-                  animate={{ opacity:1, y:0 }}
-                  transition={{ duration:0.3 }}
+                  className="absolute left-0 top-full mt-1 bg-gray-800 py-2 rounded shadow-lg z-10 min-w-[200px]"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  {clients.length>0 
+                  {clients.length > 0 
                     ? clients.map(c => (
                         <li key={c.id}>
-                          <Link to={`/clients/${c.id}`} className="block px-4 py-1 hover:bg-gray-700">
+                          <Link 
+                            to={`/clients/${c.id}`} 
+                            className="block px-4 py-2 hover:bg-gray-700"
+                            onClick={() => setIsClientsDropdownOpen(false)}
+                          >
                             {c.username}
                           </Link>
                         </li>
                       ))
-                    : <li className="px-4 py-1 text-gray-400">No clients</li>
+                    : <li className="px-4 py-2 text-gray-400">No clients</li>
                   }
                 </motion.ul>
               )}
@@ -175,52 +152,60 @@ export const NavBar: React.FC = () => {
         <div className="flex-1" />
 
         {/* Profile picture + dropdown */}
-        <div
-          ref={dropdownRef}
-          className="relative flex items-center"
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-        >
-          <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
+        <div ref={dropdownRef} className="relative">
+          <button
+            onClick={toggleProfileDropdown}
+            className="flex items-center focus:outline-none"
+          >
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
               <img src={profileImage} alt={user?.username} className="w-full h-full object-cover" />
             </div>
             <span className="ml-2 hidden md:inline text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</span>
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 className={`h-4 w-4 ml-1 transition-transform ${isDropdownOpen?"rotate-180":""}`}
-                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M19 9l-7 7-7-7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 ml-1 transition-transform ${isProfileDropdownOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </div>
+          </button>
 
-          {isDropdownOpen && (
-            <div className="absolute right-0 top-full pt-2 z-10" style={{minWidth:200}}>
-              <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden">
-                <Link to="/profile" className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700">
+          {isProfileDropdownOpen && (
+            <motion.div
+              className="absolute right-0 top-full mt-2 z-10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden min-w-[200px]">
+                <Link
+                  to="/profile"
+                  className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                  onClick={() => setIsProfileDropdownOpen(false)}
+                >
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     View Profile
                   </div>
                 </Link>
                 <div className="border-t border-gray-700 my-1" />
-                <button onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700">
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                >
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     Logout
                   </div>
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>

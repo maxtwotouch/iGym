@@ -366,7 +366,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
         }));
     }
 
-    const leaveChatRoom = async (chatRoomId: number) => {    
+    const leaveChatRoom = async (chatRoomId: number) => {  
         if (user?.userType === "user") {
             if (user?.profile.pt_chatroom === chatRoomId) {
                 alert("Cannot leave the chat room with your personal trainer!");
