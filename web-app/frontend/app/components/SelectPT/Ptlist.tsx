@@ -102,7 +102,7 @@ const PtList: React.FC = () => {
               profile: {personal_trainer: ptProfileId}})
 
           // Create a chat room between the user and the PT
-          const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name);
+          const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name, user?.username || "Client");
            
           // Update user's pt_chatroom field
           await apiClient.patch(`/user/update/${user?.userId}/`, {
@@ -118,10 +118,10 @@ const PtList: React.FC = () => {
       }
   };
 
-  const createChatRoomWithPt = async (ptId: number, ptName: string) => {
+  const createChatRoomWithPt = async (ptId: number, ptName: string, clientName: string) => {
       try {
           const chatRoomResponse = await apiClient.post(`/chat/create/`, {
-            name: "Chat with PT",
+            name: "PT - " + ptName + " X Client - " + clientName,
             participants: [Number(user?.userId), ptId]
           });
 
