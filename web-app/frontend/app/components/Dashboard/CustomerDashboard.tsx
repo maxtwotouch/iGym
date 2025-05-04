@@ -439,6 +439,7 @@ export const CustomerDashboard: React.FC = () => {
                                     <motion.button
                                     onClick={() => navigate(`/workouts/update/${workout.id}`)}
                                     className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                                    name="viewWorkoutButton"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Edit
@@ -453,6 +454,7 @@ export const CustomerDashboard: React.FC = () => {
                                     <motion.button
                                     onClick={() => navigate(`/${workout.id}/workout/session/create`)}
                                     className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    name="startWorkoutButton"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Start
@@ -468,6 +470,7 @@ export const CustomerDashboard: React.FC = () => {
                     <motion.button
                         onClick={() => navigate("/workouts/create")}
                         className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        name="createWorkoutButton"
                         whileHover={{ scale: 1.05 }}
                     >
                         Create New Workout

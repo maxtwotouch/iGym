@@ -103,14 +103,43 @@ export const NavBar: React.FC = () => {
           className="flex space-x-4 items-center"
           initial={{ y: -10 }} animate={{ y: 0 }} transition={{ duration: 0.5 }}
         >
-          <Link to="/dashboard"      className={`hover:text-blue-400 ${location.pathname==='/dashboard'      && "text-blue-400"}`}>Home</Link>
-          <Link to="/exercises"     className={`hover:text-blue-400 ${location.pathname==='/exercises'     && "text-blue-400"}`}>Exercises</Link>
-          <Link to="/calendar"      className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}>Calendar</Link>
-          <Link to="/chat"          className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}>Chat</Link>
+          <Link 
+            to="/dashboard"     
+            className={`hover:text-blue-400 ${location.pathname==='/dashboard'      && "text-blue-400"}`}
+          >
+            Home
+          </Link>
+          <Link 
+            to="/exercises"     
+            className={`hover:text-blue-400 ${location.pathname==='/exercises'     && "text-blue-400"}`}
+            data-name="Exercises"
+          >
+            Exercises
+          </Link>
+          <Link 
+            to="/calendar"      
+            className={`hover:text-blue-400 ${location.pathname==='/calendar'      && "text-blue-400"}`}
+            data-name="Calendar"
+          >
+            Calendar
+          </Link>
+          <Link 
+            to="/chat"          
+            className={`hover:text-blue-400 ${location.pathname==='/chat'          && "text-blue-400"}`}
+            data-name="Chat"
+          >
+            Chat
+          </Link>
 
           {user?.userType==="user" && (
             <>
-              <Link to="/personalTrainers" className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}>Personal Trainers</Link>
+              <Link 
+                to="/personalTrainers" 
+                className={`hover:text-blue-400 ${location.pathname==='/personalTrainers' && "text-blue-400"}`}
+                data-name="Personal Trainers"
+              >
+                Personal Trainers
+              </Link>
             </>
           )}
 
@@ -119,6 +148,7 @@ export const NavBar: React.FC = () => {
               <button 
                 onClick={toggleClientsDropdown}
                 className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
+                name="clientsButton"
               >
                 My Clients
               </button>
@@ -135,6 +165,7 @@ export const NavBar: React.FC = () => {
                           <Link 
                             to={`/clients/${c.id}`} 
                             className="block px-4 py-2 hover:bg-gray-700"
+                            data-id={c.id}
                             onClick={() => setIsClientsDropdownOpen(false)}
                           >
                             {c.username}

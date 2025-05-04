@@ -641,6 +641,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                 <input
                     type="text"
                     value={newMessage}
+                    name="messageField"
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === "Enter") {

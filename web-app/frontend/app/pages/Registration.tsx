@@ -83,6 +83,7 @@ export const RegistrationForm: React.FC = () => {
         <label className="block mb-1">First Name</label>
         <input
           type="text"
+          name="firstName"
           value={firstName}
           onChange={e => setFirstName(e.target.value)}
           required
@@ -94,6 +95,7 @@ export const RegistrationForm: React.FC = () => {
         <label className="block mb-1">Last Name</label>
         <input
           type="text"
+          name="lastName"
           value={lastName}
           onChange={e => setLastName(e.target.value)}
           required
@@ -106,6 +108,7 @@ export const RegistrationForm: React.FC = () => {
         <label className="block mb-1">Username</label>
         <input
           type="text"
+          name="username"
           value={username}
           onChange={e => setUsername(e.target.value)}
           required
@@ -117,6 +120,7 @@ export const RegistrationForm: React.FC = () => {
         <label className="block mb-1">Password</label>
         <input
           type="password"
+          name="password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
@@ -129,6 +133,7 @@ export const RegistrationForm: React.FC = () => {
         <label className="block mb-1">Register as</label>
         <select
           value={userType}
+          name="userType"
           onChange={e => setUserType(e.target.value as any)}
           className="w-full p-2 rounded bg-gray-700 text-white"
         >
@@ -144,6 +149,7 @@ export const RegistrationForm: React.FC = () => {
             <label className="block mb-1">Weight (kg)</label>
             <input
               type="number"
+              name="weight"
               value={weight}
               onChange={e => setWeight(e.target.value)}
               className="w-full p-2 rounded bg-gray-700 text-white"
@@ -153,6 +159,7 @@ export const RegistrationForm: React.FC = () => {
             <label className="block mb-1">Height (cm)</label>
             <input
               type="number"
+              name="height"
               value={height}
               onChange={e => setHeight(e.target.value)}
               className="w-full p-2 rounded bg-gray-700 text-white"
@@ -191,6 +198,7 @@ export const RegistrationForm: React.FC = () => {
 
       <motion.button
         type="submit"
+        name="submitButton"
         className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
         whileHover={{ scale: 1.05 }}
       >

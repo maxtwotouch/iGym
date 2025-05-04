@@ -129,6 +129,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                     <motion.div
                         key={chatRoom.id}
                         className="bg-gray-800 p-3 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-700 transition"
+                        data-name={chatRoom.name}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onSelectChatRoom(chatRoom.id)}
                     >
@@ -148,6 +149,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 <input
                     type="text"
                     value={newChatRoomName}
+                    name="chatRoomName"
                     onChange={(e) => setNewChatRoomName(e.target.value)}
                     className="w-full p-2 mb-2 rounded bg-gray-700 text-white"
                     placeholder="Chat Room Name"
@@ -195,6 +197,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 <motion.button
                     onClick={handleCreateChatRoom}
                     className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                    name="createChatRoom"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >

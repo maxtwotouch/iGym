@@ -81,6 +81,7 @@ function ExerciseList() {
                                     <div
                                         key={exercise.id}
                                         className="w-full max-w-xs mx-auto p-2 bg-gray-700 rounded text-center hover:bg-gray-600 transition cursor-pointer"
+                                        data-id={exercise.id}
                                         onClick={() =>
                                             navigate(`/exercises/${exercise.id}`)
                                         }
