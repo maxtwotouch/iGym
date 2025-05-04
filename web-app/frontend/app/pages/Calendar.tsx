@@ -105,7 +105,7 @@ export const Calendar = () => {
     try {
       const res = await apiClient.post("/schedule/workout/create/", {
         workout_template: selectedWorkoutId,
-        scheduled_date: selectedDateTime, // Already local format
+        scheduled_date: selectedDateTime,
       });
       if (res.status !== 201) throw new Error();
       const ns = await res.data;
@@ -199,6 +199,32 @@ export const Calendar = () => {
           })}
         </div>
       </motion.div>
+
+      {/* Modal to schedule workout */}
+      {showSchedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4 shadow-xl">
+            <h2 className="text-xl font-semibold text-white">Schedule Workout</h2>
+            <p className="text-gray-300">Date: {new Date(selectedDateTime).toLocaleString()}</p>
+
+            <select
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={selectedWorkoutId ?? ""}
+              onChange={e => setSelectedWorkoutId(Number(e.target.value))}
+            >
+              <option value="">Select a workout</option>
+              {availableWorkouts.map(w => (
+                <option key={w.id} value={w.id}>{w.title}</option>
+              ))}
+            </select>
+
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowSchedule(false)} className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500">Cancel</button>
+              <button onClick={schedule} className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
