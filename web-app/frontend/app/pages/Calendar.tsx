@@ -15,6 +15,16 @@ type CalendarEvent = {
   duration?: string;
 };
 
+// 🕒 FIX: Append timezone offset like +02:00 to datetime string
+function getOffsetSuffix(): string {
+  const offset = new Date().getTimezoneOffset(); // in minutes
+  const abs = Math.abs(offset);
+  const sign = offset > 0 ? "-" : "+";
+  const hh = String(Math.floor(abs / 60)).padStart(2, "0");
+  const mm = String(abs % 60).padStart(2, "0");
+  return `${sign}${hh}:${mm}`;
+}
+
 export const Calendar = () => {
   const navigate = useNavigate();
 
@@ -22,16 +32,15 @@ export const Calendar = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [availableWorkouts, setAvailableWorkouts] = useState<{ id: number; title: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [showSchedule, setShowSchedule] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
-  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -90,25 +99,37 @@ export const Calendar = () => {
   }, [events]);
 
   const onDayClick = (date: Date) => {
-    const isoLocal = toLocalISOString(date);
-    setSelectedDateTime(isoLocal);
+    date.setHours(12, 0, 0, 0);
+    setSelectedDateTime(toLocalISOString(date));
     setShowSchedule(true);
   };
 
   const schedule = async () => {
-    if (!selectedWorkoutId) return;
-    const dt = new Date(selectedDateTime);
-    if (dt < new Date()) {
+    if (!selectedWorkoutId || !selectedDateTime) return;
+
+    // 🕒 append local timezone offset to datetime string
+    const datetimeWithOffset = selectedDateTime + getOffsetSuffix();
+
+    const now = new Date();
+    const [datePart, timePart] = selectedDateTime.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hour, minute] = timePart.split(":").map(Number);
+    const dt = new Date(year, month - 1, day, hour, minute);
+
+    if (dt < now) {
       alert("Can't schedule in the past");
       return;
     }
+
     try {
       const res = await apiClient.post("/schedule/workout/create/", {
         workout_template: selectedWorkoutId,
-        scheduled_date: selectedDateTime,
+        scheduled_date: datetimeWithOffset, // ISO string with offset
       });
+
       if (res.status !== 201) throw new Error();
       const ns = await res.data;
+
       setEvents(e => [
         ...e,
         {
@@ -180,14 +201,14 @@ export const Calendar = () => {
                   {dayEvents.slice(0, 3).map(ev => (
                     <div
                       key={ev.id}
-                      onClick={e => {
-                        e.stopPropagation();
-                        setDetailEvent(ev);
-                        setShowDetail(true);
-                      }}
+                      onClick={e => e.stopPropagation()}
                       className="text-xs truncate bg-blue-600 rounded px-1"
+                      title={new Date(ev.start).toLocaleString()}
                     >
-                      {ev.title}
+                      {new Date(ev.start).toLocaleTimeString("sv-SE", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })} – {ev.title}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
@@ -200,12 +221,18 @@ export const Calendar = () => {
         </div>
       </motion.div>
 
-      {/* Modal to schedule workout */}
+      {/* Scheduling Modal */}
       {showSchedule && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4 shadow-xl">
             <h2 className="text-xl font-semibold text-white">Schedule Workout</h2>
-            <p className="text-gray-300">Date: {new Date(selectedDateTime).toLocaleString()}</p>
+
+            <input
+              type="datetime-local"
+              className="w-full p-2 rounded bg-gray-700 text-white"
+              value={selectedDateTime}
+              onChange={(e) => setSelectedDateTime(e.target.value)}
+            />
 
             <select
               className="w-full p-2 rounded bg-gray-700 text-white"
