@@ -272,11 +272,16 @@ export const Calendar = () => {
             <select
               className="w-full p-2 rounded bg-gray-700 text-white"
               value={selectedWorkoutId ?? ""}
+              name="workoutSelect"
               onChange={e => setSelectedWorkoutId(Number(e.target.value))}
             >
               <option value="">Select a workout</option>
               {availableWorkouts.map(w => (
-                <option key={w.id} value={w.id}>{w.title}</option>
+                <option 
+                  key={w.id} 
+                  data-id={w.id}
+                  value={w.id}>{w.title}
+                </option>
               ))}
             </select>
             <div className="flex justify-end gap-2">

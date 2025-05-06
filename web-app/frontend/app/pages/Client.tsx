@@ -323,10 +323,28 @@ export default function ClientCalendar() {
               )}
               {detailEvent.exercises?.length ? (
                 <>
-                  <strong>Exercises:</strong>
-                  <ul className="list-disc list-inside mt-1">
-                    {detailEvent.exercises.map(ex => (
-                      <li key={ex.id}>{ex.name}</li>
+                <strong>Exercises:</strong>
+                <ul className="list-disc pl-5">
+                    {detailEvent.exercises.map((exercise: any) => (
+                        <li key={exercise.id}>
+                            {exercise.name}
+                            {detailEvent.exercise_sessions && detailEvent.exercise_sessions.length > 0 && (
+                                (() => {
+                                    const exercise_session = detailEvent.exercise_sessions.find(
+                                        (ex: any) => ex.exercise === exercise.id
+                                    );
+                                    return exercise_session ? (
+                                        <ul className="list-disc pl-5">
+                                            {exercise_session.sets.map((set: any, index: number) => (
+                                                <li key={index}>
+                                                    Set: {index + 1}: Reps: {set.repetitions}, Weight: {set.weight} kg
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : null;
+                                })()
+                            )}
+                        </li>
                     ))}
                   </ul>
                 </>
@@ -338,6 +356,7 @@ export default function ClientCalendar() {
               <button
                 onClick={() => setShowDetail(false)}
                 className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+                name="closeButton"
               >
                 Close
               </button>
