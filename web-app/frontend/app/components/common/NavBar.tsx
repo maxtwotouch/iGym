@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { useAuth } from "~/context/AuthContext";
 import apiClient from "~/utils/api/apiClient";
-import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
 
 type Profile = { profile_picture?: string | null };
 type User =    { id: number; username: string; profile: Profile };

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { backendUrl } from "~/config";
-import defaultProfilePicture from "~/assets/defaultProfilePicture.png";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
 
 import apiClient from "~/utils/api/apiClient";
 import { useAuth } from "~/context/AuthContext";
