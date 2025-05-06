@@ -43,6 +43,7 @@ const Footer = () => {
                         <h4 className="text-lg font-semibold mb-3">Credits</h4>
                         <ul className="text-gray-400">
                             <li>Exercise descriptions and images provided by SimplyFitness</li>
+                            <li>Default profile pictures: "Social Media Chatting Online Blank Profile Picture Head And Body Icon" by Aditya Agustian Yudi Putra – Free vector from Vecteezy.com</li>
                         </ul>
                     </motion.div>
                     {/* Column 3 */}
