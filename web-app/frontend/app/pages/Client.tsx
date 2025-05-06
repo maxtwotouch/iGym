@@ -1,3 +1,4 @@
+// src/components/ClientCalendar.tsx
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "react-router";
@@ -18,6 +19,7 @@ type CalendarEvent = {
   exercises?: any[];
   exercise_sessions?: any[];
   calories_burned?: number;
+  type: "planned" | "session";
 };
 
 export default function ClientCalendar() {
@@ -30,54 +32,65 @@ export default function ClientCalendar() {
   const [showDetail, setShowDetail] = useState(false);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
 
-  // Fetch client and calendar data
+  // ─── Fetch client + calendar data ─────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     (async () => {
       setIsLoading(true);
       try {
+        // 1) load client
         const userRes = await apiClient.get<Client>(`/user/${id}/`);
         if (userRes.status === 200) setClient(userRes.data);
 
+        // 2) fetch planned workouts
         const schedRes = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
         const now = new Date();
-        const future = (schedRes.data as any[]).filter(w => new Date(w.scheduled_date) >= now);
+        const future = (schedRes.data as any[])
+          .filter(w => new Date(w.scheduled_date) >= now);
+
         const scheduledEvents: CalendarEvent[] = await Promise.all(
           future.map(async item => {
             try {
               const exRes = await apiClient.get(`/workout/${item.workout_template}/exercises/`);
               return {
-                id: `scheduled-${item.id}`,
+                id: `planned-${item.id}`,
                 workout_id: item.workout_template,
                 title: item.workout_title,
                 start: item.scheduled_date,
                 exercises: exRes.data,
+                type: "planned",
               };
             } catch {
               return {
-                id: `scheduled-${item.id}`,
+                id: `planned-${item.id}`,
                 workout_id: item.workout_template,
                 title: item.workout_title,
                 start: item.scheduled_date,
                 exercises: [],
+                type: "planned",
               };
             }
           })
         );
 
+        // 3) fetch past sessions
         const [wkRes, sesRes] = await Promise.all([
           apiClient.get(`/trainer/client/${id}/workouts/`),
           apiClient.get(`/trainer/client/${id}/workout_sessions/`)
         ]);
-
-        const workoutMap = new Map<number, string>((wkRes.data as any[]).map(w => [w.id, w.name]));
+        const workoutMap = new Map<number, string>(
+          (wkRes.data as any[]).map(w => [w.id, w.name])
+        );
 
         const sessionEvents: CalendarEvent[] = await Promise.all(
           (sesRes.data as any[]).map(async session => {
             const startTime = new Date(session.start_time);
-            const [h, m, s] = (session.duration || "00:00:00").split(":").map(Number);
-            const endTime = new Date(startTime.getTime() + (h * 3600 + m * 60 + s) * 1000);
-            let exercises = [];
+            const [h, m, s] = (session.duration || "00:00:00")
+              .split(":").map(Number);
+            const endTime = new Date(
+              startTime.getTime() + (h * 3600 + m * 60 + s) * 1000
+            );
+            let exercises: any[] = [];
             try {
               const exRes = await apiClient.get(`/workout/${session.workout}/exercises/`);
               exercises = exRes.data;
@@ -91,7 +104,8 @@ export default function ClientCalendar() {
               duration: session.duration,
               exercises,
               exercise_sessions: session.exercise_sessions,
-              calories_burned: session.calories_burned
+              calories_burned: session.calories_burned,
+              type: "session",
             };
           })
         );
@@ -106,29 +120,43 @@ export default function ClientCalendar() {
     })();
   }, [id]);
 
+  // ─── Month state & navigation ────────────────────────────────────────────
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const prevMonth = () =>
+    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+  const nextMonth = () =>
+    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
-  const prevMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
-
+  // ─── Build 42-day grid for the month ─────────────────────────────────────
   const calendarDays = useMemo(() => {
-    const y = currentMonth.getFullYear(), mon = currentMonth.getMonth();
-    const first = new Date(y, mon, 1), startDow = first.getDay();
-    const dim = new Date(y, mon + 1, 0).getDate(), prevDim = new Date(y, mon, 0).getDate();
+    const y = currentMonth.getFullYear();
+    const mon = currentMonth.getMonth();
+    const first = new Date(y, mon, 1);
+    const startDow = first.getDay();
+    const dim = new Date(y, mon + 1, 0).getDate();
+    const prevDim = new Date(y, mon, 0).getDate();
     const cells: Date[] = [];
-    for (let i = startDow - 1; i >= 0; i--) cells.push(new Date(y, mon - 1, prevDim - i));
-    for (let d = 1; d <= dim; d++) cells.push(new Date(y, mon, d));
-    let nxt = 1; while (cells.length < 42) cells.push(new Date(y, mon + 1, nxt++));
+    for (let i = startDow - 1; i >= 0; i--) {
+      cells.push(new Date(y, mon - 1, prevDim - i));
+    }
+    for (let d = 1; d <= dim; d++) {
+      cells.push(new Date(y, mon, d));
+    }
+    let nxt = 1;
+    while (cells.length < 42) {
+      cells.push(new Date(y, mon + 1, nxt++));
+    }
     return cells;
   }, [currentMonth]);
 
+  // ─── Group events by date string ─────────────────────────────────────────
   const eventsByDate = useMemo(() => {
     const m: Record<string, CalendarEvent[]> = {};
     events.forEach(ev => {
-      const key = new Date(ev.start).toLocaleDateString("sv-SE");
+      const key = new Date(ev.start).toLocaleDateString("en-US");
       (m[key] ||= []).push(ev);
     });
     return m;
@@ -156,17 +184,32 @@ export default function ClientCalendar() {
 
       {/* Month nav */}
       <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
-        <button onClick={prevMonth} className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">‹ Prev</button>
+        <button
+          onClick={prevMonth}
+          className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+        >
+          ‹ Prev
+        </button>
         <div className="text-white font-semibold">
-          {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
+          {currentMonth.toLocaleString("default", {
+            month: "long",
+            year: "numeric"
+          })}
         </div>
-        <button onClick={nextMonth} className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">Next ›</button>
+        <button
+          onClick={nextMonth}
+          className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+        >
+          Next ›
+        </button>
       </div>
 
       {/* Weekday headers */}
       <div className="grid grid-cols-7 bg-gray-800 text-gray-300 text-sm font-semibold text-center">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-          <div key={d} className="py-2 border-b border-gray-700">{d}</div>
+          <div key={d} className="py-2 border-b border-gray-700">
+            {d}
+          </div>
         ))}
       </div>
 
@@ -174,9 +217,9 @@ export default function ClientCalendar() {
       <div className="flex-1 overflow-y-auto bg-gray-800">
         <div className="grid grid-cols-7 gap-px bg-gray-700 h-full">
           {calendarDays.map((day, i) => {
-            const key = day.toLocaleDateString("sv-SE");
+            const key = day.toLocaleDateString("en-US");
             const isCurr = day.getMonth() === currentMonth.getMonth();
-            const isToday = key === new Date().toLocaleDateString("sv-SE");
+            const isToday = key === new Date().toLocaleDateString("en-US");
             const dayEvents = eventsByDate[key] || [];
 
             return (
@@ -198,17 +241,25 @@ export default function ClientCalendar() {
                         setDetailEvent(ev);
                         setShowDetail(true);
                       }}
-                      className="h-6 bg-blue-600 rounded text-white text-xs leading-6 px-1 truncate"
-                      title={new Date(ev.start).toLocaleString()}
+                      className={`
+                        h-6 rounded text-white text-xs leading-6 px-1 truncate
+                        ${ev.type === "session"
+                          ? "bg-green-600 hover:bg-green-500"
+                          : "bg-blue-600 hover:bg-blue-500"}
+                      `}
+                      title={new Date(ev.start).toLocaleString("en-US")}
                     >
-                      {new Date(ev.start).toLocaleTimeString("sv-SE", {
+                      {new Date(ev.start).toLocaleTimeString("en-US", {
                         hour: "2-digit",
                         minute: "2-digit"
-                      })} – {ev.title}
+                      })}{" "}
+                      – {ev.title}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
-                    <div className="text-gray-500 text-xs">+{dayEvents.length - 3} more</div>
+                    <div className="text-gray-500 text-xs">
+                      +{dayEvents.length - 3} more
+                    </div>
                   )}
                 </div>
               </div>
@@ -235,16 +286,40 @@ export default function ClientCalendar() {
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">{detailEvent.title}</h2>
-              <button className="text-white text-2xl" onClick={() => setShowDetail(false)}>×</button>
+              <button
+                className="text-white text-2xl"
+                onClick={() => setShowDetail(false)}
+              >
+                ×
+              </button>
             </div>
             <div className="space-y-2">
-              <p><strong>Date:</strong> {new Date(detailEvent.start).toLocaleDateString()}</p>
-              <p><strong>Time:</strong> {new Date(detailEvent.start).toLocaleTimeString()}
-                {detailEvent.end ? ` – ${new Date(detailEvent.end).toLocaleTimeString()}` : ""}
+              <p>
+                <strong>Type:</strong>{" "}
+                {detailEvent.type === "session"
+                  ? "Completed Session"
+                  : "Planned Workout"}
               </p>
-              {detailEvent.duration && <p><strong>Duration:</strong> {detailEvent.duration}</p>}
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(detailEvent.start).toLocaleDateString("en-US")}
+              </p>
+              <p>
+                <strong>Time:</strong>{" "}
+                {new Date(detailEvent.start).toLocaleTimeString("en-US")}
+                {detailEvent.end
+                  ? ` – ${new Date(detailEvent.end).toLocaleTimeString("en-US")}`
+                  : ""}
+              </p>
+              {detailEvent.duration && (
+                <p>
+                  <strong>Duration:</strong> {detailEvent.duration}
+                </p>
+              )}
               {detailEvent.calories_burned != null && (
-                <p><strong>Calories:</strong> {detailEvent.calories_burned}</p>
+                <p>
+                  <strong>Calories:</strong> {detailEvent.calories_burned}
+                </p>
               )}
               {detailEvent.exercises?.length ? (
                 <>
@@ -255,7 +330,9 @@ export default function ClientCalendar() {
                     ))}
                   </ul>
                 </>
-              ) : <p>No exercises.</p>}
+              ) : (
+                <p>No exercises.</p>
+              )}
             </div>
             <div className="mt-6 text-right">
               <button
