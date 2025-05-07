@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts";
 import { mapWorkoutSessionsToCalendarEvents } from "~/utils/calendarHelper";
 import apiClient from "~/utils/api/apiClient";
 import { toLocalISOString } from "~/utils/date";
+import { useAuth } from "~/context/AuthContext";
 
 type CalendarEvent = {
   id: string;
@@ -16,162 +17,192 @@ type CalendarEvent = {
   completed: boolean;
 };
 
-function getOffsetSuffix(): string {
-  const offset = new Date().getTimezoneOffset();
-  const abs = Math.abs(offset);
-  const sign = offset > 0 ? "-" : "+";
-  const hh = String(Math.floor(abs / 60)).padStart(2, "0");
-  const mm = String(abs % 60).padStart(2, "0");
-  return `${sign}${hh}:${mm}`;
-}
-
-export const Calendar = () => {
+export const Calendar: React.FC = () => {
   const navigate = useNavigate();
+  const { user, getToken } = useAuth();
 
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
+  // State
+  const [currentMonth, setCurrentMonth] = useState(
+    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [availableWorkouts, setAvailableWorkouts] = useState<{ id: number; title: string }[]>([]);
+  const [clients, setClients] = useState<{ id: number; username: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Schedule modal
   const [showSchedule, setShowSchedule] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
+  // Event detail
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
+  // Fetch clients when trainer logs in
+  useEffect(() => {
+    if (user?.userType !== "trainer") return;
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await apiClient.get("/trainer/clients/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 200) setClients(res.data);
+      } catch (e) {
+        console.error("Failed to fetch clients", e);
+      }
+    })();
+  }, [user?.userType, getToken]);
+
+  // Load all events
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        // 1) fetch scheduled workouts (future)
+        // 1) generic scheduled workouts
         const sched = await fetchScheduledWorkouts();
-        const scheduledEvents: CalendarEvent[] = sched.map(ev => ({
-          ...ev,
-          completed: false,      // mark all scheduled as not completed
-        }));
 
-        // 2) fetch sessions via your helper (unchanged); then decorate
-        const rawSessions = await mapWorkoutSessionsToCalendarEvents();
-        const sessionEvents: CalendarEvent[] = rawSessions.map(ev => ({
-          ...ev,
-          // if there's an end time before now → completed
-          completed: ev.end ? new Date(ev.end) < new Date() : false,
-        }));
+        // 2) PT-scheduled workouts for both roles
+        const token = await getToken();
+        const r = await apiClient.get("/schedule/pt_workout/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        let ptSched: CalendarEvent[] = [];
+        if (r.status === 200) {
+          const now = new Date();
+          ptSched = r.data.map((it: any) => {
+            const withWhom =
+              user?.userType === "trainer"
+                ? clients.find((c) => c.id === it.client)?.username ?? "Client"
+                : it.pt_username ?? "Trainer";
+            return {
+              id: `pt-${it.id}`,
+              workout_id: it.workout_template,
+              title: `${it.workout_title} with ${withWhom}`,
+              start: it.scheduled_date,
+              completed: new Date(it.scheduled_date) < now,
+            };
+          });
+        }
 
-        setEvents([...scheduledEvents, ...sessionEvents]);
-      } catch (e: any) {
-        console.error(e);
+        // 3) workout sessions
+        const sessions = await mapWorkoutSessionsToCalendarEvents();
+
+        setEvents([
+          ...sched.map((ev) => ({ ...ev, completed: false })),
+          ...ptSched,
+          ...sessions.map((ev) => ({
+            ...ev,
+            completed: ev.end ? new Date(ev.end) < new Date() : false,
+          })),
+        ]);
+      } catch (e) {
+        console.error("Failed to load calendar", e);
         setError("Failed to load calendar");
       } finally {
         setLoading(false);
       }
     })();
-  }, [navigate]);
+  }, [navigate, user?.userType, clients, getToken]);
 
+  // Load workout templates
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await apiClient.get("/workout/");
-        if (res.status !== 200) throw new Error();
-        setAvailableWorkouts(
-          res.data.map((w: any) => ({ id: w.id, title: w.name }))
-        );
-      } catch {
-        console.error("Could not load workouts");
-      }
-    })();
+    apiClient
+      .get("/workout/")
+      .then((res) => {
+        if (res.status === 200) {
+          setAvailableWorkouts(res.data.map((w: any) => ({ id: w.id, title: w.name })));
+        }
+      })
+      .catch((e) => console.error("Failed to load workouts", e));
   }, []);
 
+  // Calendar grid helpers
   const prevMonth = () =>
-    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
   const nextMonth = () =>
-    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
   const calendarDays = useMemo(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const first = new Date(year, month, 1);
-    const startDow = first.getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const prevDays = new Date(year, month, 0).getDate();
-    const total = 42;
+    const y = currentMonth.getFullYear(),
+      m = currentMonth.getMonth();
+    const firstDow = new Date(y, m, 1).getDay();
+    const dim = new Date(y, m + 1, 0).getDate();
+    const prevDim = new Date(y, m, 0).getDate();
     const days: Date[] = [];
-
-    for (let i = startDow - 1; i >= 0; i--) {
-      days.push(new Date(year, month - 1, prevDays - i));
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      days.push(new Date(year, month, d));
-    }
+    for (let i = firstDow - 1; i >= 0; i--) days.push(new Date(y, m - 1, prevDim - i));
+    for (let d = 1; d <= dim; d++) days.push(new Date(y, m, d));
     let nxt = 1;
-    while (days.length < total) {
-      days.push(new Date(year, month + 1, nxt++));
-    }
+    while (days.length < 42) days.push(new Date(y, m + 1, nxt++));
     return days;
   }, [currentMonth]);
 
   const eventsByDate = useMemo(() => {
-    const m: Record<string, CalendarEvent[]> = {};
-    events.forEach(ev => {
-      const key = new Date(ev.start).toLocaleDateString("en-US");
-      (m[key] ||= []).push(ev);
+    const map: Record<string, CalendarEvent[]> = {};
+    events.forEach((ev) => {
+      const key = new Date(ev.start).toLocaleDateString();
+      (map[key] ||= []).push(ev);
     });
-    return m;
+    return map;
   }, [events]);
 
-  const onDayClick = (date: Date) => {
-    date.setHours(12, 0, 0, 0);
-    setSelectedDateTime(toLocalISOString(date));
+  // Modal handlers
+  const onDayClick = (day: Date) => {
+    day.setHours(12, 0, 0, 0);
+    setSelectedDateTime(toLocalISOString(day));
     setShowSchedule(true);
   };
+  const onEventClick = (ev: CalendarEvent) => setSelectedEvent(ev);
 
-  const onEventClick = (ev: CalendarEvent) => {
-    setSelectedEvent(ev);
-  };
-
+  // Schedule POST
   const schedule = async () => {
     if (!selectedWorkoutId || !selectedDateTime) return;
+    const isoForBackend = new Date(selectedDateTime).toISOString();
+    let payload: any = {
+      workout_template: selectedWorkoutId,
+      scheduled_date: isoForBackend,
+    };
+    let url = "/schedule/workout/create/";
 
-    const datetimeWithOffset = selectedDateTime + getOffsetSuffix();
-    const now = new Date();
-    const [datePart, timePart] = selectedDateTime.split("T");
-    const [y, mo, d] = datePart.split("-").map(Number);
-    const [h, mi] = timePart.split(":").map(Number);
-    const dt = new Date(y, mo - 1, d, h, mi);
-
-    if (dt < now) {
-      alert("Can't schedule in the past");
-      return;
+    if (user?.userType === "trainer") {
+      if (!selectedClientId) {
+        alert("Please select a client");
+        return;
+      }
+      payload.client = selectedClientId;
+      url = "/schedule/pt_workout/create/";
     }
 
     try {
-      const res = await apiClient.post("/schedule/workout/create/", {
-        workout_template: selectedWorkoutId,
-        scheduled_date: datetimeWithOffset,
-      });
-      if (res.status !== 201) throw new Error();
-
+      const res = await apiClient.post(url, payload);
+      if (res.status !== 201) throw new Error("Bad status");
       const ns = res.data;
-      setEvents(e => [
-        ...e,
+      const withWhom =
+        user?.userType === "trainer"
+          ? clients.find((c) => c.id === selectedClientId)?.username
+          : ns.pt_username ?? "Trainer";
+      const title = `${ns.workout_title} with ${withWhom}`;
+
+      setEvents((prev) => [
+        ...prev,
         {
-          id: `scheduled-${ns.id}`,
+          id: `${url.includes("pt_workout") ? "pt-" : "scheduled-"}${ns.id}`,
           workout_id: ns.workout_template,
-          title: ns.workout_title,
+          title,
           start: ns.scheduled_date,
           completed: false,
         },
       ]);
+
       setShowSchedule(false);
       setSelectedWorkoutId(null);
       setSelectedDateTime("");
-    } catch (e: any) {
-      console.error(e);
-      setError("Failed to schedule");
+      setSelectedClientId(null);
+    } catch (e) {
+      console.error("Failed to schedule workout", e);
+      setError("Failed to schedule workout");
     }
   };
 
@@ -180,153 +211,172 @@ export const Calendar = () => {
       className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
     >
-      {/* Main Calendar */}
-      <motion.div
-        className="flex flex-col flex-grow min-h-0 bg-gray-800 text-white rounded-2xl shadow-lg p-6"
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-      >
-        <h1 className="text-2xl font-bold text-center mb-4">Workout Calendar</h1>
-
-        {/* Month Nav */}
-        <div className="flex items-center justify-between mb-2">
-          <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">
-            ‹ Prev
-          </button>
-          <div className="text-lg font-medium">
-            {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
-          </div>
-          <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">
-            Next ›
-          </button>
+      {loading ? (
+        <div className="flex-grow flex items-center justify-center">
+          <div className="spinner-border text-light" role="status" />
         </div>
-
-        {/* Weekdays */}
-        <div className="grid grid-cols-7 text-center text-sm font-semibold border-b border-gray-700 pb-1">
-          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
-            <div key={d}>{d}</div>
-          ))}
-        </div>
-
-        {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-px bg-gray-700 flex-grow min-h-0">
-          {calendarDays.map((day, i) => {
-            const iso = day.toLocaleDateString("en-US");
-            const isCurrent = day.getMonth() === currentMonth.getMonth();
-            const isToday = iso === new Date().toLocaleDateString("en-US");
-            const dayEvents = eventsByDate[iso] || [];
-
-            return (
-              <div
-                key={i}
-                onClick={() => onDayClick(day)}
-                className={`
-                  flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer
-                  ${!isCurrent ? "opacity-50" : ""} ${isToday ? "ring-2 ring-blue-500" : ""}
-                `}
-              >
-                <span className="text-sm">{day.getDate()}</span>
-                <div className="mt-1 space-y-1 flex-1 overflow-y-auto">
-                  {dayEvents.slice(0, 3).map(ev => (
-                    <div
-                      key={ev.id}
-                      onClick={e => { e.stopPropagation(); onEventClick(ev); }}
-                      className={`
-                        text-xs truncate rounded px-1 cursor-pointer
-                        ${ev.completed
-                          ? "bg-green-600 hover:bg-green-500"
-                          : "bg-blue-600 hover:bg-blue-500"
-                        }
-                      `}
-                      title={new Date(ev.start).toLocaleString()}
-                    >
-                      {new Date(ev.start).toLocaleTimeString("en-US", {
-                        hour: "2-digit", minute: "2-digit"
-                      })} – {ev.title}
+      ) : error ? (
+        <div className="text-red-400 text-center">{error}</div>
+      ) : (
+        <>
+          <motion.div
+            className="flex flex-col flex-grow min-h-0 bg-gray-800 text-white rounded-2xl shadow-lg p-6"
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+          >
+            <h1 className="text-2xl font-bold text-center mb-4">Workout Calendar</h1>
+            <div className="flex items-center justify-between mb-2">
+              <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">‹ Prev</button>
+              <div className="text-lg font-medium">
+                {currentMonth.toLocaleString("default", { month: "long", year: "numeric" })}
+              </div>
+              <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">Next ›</button>
+            </div>
+            <div className="grid grid-cols-7 text-center text-sm font-semibold border-b border-gray-700 pb-1">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-px bg-gray-700 flex-grow min-h-0">
+              {calendarDays.map((day, idx) => {
+                const key = day.toLocaleDateString();
+                const isCurrent = day.getMonth() === currentMonth.getMonth();
+                const isToday = key === new Date().toLocaleDateString();
+                const dayEvents = eventsByDate[key] || [];
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => onDayClick(day)}
+                    className={`flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer ${
+                      !isCurrent ? "opacity-50" : ""
+                    } ${isToday ? "ring-2 ring-blue-500" : ""}`}
+                  >
+                    <span className="text-sm">{day.getDate()}</span>
+                    <div className="mt-1 space-y-1 flex-1 overflow-y-auto">
+                      {dayEvents.slice(0, 3).map((ev) => (
+                        <div
+                          key={ev.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEventClick(ev);
+                          }}
+                          className={`text-xs truncate rounded px-1 cursor-pointer ${
+                            ev.completed
+                              ? "bg-green-600 hover:bg-green-500"
+                              : "bg-blue-600 hover:bg-blue-500"
+                          }`}
+                          title={new Date(ev.start).toLocaleString()}
+                        >
+                          {new Date(ev.start).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}{" "}
+                          – {ev.title}
+                        </div>
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <div className="text-xs text-gray-400">
+                          +{dayEvents.length - 3} more
+                        </div>
+                      )}
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Schedule Workout Modal */}
+          {showSchedule && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+                <h2 className="text-xl font-semibold text-white">Schedule Workout</h2>
+                {user?.userType === "trainer" && (
+                  <>
+                    <label className="form-label text-gray-300">Select Client:</label>
+                    <select
+                      className="form-select bg-gray-700 text-white mb-3 w-full p-2 rounded"
+                      value={selectedClientId ?? ""}
+                      onChange={(e) => setSelectedClientId(Number(e.target.value))}
+                    >
+                      <option value="">-- Select a Client --</option>
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.username}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                <label className="form-label text-gray-300">Pick Date &amp; Time:</label>
+                <input
+                  type="datetime-local"
+                  className="form-control bg-gray-700 text-white w-full p-2 rounded mb-3"
+                  value={selectedDateTime}
+                  onChange={(e) => setSelectedDateTime(e.target.value)}
+                />
+                <label className="form-label text-gray-300">Select Workout:</label>
+                <select
+                  className="form-select bg-gray-700 text-white w-full p-2 rounded mb-3"
+                  value={selectedWorkoutId ?? ""}
+                  onChange={(e) => setSelectedWorkoutId(Number(e.target.value))}
+                >
+                  <option value="">-- Select a Workout --</option>
+                  {availableWorkouts.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.title}
+                    </option>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <div className="text-xs text-gray-400">+{dayEvents.length - 3} more</div>
-                  )}
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setShowSchedule(false)}
+                    className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={schedule}
+                    className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white"
+                  >
+                    Save
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Schedule Modal */}
-      {showSchedule && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4 shadow-xl">
-            <h2 className="text-xl font-semibold text-white">Schedule Workout</h2>
-            <input
-              type="datetime-local"
-              className="w-full p-2 rounded bg-gray-700 text-white"
-              value={selectedDateTime}
-              onChange={e => setSelectedDateTime(e.target.value)}
-            />
-            <select
-              className="w-full p-2 rounded bg-gray-700 text-white"
-              value={selectedWorkoutId ?? ""}
-              name="workoutSelect"
-              onChange={e => setSelectedWorkoutId(Number(e.target.value))}
-            >
-              <option value="">Select a workout</option>
-              {availableWorkouts.map(w => (
-                <option 
-                  key={w.id} 
-                  data-id={w.id}
-                  value={w.id}>{w.title}
-                </option>
-              ))}
-            </select>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowSchedule(false)}
-                className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={schedule}
-                className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white"
-              >
-                Save
-              </button>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Event Detail Modal */}
-      {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-gray-900 p-6 rounded-lg w-80 space-y-4 shadow-xl">
-            <h2 className="text-xl font-semibold text-white">{selectedEvent.title}</h2>
-            <p className="text-gray-300">
-              {selectedEvent.completed ? "Completed session" : "Scheduled workout"}
-            </p>
-            <p className="text-gray-300">
-              {new Date(selectedEvent.start).toLocaleDateString("en-US", { dateStyle: "medium" })}{" "}
-              {new Date(selectedEvent.start).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-            </p>
-            {selectedEvent.duration && (
-              <p className="text-gray-300">Duration: {selectedEvent.duration}</p>
-            )}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setSelectedEvent(null)}
-                className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white"
-              >
-                Close
-              </button>
+          {/* Event Detail Modal */}
+          {selectedEvent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-gray-900 p-6 rounded-lg w-80 space-y-4">
+                <h2 className="text-xl font-semibold text-white">{selectedEvent.title}</h2>
+                <p className="text-gray-300">
+                  {selectedEvent.completed ? "Completed session" : "Scheduled workout"}
+                </p>
+                <p className="text-gray-300">
+                  {new Date(selectedEvent.start).toLocaleDateString(undefined, {
+                    dateStyle: "medium",
+                  })}{" "}
+                  {new Date(selectedEvent.start).toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+                {selectedEvent.duration && <p className="text-gray-300">Duration: {selectedEvent.duration}</p>}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setSelectedEvent(null)}
+                    className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </motion.div>
   );
