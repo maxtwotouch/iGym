@@ -6,11 +6,22 @@ import { AnimatePresence } from "framer-motion";
 import apiClient from "~/utils/api/apiClient";
 import ChatRoom from "../Chat/ChatRoom";
 
-import type { Workout, Exercise, WorkoutSession, ExerciseSession, Set, User, Notification, chatRoom } from "~/types"; // Import types for workouts and exercises
+import type { Workout, Exercise, WorkoutSession, ExerciseSession, Set, User, Notification, chatRoom, PT } from "~/types"; // Import types for workouts and exercises
 
 import { deleteWorkout } from "~/utils/api/workouts";
 
 import { useAuth } from "~/context/AuthContext";
+
+import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
+
+
+const PT_TYPE_MAP: { [key: string]: string } = {
+  general: "General Fitness Trainer",
+  strength: "Strength and Conditioning Trainer",
+  functional: "Functional Training Coach",
+  bodybuilding: "Bodybuilding Coach",
+  physio: "Physical Therapist",
+};
 
 export const CustomerDashboard: React.FC = () => {
     const loaderData = useLoaderData<{
@@ -23,7 +34,7 @@ export const CustomerDashboard: React.FC = () => {
     const [workouts, setWorkouts] = useState<Workout[]>(loaderData?.workouts || []);
     const exercises: Exercise[] = loaderData?.exercises || [];
     const workoutSessions: WorkoutSession[] = loaderData?.workoutSessions || [];
-    const [trainer, setTrainer] = useState<User | null>(null);
+    const [trainer, setTrainer] = useState<PT | null>(null);
     const [roomId, setRoomId] = useState<number | null>(null);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [uniqueNotifications, setUniqueNotifications] = useState<Notification[]>([]);
@@ -48,22 +59,37 @@ export const CustomerDashboard: React.FC = () => {
             try {
               const userResponse = await apiClient.get(`/user/${user?.userId}/`);
               const userData = await userResponse.data;
-        
-              console.log("user data:", userData);
-        
-              // Translate from profile id to user id
+      
+              // Fetch all trainers
               const trainersResponse = await apiClient.get("/trainer/");
               const trainerData = await trainersResponse.data;
-        
-              trainerData.find((trainer: any) => { 
-                  if (trainer.trainer_profile.id === userData.profile.personal_trainer) {
-                      setTrainer({ id: trainer.id, username: trainer.username });
-                  }
-              });
-            } catch (error) {
+      
+              // Map trainers
+              const trainers: PT[] = trainerData.map((pt: any) => ({
+                  id: pt.id,
+                  username: pt.username,
+                  first_name: pt.first_name,
+                  last_name: pt.last_name,
+                  trainer_profile: {
+                      id: pt.trainer_profile.id,
+                      experience: pt.trainer_profile.experience,
+                      pt_type: pt.trainer_profile.pt_type,
+                      profile_picture: pt.trainer_profile.profile_picture,
+                  },
+              }));
+      
+              // Find the trainer that matches the user's personal trainer
+              const matchedTrainer = trainers.find(
+                  (trainer: any) => trainer.trainer_profile.id === userData.profile.personal_trainer
+              );
+      
+              if (matchedTrainer) {
+                  setTrainer(matchedTrainer);
+              }
+          } catch (error) {
               console.error("Error fetching trainer data:", error);
-            }
-          };
+          }
+      };
 
           const fetchChatRoomPt = async () => {
             try {
@@ -226,7 +252,7 @@ export const CustomerDashboard: React.FC = () => {
 
         {/* Dashboard layout */}
         <motion.div className="flex flex-row flex-grow gap-x-6 w-full">
-            {/* Left section: Personal Trainer */}
+            {/* Left section: Notifications and Personal Trainer */}
             <motion.div
             className="bg-gray-800 p-6 rounded shadow-lg flex flex-col items-center text-center w-full md:w-1/4"
             initial={{ y: 20 }}
@@ -244,74 +270,87 @@ export const CustomerDashboard: React.FC = () => {
                 Notifications
                 </motion.h3>
 
-                <motion.ul
-                className="p-2 rounded-xl w-full max-w-md space-y-2"
+              <motion.ul
+                className="p-2 rounded-xl w-full space-y-2"
                 initial={{ scale: 0.95 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.3 }}
-                >
+              >
                 {uniqueNotifications.map((notif) => (
-                    <motion.li
+                  <motion.li
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif.chat_room_id)}
-                    className="p-3 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer"
+                    className="p-3 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer w-full"
                     whileHover={{ scale: 1.01 }}
                     transition={{ duration: 0.2 }}
-                    >
+                  >
                     <div className="flex items-center mb-1">
-                        <div className="flex-1 flex items-center min-w-0">
+                      <div className="flex-1 flex items-center min-w-0">
                         <span className="mr-1 flex-shrink-0">📩</span>
                         <span className="font-medium text-xs flex-shrink-0">{notif.sender}</span>
                         <span className="mx-1 text-gray-400 flex-shrink-0">•</span>
                         <span className="mr-1 flex-shrink-0">👥</span>
                         <span className="font-medium text-xs truncate">{notif.chat_room_name}</span>
-                        </div>
-                        <div className="text-xs text-gray-400 whitespace-nowrap ml-1 flex-shrink-0">
+                      </div>
+                      <div className="text-xs text-gray-400 break-words ml-1 flex-shrink-0">
                         <span className="mr-1">⏱️</span>
                         {formatTimeAgo(notif.date_sent)}
-                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-300 truncate">
-                        {notif.message || (notif.workout_message && `🏋️‍♂️ ${notif.workout_message}`)}
+                    <div className="text-sm text-gray-300 break-words">
+                      {notif.message || (notif.workout_message && `🏋️‍♂️ ${notif.workout_message}`)}
                     </div>
-                    </motion.li>
+                  </motion.li>
                 ))}
-                </motion.ul>
+              </motion.ul>
             </motion.div>
 
-            {/* Chatroom Toggle */}
+            {/* Personal Trainer Card */}
             {trainer && roomId && (
                 <motion.div className="w-full mt-4">
                 <h2 className="text-xl font-bold mb-4">My Personal Trainer</h2>
 
-                <motion.div className="flex items-center justify-center gap-x-6">
-                    <h3 className="text-lg font-semibold">{trainer.username}</h3>
-                    <motion.button
-                    onClick={() => setChatRoomVisible(!chatRoomVisible)}
-                    className="p-2 bg-blue-500 hover:bg-blue-600 rounded flex items-center justify-center"
-                    whileHover={{ scale: 1.1 }}
-                    initial={false}
-                    animate={{ scale: chatRoomVisible ? 1.1 : 1 }}
-                    >
-                    {/* Chat icon */}
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="w-6 h-6 text-white"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                    >
-                        <path
-                        fillRule="evenodd"
-                        d="M2 5.75A2.75 2.75 0 014.75 3h14.5A2.75 2.75 0 0122 5.75v8.5A2.75 2.75 0 0119.25 17H8.664l-4.528 3.395A.75.75 0 013 19.896V17H4.75A2.75 2.75 0 012 14.25v-8.5zM7.25 9.75a1 1 0 112 0 1 1 0 01-2 0zm4.75 0a1 1 0 112 0 1 1 0 01-2 0zm5.75-1a1 1 0 100 2 1 1 0 000-2z"
-                        clipRule="evenodd"
-                        />
-                    </svg>
-                    </motion.button>
-                </motion.div>
+                  <motion.div className="flex items-center justify-center space-x-4">
+                    <div className="w-17 h-17 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-600">
+                        <img 
+                          src={trainer.trainer_profile?.profile_picture || defaultProfilePicture}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          />
+                    </div>
+                      <div className="flex flex-col space-y-1 items-start">
+                      <h3 className="text-lg font-semibold">
+                        {trainer.first_name} {trainer.last_name} 
+                      </h3>
+                      <span className="text-xs font-semibold rounded-lg text-gray-300">
+                          {PT_TYPE_MAP[trainer.trainer_profile?.pt_type || "N/A"]}
+                      </span>
+
+                      </div>
+
+                      <motion.button
+                        // Toggle chat room visibility
+                        onClick={() => setChatRoomVisible(!chatRoomVisible)}
+                        className="flex items-center justify-center rounded-full p-2 bg-blue-500 hover:bg-blue-600 cursor-pointer"
+                        whileHover={{ scale: 1.1 }}
+                        initial={false}
+                        animate={{ scale: chatRoomVisible ? 1.1 : 1 }}
+                      >
+                        {/* Chat icon */}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-6 h-6 text-white"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M2 5a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H6l-4 4V5z" />
+                        </svg>
+                      </motion.button>
+                    </motion.div>
                 </motion.div>
             )}
 
-            {/* Get a PT */}
+            {/* Get a Personal Trainer if it is not already assigned */}
             {!trainer && (
                 <motion.div>
                 <h2 className="text-xl font-bold mb-4">My Personal Trainer</h2>
@@ -328,19 +367,33 @@ export const CustomerDashboard: React.FC = () => {
             </motion.div>
     
             {/* Main Panel: Middle + Right sections or Chat Room */}
+            {/* Check if the user has opened the chat room */}
             <AnimatePresence mode="wait">
                 {chatRoomVisible ? (
                 <motion.div
                     key="chatRoom"
-                    className="bg-gray-900 p-6 rounded shadow-md flex flex-col items-center text-center flex-[3]"
+                    className="flex flex-col text-center flex-[3]"
                     initial={{ opacity: 0, scale: 0.9, x: -50 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.9, x: -50 }}
                     transition={{ duration: 0.5 }}
-                >
-                    <ChatRoom chatRoomId={roomId ?? -1} onLeave={() => setRoomId(null)} />
+                >          
+                <div className="">
+                  {/* X Button to Exit Chat Room */}
+                  <motion.button
+                      onClick={() => setChatRoomVisible(false)}
+                      className="text-white text-2xl rounded-full cursor-pointer absolute right-10"
+                      aria-label="Close Chat Room"
+                      whileHover={{ scale: 1.1 }}
+                  >
+                      ✕
+                  </motion.button>
+                </div>
+                { /* Chat Room Component */}
+                <ChatRoom chatRoomId={roomId ?? -1} onLeave={() => setRoomId(null)} />
                 </motion.div>
                 ) : (
+                
                 <motion.div
                     key="dashboardContent"
                     className="flex flex-row gap-x-6 flex-[3]"

@@ -52,16 +52,26 @@ type Notification = {
   type chatRoom = {
     id: number;
   }
-
+// Interface to define the structure of a user object
   type User = {
     id: number;
     username: string;
+    first_name: string;
+    last_name: string;
+    profile?: {
+        id: number | null;
+        height: number | null;
+        weight: number | null;
+        personal_trainer: number | null;
+        pt_chatroom: number | null;
+        profile_picture: string | null;
+    };
   };
 
 // Interface to define the structure of a personal trainer object
   type PT = {
     id: number;
-    name: string;
+    username: string;
     first_name: string;
     last_name: string;
     trainer_profile?: {

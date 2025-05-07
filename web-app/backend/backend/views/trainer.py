@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from backend.models import ScheduledWorkout, WorkoutSession, Workout
-from backend.serializers import PersonalTrainerSerializer, ScheduledWorkoutSerializer, DefaultUserSerializer, WorkoutSessionSerializer, WorkoutSerializer
+from backend.serializers import PersonalTrainerSerializer, ScheduledWorkoutSerializer, UserSerializer, WorkoutSessionSerializer, WorkoutSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, serializers
 from django.shortcuts import get_object_or_404
@@ -28,7 +28,7 @@ class UpdatePersonalTrainerView(generics.UpdateAPIView):
         return User.objects.filter(id=user.id)
 
 class ClientsListView(generics.ListAPIView):
-    serializer_class = DefaultUserSerializer
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):

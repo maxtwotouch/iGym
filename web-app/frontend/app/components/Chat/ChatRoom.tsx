@@ -428,7 +428,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
     return (
         <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-4"
+            className="min-h-screen flex flex-col items-center justify-center text-white p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}

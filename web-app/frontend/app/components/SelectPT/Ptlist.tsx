@@ -35,7 +35,7 @@ const PtList: React.FC = () => {
       .then((data) => {
         const trainers: PT[] = data.map((pt: any) => ({
           id: pt.id,
-          name: pt.username,
+          username: pt.username,
           first_name: pt.first_name,
           last_name: pt.last_name,
           trainer_profile: {
@@ -53,12 +53,12 @@ const PtList: React.FC = () => {
   // Filter and sort logic
   const filteredPts = pts
     .filter((pt) => {
-      const matchesName = pt.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesName = pt.username.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = filterType === "all" || pt.trainer_profile?.pt_type === filterType;
       return matchesName && matchesType;
     })
     .sort((a, b) =>
-      sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+      sortOrder === "asc" ? a.username.localeCompare(b.username) : b.username.localeCompare(a.username)
     );
       
 
@@ -74,7 +74,7 @@ const PtList: React.FC = () => {
           try {
               if (user?.profile.personal_trainer){
                   if (user.profile.personal_trainer === ptProfileId) {
-                      alert(`You already have ${pt.name} as personal trainer`);
+                      alert(`You already have ${pt.username} as personal trainer`);
                       return;
                   }
 
@@ -83,7 +83,7 @@ const PtList: React.FC = () => {
                       const current_pt = pts.find(pt => pt.trainer_profile?.id === user.profile.personal_trainer)
 
                       const confirmSwitch = window.confirm(
-                          `You already have ${current_pt?.name} as personal trainer. Are you sure you want to switch to ${pt.name}?`
+                          `You already have ${current_pt?.username} as personal trainer. Are you sure you want to switch to ${pt.username}?`
                       );
                       
                       // The user chose to stay with the current personal trainer
@@ -102,7 +102,7 @@ const PtList: React.FC = () => {
               profile: {personal_trainer: ptProfileId}})
 
           // Create a chat room between the user and the PT
-          const chatRoomId = await createChatRoomWithPt(ptUserId, pt.name, user?.username || "Client");
+          const chatRoomId = await createChatRoomWithPt(ptUserId, pt.username, user?.username || "Client");
            
           // Update user's pt_chatroom field
           await apiClient.patch(`/user/update/${user?.userId}/`, {
@@ -222,27 +222,34 @@ const PtList: React.FC = () => {
                       <motion.div 
                           key={pt.id} 
                           data-id={pt.id}
-                          className={`p-6 rounded-lg cursor-pointer shadow-lg flex flex-row justify-between items-center space-x-4 transition-all duration-300 ${
+                          className={`p-6 rounded-lg cursor-pointer shadow-lg flex flex-col space-y-2 transition-all duration-300 ${
                               selectedPt?.id === pt.id 
                               ? "bg-gray-700 transform scale-105" 
                               : "bg-gray-800 hover:bg-gray-700"}`} 
                           whileHover={{ scale: 1.02 }}
                           onClick={() => setSelectedPt(selectedPt?.id === pt.id ? null : pt)}
                       >
-                          <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                  <h3 className="text-2xl font-bold text-white">
-                                      {pt.first_name} {pt.last_name}
-                                  </h3>
-                                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-700 text-gray-300">
-                                      {PT_TYPE_MAP[pt.trainer_profile?.pt_type || "N/A"]}
-                                  </span>
-                              </div>
-                              <p className="text-sm text-gray-400">{pt.trainer_profile?.experience || "N/A"}</p>
-                              
+                        <div className="flex flex-row justify-between items-center space-x-4">
+                          <div className="flex flex-1 flex-col space-y-2">
+                                <h3 className="text-2xl font-bold text-white">
+                                    {pt.first_name} {pt.last_name}
+                                </h3>
+                                <span className="text-xs font-semibold rounded-lg text-gray-300">
+                                    {PT_TYPE_MAP[pt.trainer_profile?.pt_type || "N/A"]}
+                                </span>
+                                <p className="text-sm text-gray-400">{pt.trainer_profile?.experience || "N/A"}</p>
+                            </div>
+                            <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-600">
+                              <img 
+                                  src={pt.trainer_profile?.profile_picture || defaultProfilePicture}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                              />
+                            </div>
+                        </div>            
                               {selectedPt?.id === pt.id && (
                                   <motion.button
-                                  className="w-full py-3 mt-4 bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300 shadow-lg"
+                                  className="w-full py-3 mt-4 bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300 shadow-lg cursor-pointer"
                                   name="selectPtButton"
                                   whileHover={{ scale: 1.05 }}
                                   onClick={() => newPt(selectedPt.id, selectedPt.trainer_profile?.id || -1)}
@@ -254,16 +261,8 @@ const PtList: React.FC = () => {
                                       <span>Confirm Your Personal Trainer</span>
                                   </span>
                               </motion.button>
-                              )}
+                              )}    
 
-                          </div>
-                          <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-600 transform hover:scale-110 transition-transform duration-300">
-                              <img 
-                                  src={pt.trainer_profile?.profile_picture || defaultProfilePicture}
-                                  alt=""
-                                  className="w-full h-full object-cover"
-                              />
-                          </div>
                       </motion.div>
                   ))
           )}
