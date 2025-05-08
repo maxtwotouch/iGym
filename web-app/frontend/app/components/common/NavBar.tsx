@@ -24,13 +24,25 @@ export const NavBar: React.FC = () => {
 
   // --- 1) On mount: fetch either /user/:id/ or fallback to /trainer/:id/ ---
   useEffect(() => {
-    if (!user?.userId) return;
-    const load = async () => {
-      setProfileImage(user?.profile.profile_picture || defaultProfilePicture);
+    if (!user?.userId || !user?.userType) return;
+  
+    const fetchProfileImage = async () => {
+      try {
+        if (user.userType === "user") {
+          const res = await apiClient.get(`/user/${user.userId}/`);
+          setProfileImage(res.data.profile?.profile_picture || defaultProfilePicture);
+        } else if (user.userType === "trainer") {
+          const res = await apiClient.get(`/trainer/${user.userId}/`);
+          setProfileImage(res.data.trainer_profile?.profile_picture || defaultProfilePicture);
+        }
+      } catch (err) {
+        console.error("Error fetching profile image:", err);
+        setProfileImage(defaultProfilePicture);
+      }
     };
-    load();
-  }, [user?.userId]);
-
+  
+    fetchProfileImage();
+  }, [user?.userId, user?.userType]);
   // --- 2) Once we know our type, fetch the other list: trainer→clients, user→their trainer ---
   useEffect(() => {
     if (!user?.userType || !user?.userId) return;
