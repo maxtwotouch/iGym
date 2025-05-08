@@ -8,16 +8,17 @@ import apiClient from "~/utils/api/apiClient";
 import { toLocalISOString } from "~/utils/date";
 import { useAuth } from "~/context/AuthContext";
 
+type SetInfo = { exerciseName: string; repetitions: number; weight?: number };
+
 type CalendarEvent = {
   id: string;
   workout_id: number;
   title: string;
   start: string;
-  end?: string;
-  duration?: string;
+  duration?: string;         
+  sets?: SetInfo[];          
   completed: boolean;
 };
-
 export const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const { user, getToken } = useAuth();
@@ -62,9 +63,9 @@ useEffect(() => {
   (async () => {
     setLoading(true);
     try {
-      const token = await getToken(); // you still need this for other calls
+      const token = await getToken(); 
 
-      // 1) Generic scheduled workouts (uses your helper)
+      // 1) Generic scheduled workouts 
       const schedData = await fetchScheduledWorkouts();
       const sched: CalendarEvent[] = schedData
         ? schedData.map((w: any) => ({
@@ -76,7 +77,7 @@ useEffect(() => {
           }))
         : [];
 
-      // 2) Personal workout sessions (uses your helper)
+      // 2) Personal workout sessions 
       const sessData = await fetchWorkoutSessions();
       const sessions: CalendarEvent[] = sessData
         ? sessData.map((s) => ({
