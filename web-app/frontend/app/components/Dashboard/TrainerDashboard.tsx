@@ -413,7 +413,7 @@ export const TrainerDashboard: React.FC = () => {
                       .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
                       .slice(0, showAll ? undefined : 5)
                       .map((w, i) => (
-                        <li key={i} className="p-4 bg-gray-700 rounded text-white">
+                        <li key={i} className="p-4 bg-gray-700 rounded text-white w-[500px]">
                           <div className="mb-2">
                             <span className="block text-lg font-semibold">👤 Client: {w.client_username}</span>
                             <span className="block text-md font-medium">🏋️ Workout: {w.workout_title}</span>

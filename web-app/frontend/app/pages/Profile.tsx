@@ -324,7 +324,7 @@ const ProfilePage: React.FC = () => {
                           />
                         ) : (
                           <p className="text-white">
-                            {profileData.profile?.[f] ?? "—"}
+                            {profileData.profile?.[f as keyof typeof profileData.profile] ?? "—"}
                           </p>
                         )}
                       </div>
