@@ -26,9 +26,6 @@ from .models import (
 from .utils import is_locked_out, get_client_ip_address
 
 
-# -------------------------------------------------------------------
-# Default serializers for simple User creation (no profile nesting)
-# -------------------------------------------------------------------
 
 class DefaultUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,53 +37,55 @@ class DefaultUserSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
-# ------------------------
-# User Profile serializers
-# ------------------------
-
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["id", "height", "weight", "personal_trainer", "pt_chatroom", "profile_picture"]
 
-
+# Nested serializer to connect with the User profile model
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
 
     class Meta:
         model = User
         fields = ["id", "username", "first_name", "last_name", "password", "profile"]
+        
+        # Should not be able to read the password
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
-        pwd = data.get("password")
-        if pwd:
+        # Validate the password
+        password = data.get("password")
+        if password:
             try:
-                validate_password(pwd)
-            except DjangoValidationError as exc:
-                raise DRFValidationError({"password": exc.messages})
+                validate_password(password)
+            except DjangoValidationError as e:
+                raise DRFValidationError({"password": e.messages})
+        
         return data
 
     def create(self, validated_data):
-        profile_data = validated_data.pop("profile")
+        profile_data = validated_data.pop('profile')
         user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user, **profile_data)
+        profile_data["user"] = user
+        
+        UserProfile.objects.create(**profile_data)
         return user
 
     def update(self, instance, validated_data):
+        # Extract nested user_profile data (if any)
         profile_data = validated_data.pop("profile", None)
+        # Update the flat fields of the User model
         instance = super().update(instance, validated_data)
+        
         if profile_data:
             profile = instance.profile
-            for attr, val in profile_data.items():
-                setattr(profile, attr, val)
+            # Update each attribute in UserProfile with the new values
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
             profile.save()
         return instance
 
-
-# -------------------------------------
-# Personal Trainer nested profile logic
-# -------------------------------------
 
 class PersonalTrainerProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -103,34 +102,35 @@ class PersonalTrainerSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
-        pwd = data.get("password")
-        if pwd:
+        password = data.get("password", None)
+        if password:
             try:
-                validate_password(pwd)
-            except DjangoValidationError as exc:
-                raise DRFValidationError({"password": exc.messages})
+                validate_password(password)
+            except DjangoValidationError as e:
+                raise DRFValidationError({"password": e.messages})
         return data
 
     def create(self, validated_data):
-        tp_data = validated_data.pop("trainer_profile")
+        profile_data = validated_data.pop('trainer_profile')
         user = User.objects.create_user(**validated_data)
-        PersonalTrainerProfile.objects.create(user=user, **tp_data)
+        profile_data["user"] = user
+        
+        PersonalTrainerProfile.objects.create(**profile_data)
         return user
 
     def update(self, instance, validated_data):
-        tp_data = validated_data.pop("trainer_profile", None)
+        trainer_profile_data = validated_data.pop("trainer_profile", None)
+        
         instance = super().update(instance, validated_data)
-        if tp_data:
-            profile = instance.trainer_profile
-            for attr, val in tp_data.items():
-                setattr(profile, attr, val)
-            profile.save()
+        
+        if trainer_profile_data:
+            trainer_profile = instance.trainer_profile
+            
+            for attr, value in trainer_profile_data.items():
+                setattr(trainer_profile, attr, value)
+            trainer_profile.save()
         return instance
 
-
-# ------------------------
-# Exercise & workout logic
-# ------------------------
 
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
@@ -145,6 +145,7 @@ class SetSerializer(serializers.ModelSerializer):
 
 
 class ExerciseSessionSerializer(serializers.ModelSerializer):
+    # Include related sets
     sets = SetSerializer(many=True, read_only=True)
 
     class Meta:
@@ -156,10 +157,13 @@ class WorkoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workout
         fields = ["id", "author", "owners", "name", "date_created", "exercises"]
+        
+        # Should not be able to set the author manually
         extra_kwargs = {"author": {"read_only": True}}
 
 
 class WorkoutSessionSerializer(serializers.ModelSerializer):
+    # Include related exercise sessions
     exercise_sessions = ExerciseSessionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -176,11 +180,9 @@ class WorkoutSessionSerializer(serializers.ModelSerializer):
         extra_kwargs = {"user": {"read_only": True}}
 
 
-# ---------------------------------------
-# Scheduled workouts for users & trainers
-# ---------------------------------------
 
 class ScheduledWorkoutSerializer(serializers.ModelSerializer):
+    # Include the name of the related workout
     workout_title = serializers.ReadOnlyField(source="workout_template.name")
 
     class Meta:
@@ -197,10 +199,6 @@ class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
         fields = ["id", "client", "pt", "workout_template", "workout_title", "scheduled_date"]
         extra_kwargs = {"pt": {"read_only": True}}
 
-
-# ----------------------------
-# Messaging & notification API
-# ----------------------------
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -238,33 +236,33 @@ class NotificationSerializer(serializers.ModelSerializer):
         ]
 
 
-# -------------------------------------------------
-# JWT Token serializer with lockout & custom claims
-# -------------------------------------------------
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         username   = attrs.get("username")
         ip_address = get_client_ip_address(self.context["request"])
 
+        # Check if the user is suspended
         if is_locked_out(username, ip_address):
             raise AuthenticationFailed("Too many failed login attempts. Try again later.")
 
         try:
             data = super().validate(attrs)
         except AuthenticationFailed:
+            # Login failed, create a failed login attempt
             FailedLoginAttempt.objects.create(username=username, ip_address=ip_address)
             raise
 
-        # Clean up old failures
+         # Login succeeded, delete the old failed login attempts
         FailedLoginAttempt.objects.filter(username=username, ip_address=ip_address).delete()
 
+        # The custom payload returned along with the access and refresh token
         user = self.user
         data["id"]         = user.id
         data["username"]   = user.username
         data["first_name"] = user.first_name
         data["last_name"]  = user.last_name
 
+        # If it is a user
         if hasattr(user, "profile"):
             data["profile"] = {
                 "role":   user.profile.role,
@@ -273,7 +271,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         elif hasattr(user, "trainer_profile"):
             data["trainer_profile"] = {"role": user.trainer_profile.role}
 
-        # Don't remove!
         data["accessExp"] = settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"]
         data["refreshExp"] = settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"]
 

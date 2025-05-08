@@ -87,9 +87,6 @@ class TestPersonalTrainerDetailView(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
     def test_unauthenticated_user_do_not_have_access(self):
-        # Remove the authentication
-        self.client.force_authenticate(user=None)
-        
         response = self.client.get(self.url)
         # Check that the response status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

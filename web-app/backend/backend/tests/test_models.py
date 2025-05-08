@@ -197,7 +197,7 @@ class WorkoutModelTest(TestCase):
         # It is the job of the view to add the user as an owner
         self.assertEqual(workout.owners.count(), 0)
         
-        # Make sure that the 2 exercises were added to the workout
+        # Make sure that the two exercises were added to the workout
         self.assertIn(self.first_exercise, workout.exercises.all())
         self.assertIn(self.second_exercise, workout.exercises.all())
         
@@ -417,7 +417,6 @@ class SetModelTest(TestCase):
         # Make sure that the set was deleted
         self.assertEqual(Set.objects.count(), 0)
 
-    # Visit later, should be tested against max digits and assigned decimal places
 
 class ChatRoomModelTest(TestCase):
     def setUp(self):
@@ -484,34 +483,27 @@ class MessageModelTest(TestCase):
         content = "test message"
         message = Message(sender=self.user, content=content)
         
-        # Should raise a validation error as content is a required field
         with self.assertRaises(IntegrityError):
             message.save()
     
     def test_create_message_without_sender(self):
         content = "test message"
         message = Message(content=content, chat_room=self.chat_room)
-        
-        # Should raise a validation error as content is a required field
+        d
         with self.assertRaises(IntegrityError):
             message.save()
     
     def test_delete_chat_room_cascade(self):
         message = Message.objects.create(sender=self.user, content="test message", chat_room=self.chat_room)
         
-        # Deleting the chat room should also delete the message
         self.chat_room.delete()
         
-        # Make sure that the message was deleted
         self.assertEqual(Message.objects.count(), 0)
     
     def test_delete_sender_cascade(self):
         message = Message.objects.create(sender=self.user, content="test message", chat_room=self.chat_room)
-        
-        # Deleting the sender should also delete the message
         self.user.delete()
         
-        # Make sure that the message was deleted
         self.assertEqual(Message.objects.count(), 0)
 
 class WorkoutMessageModelTest(TestCase):
@@ -519,7 +511,6 @@ class WorkoutMessageModelTest(TestCase):
         self.user = User.objects.create_user(username="testuser", password="password")
         self.chat_room = ChatRoom.objects.create(name="test chat room")
         
-        # Create a test exercise
         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.workout = Workout.objects.create(name="test workout", author=self.user)
         self.workout.exercises.set([self.exercise])
@@ -536,31 +527,26 @@ class WorkoutMessageModelTest(TestCase):
     def  test_create_workout_message_without_workout(self):
         workout_message = WorkoutMessage(chat_room=self.chat_room, sender=self.user)
         
-        # Should raise a validation error as workout is a required field
         with self.assertRaises(IntegrityError):
             workout_message.save()
     
     def test_create_workout_message_without_chat_room(self):
         workout_message = WorkoutMessage(workout=self.workout, sender=self.user)
         
-        # Should raise a validation error as chat room is a required field
         with self.assertRaises(IntegrityError):
             workout_message.save()
     
     def test_create_workout_message_without_sender(self):
         workout_message = WorkoutMessage(workout=self.workout, chat_room=self.chat_room)
         
-        # Should raise a validation error as sender is a required field
         with self.assertRaises(IntegrityError):
             workout_message.save()
     
     def test_delete_workout_cascade(self):
         workout_message = WorkoutMessage.objects.create(workout=self.workout, chat_room=self.chat_room, sender=self.user)
         
-        # Deleting the workout should also delete the workout message
         self.workout.delete()
         
-        # Make sure that the workout message was deleted
         self.assertEqual(WorkoutMessage.objects.count(), 0)
     
     def test_delete_chat_room_cascade(self):

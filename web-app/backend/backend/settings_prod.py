@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'fallback-secret-key')
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-# For production, set ALLOWED_HOSTS to your domain(s)
+# Allowed hosts for production
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
 # Application definition
@@ -40,14 +40,11 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-# Optionally, limit allowed origins for CORS in production:
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
     'https://localhost'
 ).split(',')
 
-# Alternatively, if you trust all origins in production (less secure):
-# CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -166,7 +163,7 @@ CSRF_COOKIE_SECURE = True
 # Don't redirect to HTTPS if the request is proxied by Nginx (was https before reaching Django)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# When using HTTPS, you might also need to trust your domain for CSRF:
+
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     'CSRF_TRUSTED_ORIGINS', 'https://localhost'
 ).split(',')

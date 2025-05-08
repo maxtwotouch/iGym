@@ -211,7 +211,7 @@ class TestListWorkout(APITestCase):
 
         self.client.force_authenticate(user=third_user)
         
-        # Since the third user is an owner of the second user workout, it should come up when the third user calls this endpoint
+        # Since the third user is an owner of the second user workout, it should be returned when the third user calls this endpoint
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
