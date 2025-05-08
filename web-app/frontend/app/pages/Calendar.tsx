@@ -64,7 +64,7 @@ export const Calendar: React.FC = () => {
         // 1) generic scheduled workouts
         const sched = await fetchScheduledWorkouts();
 
-        // 2) PT-scheduled workouts for both roles
+        // 2) PT-scheduled workouts
         const token = await getToken();
         const r = await apiClient.get("/schedule/pt_workout/", {
           headers: { Authorization: `Bearer ${token}` },
@@ -159,14 +159,22 @@ export const Calendar: React.FC = () => {
   // Schedule POST
   const schedule = async () => {
     if (!selectedWorkoutId || !selectedDateTime) return;
-    const isoForBackend = new Date(selectedDateTime).toISOString();
-    let payload: any = {
+    const scheduledDate = new Date(selectedDateTime);
+    const now = new Date();
+    if (scheduledDate < now) {
+      alert("Please choose a future date and time.");
+      return;
+    }
+
+    const isoForBackend = scheduledDate.toISOString();
+    const isPT = user?.userType === "trainer";
+    const payload: any = {
       workout_template: selectedWorkoutId,
       scheduled_date: isoForBackend,
     };
     let url = "/schedule/workout/create/";
 
-    if (user?.userType === "trainer") {
+    if (isPT) {
       if (!selectedClientId) {
         alert("Please select a client");
         return;
@@ -179,16 +187,17 @@ export const Calendar: React.FC = () => {
       const res = await apiClient.post(url, payload);
       if (res.status !== 201) throw new Error("Bad status");
       const ns = res.data;
-      const withWhom =
-        user?.userType === "trainer"
-          ? clients.find((c) => c.id === selectedClientId)?.username
-          : ns.pt_username ?? "Trainer";
-      const title = `${ns.workout_title} with ${withWhom}`;
+      let title = ns.workout_title;
+      if (isPT) {
+        const withWhom =
+          clients.find((c) => c.id === selectedClientId)?.username ?? "Client";
+        title = `${ns.workout_title} with ${withWhom}`;
+      }
 
       setEvents((prev) => [
         ...prev,
         {
-          id: `${url.includes("pt_workout") ? "pt-" : "scheduled-"}${ns.id}`,
+          id: `${isPT ? 'pt-' : 'scheduled-'}${ns.id}`,
           workout_id: ns.workout_template,
           title,
           start: ns.scheduled_date,
@@ -234,7 +243,7 @@ export const Calendar: React.FC = () => {
               <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">Next ›</button>
             </div>
             <div className="grid grid-cols-7 text-center text-sm font-semibold border-b border-gray-700 pb-1">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
                 <div key={d}>{d}</div>
               ))}
             </div>
@@ -271,8 +280,7 @@ export const Calendar: React.FC = () => {
                           {new Date(ev.start).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
-                          })}{" "}
-                          – {ev.title}
+                          })}{" "}- {ev.title}
                         </div>
                       ))}
                       {dayEvents.length > 3 && (
@@ -315,6 +323,7 @@ export const Calendar: React.FC = () => {
                   className="form-control bg-gray-700 text-white w-full p-2 rounded mb-3"
                   value={selectedDateTime}
                   onChange={(e) => setSelectedDateTime(e.target.value)}
+                  min={toLocalISOString(new Date())}
                 />
                 <label className="form-label text-gray-300">Select Workout:</label>
                 <select
@@ -356,13 +365,8 @@ export const Calendar: React.FC = () => {
                   {selectedEvent.completed ? "Completed session" : "Scheduled workout"}
                 </p>
                 <p className="text-gray-300">
-                  {new Date(selectedEvent.start).toLocaleDateString(undefined, {
-                    dateStyle: "medium",
-                  })}{" "}
-                  {new Date(selectedEvent.start).toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(selectedEvent.start).toLocaleDateString(undefined, { dateStyle: "medium" })}{" "}
+                  {new Date(selectedEvent.start).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
                 </p>
                 {selectedEvent.duration && <p className="text-gray-300">Duration: {selectedEvent.duration}</p>}
                 <div className="flex justify-end">
