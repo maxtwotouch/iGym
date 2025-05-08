@@ -103,8 +103,14 @@ const EditWorkout: React.FC = () => {
         return;
       }
     }
-    catch (error) {
-      console.error("Error saving workout:", error);
+    catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        alert("Invalid workout name. Please try a different name.");
+      }
+      else {
+        console.error("Error editing workout:", error);
+        alert("An unexpected error occurred.");
+      }
       return;
     }
 

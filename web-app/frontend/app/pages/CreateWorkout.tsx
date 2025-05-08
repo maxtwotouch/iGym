@@ -55,9 +55,14 @@ const CreateWorkout: React.FC = () => {
 
       navigate("/dashboard");
 
-    } catch (error) {
-      console.error("Error adding workout:", error);
-      alert("An unexpected error occurred.");
+    } catch (error: any) {
+      if (error.response && error.response.status === 400) {
+        alert("Invalid workout name. Please try a different name.");
+      }
+      else {
+        console.error("Error adding workout:", error);
+        alert("An unexpected error occurred.");
+      }
     }
   };
 
