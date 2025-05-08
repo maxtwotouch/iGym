@@ -44,7 +44,6 @@ export const mapWorkoutSessionsToCalendarEvents = async () => {
               workout_id: session.workout,
               title: workoutMap.get(session.workout) || "Workout Session",
               start: startTime.toISOString(),
-              end: endTime.toISOString(),
               duration: session.duration,
             };
           });

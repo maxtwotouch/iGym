@@ -109,7 +109,7 @@ class CalendarTest(StaticLiveServerTestCase):
         
         # Find the workout session event within today's cell
         workout_event = WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'div.text-xs.truncate.bg-blue-600'))
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'div.text-xs.truncate.bg-green-600'))
         )
         
         workout_event.click()

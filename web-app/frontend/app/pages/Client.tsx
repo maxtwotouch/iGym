@@ -45,7 +45,7 @@ export default function ClientCalendar() {
         // 2) fetch planned workouts
         const schedRes = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
         const ptSchedRes = await apiClient.get(`/schedule/pt_workout/`);
-        const clientIdAsNumber = Number(id); // Convert id to number
+        const clientIdAsNumber = Number(id); 
         const ptSched = (ptSchedRes.data as any[]).find(w => w.client === clientIdAsNumber);
         if (ptSched) {
           schedRes.data.push({

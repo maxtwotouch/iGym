@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts";
+import { fetchWorkoutSessions } from "~/utils/api/workoutSessions";
 import { mapWorkoutSessionsToCalendarEvents } from "~/utils/calendarHelper";
 import apiClient from "~/utils/api/apiClient";
 import { toLocalISOString } from "~/utils/date";
@@ -56,56 +57,73 @@ export const Calendar: React.FC = () => {
     })();
   }, [user?.userType, getToken]);
 
-  // Load all events
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        // 1) generic scheduled workouts
-        const sched = await fetchScheduledWorkouts();
+// Load all events
+useEffect(() => {
+  (async () => {
+    setLoading(true);
+    try {
+      const token = await getToken(); // you still need this for other calls
 
-        // 2) PT-scheduled workouts
-        const token = await getToken();
-        const r = await apiClient.get("/schedule/pt_workout/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      // 1) Generic scheduled workouts (uses your helper)
+      const schedData = await fetchScheduledWorkouts();
+      const sched: CalendarEvent[] = schedData
+        ? schedData.map((w: any) => ({
+            id: `scheduled-${w.id}`,
+            workout_id: w.workout_template,
+            title: w.workout_title,
+            start: w.scheduled_date,
+            completed: false,
+          }))
+        : [];
+
+      // 2) Personal workout sessions (uses your helper)
+      const sessData = await fetchWorkoutSessions();
+      const sessions: CalendarEvent[] = sessData
+        ? sessData.map((s) => ({
+            id: `session-${s.id}`,
+            workout_id: s.workout,
+            title: s.workout_name ?? "Workout Session",
+            start: s.start_time,
+            completed: true,   
+          }))
+        : [];
+
+        // PT 1-on-1 sessions
         let ptSched: CalendarEvent[] = [];
-        if (r.status === 200) {
-          const now = new Date();
-          ptSched = r.data.map((it: any) => {
-            const withWhom =
-              user?.userType === "trainer"
-                ? clients.find((c) => c.id === it.client)?.username ?? "Client"
-                : it.pt_username ?? "Trainer";
-            return {
-              id: `pt-${it.id}`,
-              workout_id: it.workout_template,
-              title: `${it.workout_title} with ${withWhom}`,
-              start: it.scheduled_date,
-              completed: new Date(it.scheduled_date) < now,
-            };
+        try {
+          const r = await apiClient.get("/schedule/pt_workout/", {
+            headers: { Authorization: `Bearer ${token}` },
           });
+          if (r.status === 200) {
+            const now = new Date();
+            ptSched = r.data.map((it: any) => {
+              const client = clients.find((c) => c.id === it.client);
+              const clientUsername = client?.username ?? "Client";
+              const ptUsername     = it.pt_username  ?? "Trainer";
+              const withWhom       = user?.userType === "trainer" ? clientUsername : ptUsername;
+        
+              return {
+                id: `pt-${it.id}`,
+                workout_id: it.workout_template,
+                title: `${it.workout_title} with ${withWhom}`,
+                start: it.scheduled_date,
+                completed: new Date(it.scheduled_date) < now,
+              };
+            });
+          }
+        } catch {
+          console.warn("Skipping PT workouts due to error");
         }
-
-        // 3) workout sessions
-        const sessions = await mapWorkoutSessionsToCalendarEvents();
-
-        setEvents([
-          ...sched.map((ev) => ({ ...ev, completed: false })),
-          ...ptSched,
-          ...sessions.map((ev) => ({
-            ...ev,
-            completed: ev.end ? new Date(ev.end) < new Date() : false,
-          })),
-        ]);
-      } catch (e) {
-        console.error("Failed to load calendar", e);
-        setError("Failed to load calendar");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [navigate, user?.userType, clients, getToken]);
+      setEvents([...sched, ...ptSched, ...sessions]);
+    } catch (e: any) {
+      console.error("Failed to load calendar", e);
+      const msg = e.response?.data?.detail || e.message || "Unknown error";
+      setError(`Failed to load calendar: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [navigate, user?.userType, clients, getToken]);
 
   // Load workout templates
   useEffect(() => {
