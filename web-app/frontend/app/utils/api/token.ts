@@ -11,11 +11,20 @@ export const fetchToken = async (credentials: { username: string; password: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
     });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch token");
-    }
     const data = await response.json();
+    if (!response.ok) {
+        // collect field errors
+        const fieldErrors: string[] = [];
+        for (const key in data) {
+          const v = data[key];
+          fieldErrors.push(
+            Array.isArray(v) ? `${key}: ${v.join(" ")}` : `${key}: ${v}`
+          );
+        }
+        alert("Login failed:\n" + fieldErrors.join("\n"));
+        return;
+    }
+
     return data;
 };
 

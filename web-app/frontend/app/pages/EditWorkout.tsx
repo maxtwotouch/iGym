@@ -104,14 +104,16 @@ const EditWorkout: React.FC = () => {
       }
     }
     catch (error: any) {
-      if (error.response && error.response.status === 400) {
-        alert("Invalid workout name. Please try a different name.");
+      // Check if the error is due to name validation
+      if (error.response?.data?.name) {
+        alert(`Validation Error: ${error.response.data.name.join(" ")}`);
+        return;
+      } 
+
+      else{
+        alert(`Error: ${error.response?.data?.detail || error.message}`);
+        return;
       }
-      else {
-        console.error("Error editing workout:", error);
-        alert("An unexpected error occurred.");
-      }
-      return;
     }
 
     navigate("/dashboard");

@@ -65,7 +65,6 @@ export const RegistrationForm: React.FC = () => {
       alert("Registration successful!");
       navigate("/login");
     } catch (err) {
-      console.error("Network error:", err);
       alert("An error occurred during registration.");
     }
   };

@@ -49,19 +49,21 @@ const CreateWorkout: React.FC = () => {
           }
         }
 
-        alert("Edit failed:\n" + fieldErrors.join("\n"));
+        alert("Workout creation failed:\n" + fieldErrors.join("\n"));
         return;
       }
 
       navigate("/dashboard");
 
     } catch (error: any) {
-      if (error.response && error.response.status === 400) {
-        alert("Invalid workout name. Please try a different name.");
-      }
-      else {
-        console.error("Error adding workout:", error);
-        alert("An unexpected error occurred.");
+      if (error.response?.data?.name) {
+        alert(`Validation Error: ${error.response.data.name.join(" ")}`);
+        return;
+      } 
+
+      else{
+        alert(`Error: ${error.response?.data?.detail || error.message}`);
+        return;
       }
     }
   };

@@ -19,44 +19,9 @@ export const LoginForm = () => {
         if (success) {
           // Redirect to the page they were trying to access
           navigate(from);
-        } else {
-          alert("Login failed. Please check your credentials.");
-        }
+        } 
       });
 
-      // if (response.ok) {
-      //   const data = await response.json();
-      //   console.log("Login successful:", data);
-
-      //   // Store JWT tokens
-      //   localStorage.setItem("accessToken", data.access);
-      //   localStorage.setItem("refreshToken", data.refresh);
-      //   localStorage.setItem("username", data.username);
-      //   localStorage.setItem("user_id", data.id ?? "unknown"); // Ensure ID is stored
-        
-      //   console.log(data);
-
-      //   // Store user type
-      //   if (data.profile?.role) {
-      //     localStorage.setItem("userType", data.profile.role);
-      //   } else if (data.trainer_profile?.role) {
-      //     if (data.trainer_profile.role === "personal_trainer") {
-      //       localStorage.setItem("userType", "trainer");
-      //     }
-      //   }
-
-      //   // Store weight for user role
-      //   if (data.profile?.role === "user") {
-      //     console.log("storing the user's weight");
-      //     localStorage.setItem("weight", data.profile.weight ?? "unknown");
-      //   }
-
-      //   navigate("/dashboard");
-      // } else {
-      //   const errorData = await response.json();
-      //   console.error("Login failed:", errorData);
-      //   alert("Login failed: " + (errorData.detail || "Unknown error"));
-      // }
     } catch (error) {
       console.error("Error during login:", error);
       alert("An error occurred during login. Please try again later.");

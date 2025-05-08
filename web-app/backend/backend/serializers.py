@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from backend.models import validate_name
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed, ValidationError as DRFValidationError
@@ -61,6 +62,21 @@ class UserSerializer(serializers.ModelSerializer):
                 validate_password(password)
             except DjangoValidationError as e:
                 raise DRFValidationError({"password": e.messages})
+            
+        first_name = data.get("first_name")
+        if first_name:
+            try:
+                validate_name(first_name)
+            except DjangoValidationError as e:
+                raise DRFValidationError({"first_name": e.messages})
+        
+        last_name = data.get("last_name")
+        if last_name:
+            try:
+                validate_name(last_name)
+            except DjangoValidationError as e:
+                raise DRFValidationError({"last_name": e.messages})
+                
         
         return data
 

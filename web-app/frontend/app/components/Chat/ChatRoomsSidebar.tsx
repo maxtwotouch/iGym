@@ -84,21 +84,38 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                     name: newChatRoomName,
                     participants: participantIds
                 });
+
+                const data = await response.data;
+                
                 if (response.status === 201) {
                     setNewChatRoomName(""); // Reset chat room name
                     setSelectedParticipants([]); // Reset selected participants
 
                     fetchChatRooms(); // Fetch updated chat rooms
                 } else {
-                    console.error("Failed with status:", response.status);
-                    alert("Failed to create chat room. Please try again.");
+                    const fieldErrors = [];
+
+                    for (const key in data) {
+                      if (Array.isArray(data[key])) {
+                        fieldErrors.push(`${key}: ${data[key].join("")}`);
+                      } else {
+                        fieldErrors.push(`${key}: ${data[key]}`);
+                      }
+                    }
+            
+                    alert("Chatroom creation failed:\n" + fieldErrors.join("\n"));
+                    return;
                 }
             } catch (error: any) {
-                if (error.response && error.response.status === 400) {
-                    alert("Invalid chat room name. Try a different name.");
-                } else {
-                    console.error("Error:", error);
-                }
+                if (error.response?.data?.name) {
+                    alert(`Validation Error: ${error.response.data.name.join(" ")}`);
+                    return;
+                  } 
+            
+                  else{
+                    alert(`Error: ${error.response?.data?.detail || error.message}`);
+                    return;
+                  }
             }
         } else {
             alert("Chat room name and at least one participant are required.");
