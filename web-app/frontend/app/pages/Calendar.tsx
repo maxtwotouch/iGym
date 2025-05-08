@@ -162,7 +162,7 @@ export const Calendar: React.FC = () => {
     const scheduledDate = new Date(selectedDateTime);
     const now = new Date();
     if (scheduledDate < now) {
-      alert("Please choose a future date and time.");
+      alert("Cannot schedule in the past");
       return;
     }
 
@@ -260,6 +260,7 @@ export const Calendar: React.FC = () => {
                     className={`flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer ${
                       !isCurrent ? "opacity-50" : ""
                     } ${isToday ? "ring-2 ring-blue-500" : ""}`}
+                    data-date={day.toISOString().split("T")[0]}
                   >
                     <span className="text-sm">{day.getDate()}</span>
                     <div className="mt-1 space-y-1 flex-1 overflow-y-auto">
@@ -307,10 +308,15 @@ export const Calendar: React.FC = () => {
                       className="form-select bg-gray-700 text-white mb-3 w-full p-2 rounded"
                       value={selectedClientId ?? ""}
                       onChange={(e) => setSelectedClientId(Number(e.target.value))}
+                      name="clientSelect"
                     >
                       <option value="">-- Select a Client --</option>
                       {clients.map((c) => (
-                        <option key={c.id} value={c.id}>
+                        <option 
+                          key={c.id} 
+                          value={c.id}
+                          data-id={c.id}
+                          >
                           {c.username}
                         </option>
                       ))}
@@ -329,11 +335,16 @@ export const Calendar: React.FC = () => {
                 <select
                   className="form-select bg-gray-700 text-white w-full p-2 rounded mb-3"
                   value={selectedWorkoutId ?? ""}
+                  name="workoutSelect"
                   onChange={(e) => setSelectedWorkoutId(Number(e.target.value))}
                 >
                   <option value="">-- Select a Workout --</option>
                   {availableWorkouts.map((w) => (
-                    <option key={w.id} value={w.id}>
+                    <option 
+                      key={w.id} 
+                      value={w.id}
+                      data-id={w.id}
+                      >
                       {w.title}
                     </option>
                   ))}
@@ -348,6 +359,7 @@ export const Calendar: React.FC = () => {
                   <button
                     onClick={schedule}
                     className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white"
+                    name="scheduleButton"
                   >
                     Save
                   </button>
@@ -373,6 +385,7 @@ export const Calendar: React.FC = () => {
                   <button
                     onClick={() => setSelectedEvent(null)}
                     className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500 text-white"
+                    name="closeButton"
                   >
                     Close
                   </button>

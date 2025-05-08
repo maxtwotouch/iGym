@@ -489,7 +489,7 @@ class MessageModelTest(TestCase):
     def test_create_message_without_sender(self):
         content = "test message"
         message = Message(content=content, chat_room=self.chat_room)
-        d
+        
         with self.assertRaises(IntegrityError):
             message.save()
     

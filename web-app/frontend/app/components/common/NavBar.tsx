@@ -106,6 +106,7 @@ export const NavBar: React.FC = () => {
           <Link 
             to="/dashboard"     
             className={`hover:text-blue-400 ${location.pathname==='/dashboard'      && "text-blue-400"}`}
+            data-name="Home Page"
           >
             Home
           </Link>
