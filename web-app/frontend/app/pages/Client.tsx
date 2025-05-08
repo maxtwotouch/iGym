@@ -44,6 +44,23 @@ export default function ClientCalendar() {
 
         // 2) fetch planned workouts
         const schedRes = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
+        const ptSchedRes = await apiClient.get(`/schedule/pt_workout/`);
+        const clientIdAsNumber = Number(id); // Convert id to number
+        const ptSched = (ptSchedRes.data as any[]).find(w => w.client === clientIdAsNumber);
+        if (ptSched) {
+          schedRes.data.push({
+            id: ptSched.id,
+            scheduled_date: ptSched.scheduled_date,
+            user: ptSched.client,
+            workout_template: ptSched.workout_template,
+            workout_title: ptSched.workout_title,
+          });
+        }
+        schedRes.data.sort((a: any, b: any) => {
+          const dateA = new Date(a.scheduled_date);
+          const dateB = new Date(b.scheduled_date);
+          return dateA.getTime() - dateB.getTime();
+        });
         const now = new Date();
         const future = (schedRes.data as any[])
           .filter(w => new Date(w.scheduled_date) >= now);
