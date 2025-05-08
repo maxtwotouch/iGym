@@ -79,22 +79,29 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 participantIds.push(currentUser.id);
             }
 
-            const response = await apiClient.post("/chat/create/", {
-                name: newChatRoomName,
-                participants: participantIds
-            });
+            try {
+                const response = await apiClient.post("/chat/create/", {
+                    name: newChatRoomName,
+                    participants: participantIds
+                });
+                if (response.status === 201) {
+                    setNewChatRoomName(""); // Reset chat room name
+                    setSelectedParticipants([]); // Reset selected participants
 
-            if (response.status !== 201) {
-                console.error("Failed to create chat room");
-                return;
+                    fetchChatRooms(); // Fetch updated chat rooms
+                } else {
+                    console.error("Failed with status:", response.status);
+                    alert("Failed to create chat room. Please try again.");
+                }
+            } catch (error: any) {
+                if (error.response && error.response.status === 400) {
+                    alert("Invalid chat room name. Try a different name.");
+                } else {
+                    console.error("Error:", error);
+                }
             }
-
-            setNewChatRoomName(""); // Reset chat room name
-            setSelectedParticipants([]); // Reset selected participants
-
-            fetchChatRooms(); // Fetch updated chat rooms
         } else {
-            console.error("Chat room name and participants are required");
+            alert("Chat room name and at least one participant are required.");
         }
     };
 
@@ -208,4 +215,4 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     );
 };
 
-export default Sidebar; 
+export default Sidebar;
