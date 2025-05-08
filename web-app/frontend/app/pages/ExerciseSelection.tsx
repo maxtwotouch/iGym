@@ -145,7 +145,7 @@ const ExerciseSelection: React.FC = () => {
                             {filteredExercises.map((exercise) => (
                                 <motion.div
                                     key={exercise.id}
-                                    data-id={exercise.id}
+                                    data-name={exercise.name}
                                     className={`cursor-pointer p-2 rounded-md mb-2 text-left transition ${
                                         selectedExercises.includes(exercise) 
                                             ? "bg-blue-500 text-white" // Highlighted when selected

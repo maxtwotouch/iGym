@@ -96,10 +96,13 @@ class ExerciseListTest(StaticLiveServerTestCase):
             EC.element_to_be_clickable((By.CSS_SELECTOR, '[data-name="Exercises"]'))
         )
         
-        exercise_list_button.click()
         time.sleep(5)
         
-        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-id='45']")
+        exercise_list_button.click()
+        
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-name='Barbell Deadlift']")
+        time.sleep(5)
+        
         exercise_option.click()
         
         time.sleep(5)

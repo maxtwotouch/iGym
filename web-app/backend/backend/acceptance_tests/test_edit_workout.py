@@ -132,14 +132,15 @@ class EditWorkoutTest(StaticLiveServerTestCase):
         WebDriverWait(self.browser, 10).until(
             EC.presence_of_element_located((By.ID, "exerciseList"))
         )
-
+        
         time.sleep(5)
+
         # Select a new exercise
         WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-id='31']"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-name='Barbell Curl']"))
         )
         
-        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-id='31']")
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-name='Barbell Curl']")
         exercise_option.click()
 
         

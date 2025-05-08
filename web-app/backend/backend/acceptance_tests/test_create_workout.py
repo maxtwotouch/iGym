@@ -12,7 +12,6 @@ from backend.models import UserProfile
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
-import unittest
 
 class CreateWorkoutTest(StaticLiveServerTestCase):
     @classmethod
@@ -118,10 +117,11 @@ class CreateWorkoutTest(StaticLiveServerTestCase):
         
         # Select exercise
         WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-id='7']"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-name='Alternating Dumbbell Curl']"))
         )
         
-        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-id='7']")
+
+        exercise_option = self.browser.find_element(By.CSS_SELECTOR, "div[data-name='Alternating Dumbbell Curl']")
         time.sleep(3)
         exercise_option.click()
         

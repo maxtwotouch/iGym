@@ -71,7 +71,7 @@ class CalendarTest(StaticLiveServerTestCase):
         self.exercise = Exercise.objects.create(name="Push-up", description="A classic exercise.", muscle_group="Chest")
         self.workout.exercises.set([self.exercise])
         
-        self.duration = timedelta(hours=1, minutes=30, seconds=0)
+        self.duration = timedelta(seconds=10)
         
         self.workout_session = WorkoutSession.objects.create(user=self.user, workout=self.workout, calories_burned=120.5, duration=self.duration)
 
