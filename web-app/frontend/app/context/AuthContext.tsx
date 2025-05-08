@@ -45,6 +45,7 @@ interface AuthContextType {
     tokens: AuthTokens | null;
     user: User | null;
     loading: boolean;
+    loggedIn: boolean;
     // Log in using credentials; fetchToken() will return tokens and user data
     login: (credentials: { username: string; password: string }) => Promise<boolean>;
     logout: () => void;
@@ -103,8 +104,14 @@ const login = async (credentials: { username: string; password: string }) => {
             accessTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
             refreshTokenRefreshed: now, // Fetched a new token, so set the refreshed time to now
         };
-        const userType = tokenResponse.profile?.role || tokenResponse.trainer_profile?.role;
+
+        // Update the tokens in the context
         setTokens(newTokens);
+        // Persist credentials in localStorage for a smoother user experience
+        localStorage.setItem("authTokens", JSON.stringify(newTokens));
+
+        const userType = tokenResponse.profile?.role || tokenResponse.trainer_profile?.role;
+        
         let newUser: User = {
             userId: tokenResponse.id,
             username: tokenResponse.username,
@@ -113,13 +120,24 @@ const login = async (credentials: { username: string; password: string }) => {
             firstName: tokenResponse.first_name,
             lastName: tokenResponse.last_name
         };
+
+        // Fetch new user data from the API
+        const response = userType === "user"
+            ? await apiClient.get(`/user/${newUser?.userId}/`)
+            : await apiClient.get(`/trainer/${newUser?.userId}/`);
+
+        // change the profile to the new one
+        if (response.status === 200) {
+            const userData = await response.data as UserProfileResponse;
+            newUser.profile = userData.profile || userData.trainer_profile;
+        }
+
+        if (response.status !== 200) {
+            throw new Error(`Failed to fetch user data. Status: ${response.status}`);
+        }
+
         // Update the user context
         setUser(newUser);
-
-        console.log("Updated in login: ", newUser)
-
-        // Persist credentials in localStorage for a smoother user experience
-        localStorage.setItem("authTokens", JSON.stringify(newTokens));
         // Persist user data in localStorage
         localStorage.setItem("user", JSON.stringify(newUser));    // ← add this
         return true;
@@ -134,11 +152,11 @@ const login = async (credentials: { username: string; password: string }) => {
 
   // logout() clears the authentication state and navigates to the login screen.
 const logout = async () => {
-    await navigate("/login");
     setTokens(null);
     setUser(null);
     localStorage.removeItem("authTokens");
     localStorage.removeItem("user");
+    navigate("/login", { replace: true });
 };
 
   // getToken() handles token retrieval & refresh logic.
@@ -193,6 +211,7 @@ const contextValue: AuthContextType = {
     tokens,
     user,
     loading,
+    loggedIn: !!tokens,
     login,
     logout,
     getToken,

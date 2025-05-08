@@ -11,7 +11,7 @@ type TrainerProfile = { id: number; experience: string; profile_picture?: string
 type Trainer = { id: number; username: string; trainer_profile: TrainerProfile };
 
 export const NavBar: React.FC = () => {
-  const { user, logout } = useAuth();            // must provide .userId
+  const { user, logout, updateUserContext } = useAuth();            // must provide .userId
   const location          = useLocation();
   const dropdownRef       = useRef<HTMLDivElement>(null);
   const clientsDropdownRef = useRef<HTMLDivElement>(null);
