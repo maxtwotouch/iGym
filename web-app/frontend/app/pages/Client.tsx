@@ -2,10 +2,21 @@ import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "react-router";
 import apiClient from "~/utils/api/apiClient";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
 
 interface Client {
   id: number;
   username: string;
+  first_name: string;
+  last_name: string;
+  profile: {
+    profile_picture: string;
+    height: number;
+    weight: number;
+    id: number;
+    personal_trainer: number;
+    pt_chatroom: number;
+  }
 }
 
 type CalendarEvent = {
@@ -37,8 +48,10 @@ export default function ClientCalendar() {
       setIsLoading(true);
       try {
         // 1) Load client info
-        const userRes = await apiClient.get<Client>(`/user/${id}/`);
-        if (userRes.status === 200) setClient(userRes.data);
+        const userRes = await apiClient(`/user/${id}/`);
+        if (userRes.status === 200) {
+          setClient(userRes.data as Client);
+        }
 
         const clientIdNum = Number(id);
         const now = new Date();
@@ -154,9 +167,21 @@ export default function ClientCalendar() {
       className="flex flex-col h-screen bg-gray-900"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
     >
-      {/* Header */}
-      <div className="bg-gray-800 text-white text-center py-2">
-        <span className="text-lg font-semibold">{client.username}</span>
+      {/* Header Client information */}
+      <div className="bg-gray-800 text-white flex justify-center px-4 py-6">
+        <div className="bg-gray-700 max-w-xl flex items-center justify-center p-4 rounded-lg shadow-md gap-x-6">
+          <div className="text-left">
+            <h1 className="text-xl font-bold text-white">Client: {client.first_name} {client.last_name}</h1>
+            <p className="text-sm text-gray-300 mt-1">
+              Height: {client.profile.height} cm | Weight: {client.profile.weight} kg
+            </p>
+          </div>
+          <img
+            src={client.profile.profile_picture || defaultProfilePicture} 
+            alt={`${client.first_name} ${client.last_name}`}
+            className="w-16 h-16 rounded-full border-2 border-gray-600 flex-shrink-0"
+          />
+        </div>
       </div>
 
       {/* Month nav */}
