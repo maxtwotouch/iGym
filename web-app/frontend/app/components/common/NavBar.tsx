@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "~/context/AuthContext";
 import apiClient from "~/utils/api/apiClient";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
+import logo from "~/assets/igym-logo-transparent.png";
 
 type Profile = { profile_picture?: string | null };
 type User =    { id: number; username: string; profile: Profile };
@@ -11,7 +12,7 @@ type TrainerProfile = { id: number; experience: string; profile_picture?: string
 type Trainer = { id: number; username: string; trainer_profile: TrainerProfile };
 
 export const NavBar: React.FC = () => {
-  const { user, logout } = useAuth();            // must provide .userId
+  const { user, logout } = useAuth();          
   const location          = useLocation();
   const dropdownRef       = useRef<HTMLDivElement>(null);
   const clientsDropdownRef = useRef<HTMLDivElement>(null);
@@ -107,7 +108,11 @@ export const NavBar: React.FC = () => {
       <div className="container mx-auto flex items-center space-x-6">
         {/* Logo */}
         <motion.div initial={{ x: -20 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
-          <Link to="/dashboard" className="text-2xl font-bold">iGym</Link>
+          <Link to="/dashboard" className="text-2xl font-bold">    
+          <img src={logo} 
+          alt="iGym Logo" 
+          className="w-14 h-auto" 
+    /></Link>
         </motion.div>
 
         {/* Main nav links */}

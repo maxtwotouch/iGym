@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { fetchScheduledWorkouts } from "~/utils/api/scheduledWorkouts";
 import { fetchWorkoutSessions } from "~/utils/api/workoutSessions";
 import apiClient from "~/utils/api/apiClient";
 import { toLocalISOString } from "~/utils/date";
