@@ -1,0 +1,142 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "username": "hallgeir.n",
+            "password": "pbkdf2_sha256$...", 
+            "first_name": "Hallgeir",
+            "last_name": "Hansen"
+        }
+    },
+    {
+        "model": "backend.UserProfile",
+        "fields": {
+            "user": 1,
+            "weight": 82,
+            "height": 174,
+            "role": "user",
+            "profile_picture": "profile_pictures/hallgeir.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "username": "janK10",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Jan",
+            "last_name": "Kristoffersen"
+        }
+    },
+    {
+        "model": "backend.UserProfile",
+        "fields": {
+            "user": 2,
+            "weight": 68,
+            "height": 181,
+            "role": "user",
+            "profile_picture": "profile_pictures/jan.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 3,
+        "fields": {
+            "username": "erikfitzone",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Erik",
+            "last_name": "Solberg"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 3,
+            "pt_type": "bodybuilding",
+            "experience": " Bachelor's degree in Sports Science and a certified ISSA Bodybuilding Specialist and NASM-CPT, with 8 years of experience coaching clients in muscle growth, competition prep, and strength conditioning",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/erik.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 4,
+        "fields": {
+            "username": "linamove",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Lina",
+            "last_name": "Åsland"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 4,
+            "pt_type": "physio",
+            "experience": "Master's degree in Physiotherapy and certified in Functional Movement Screening (FMS) and FRC (Functional Range Conditioning). 6 years of clinical and coaching experience, specialized in rehabilitation, injury prevention, and restoring optimal movement through functional training and personalized mobility protocols. ",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/lina.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 5,
+        "fields": {
+            "username": "camilaflow",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Camila",
+            "last_name": "Rivas"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 5,
+            "pt_type": "functional",
+            "experience": "Background in Human Movement Science and certifications in Functional Training (ACE) and Animal Flow. 5 years of experience, focusing on improving mobility, body control, and functional strength. Training style combines structured movement patterns with creative bodyweight flows, aiming to enhance overall physical performance and prevent injury in daily life",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/camila.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 6,
+        "fields": {
+            "username": "malik_strength",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Malik",
+            "last_name": "Bryant"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 6,
+            "pt_type": "strength",
+            "experience": "Certified Strength & Conditioning Specialist (CSCS) with a BSc in Exercise Science and over 8 years of experience training collegiate and semi-professional basketball athletes. Known for a data-driven approach to performance optimization, blending strength training, agility work, and injury prevention to help athletes reach their full potential.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/malik.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 7,
+        "fields": {
+            "username": "trainwithtom",
+            "password": "pbkdf2_sha256$...",
+            "first_name": "Tom",
+            "last_name": "Haugen"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 7,
+            "pt_type": "general",
+            "experience": "Certified Personal Trainer (NASM-CPT) with a background in kinesiology and over 6 years of experience helping clients of all fitness levels build sustainable habits, improve mobility, and achieve lasting results through personalized training and nutrition guidance.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/tom.png"
+        }
+    }
+]
