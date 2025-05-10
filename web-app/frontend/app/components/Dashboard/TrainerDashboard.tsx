@@ -400,40 +400,57 @@ export const TrainerDashboard: React.FC = () => {
             >
             
               {/* Middle Section: Upcomming sessions */}
-              <motion.div className="p-6 rounded flex flex-col items-center flex-[2]">
+              <motion.div className="p-6 rounded flex flex-col items-center flex-[2] w-full">
                 <h3 className="text-xl font-bold mb-4 text-center">Upcoming Sessions</h3>
                 
                 {ptScheduledWorkouts.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center">No upcoming sessions</p>
                 ) : (
                   
-                  <ul className="space-y-4">
-                    {ptScheduledWorkouts
-                      .filter((w) => new Date(w.scheduled_date) > new Date())
-                      .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
-                      .slice(0, showAll ? undefined : 5)
-                      .map((w, i) => (
-                        <li key={i} className="p-4 bg-gray-700 rounded text-white w-[500px]">
-                          <div className="mb-2">
-                            <span className="block text-lg font-semibold">👤 Client: {w.client_username}</span>
-                            <span className="block text-md font-medium">🏋️ Workout: {w.workout_title}</span>
-                          </div>
-                          <div className="text-sm text-gray-300">
-                            📅 {new Date(w.scheduled_date).toLocaleString("en-GB")}
-                          </div>
-                        </li>
-                      ))}
+                  <ul className="space-y-4 w-full">
+                  {ptScheduledWorkouts
+                    .filter((w) => new Date(w.scheduled_date) > new Date())
+                    .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
+                    .slice(0, showAll ? undefined : 5)
+                    .map((w, i) => (
+                    <li key={i} className="p-4 bg-gray-700 rounded text-white w-full">
+                      <div className="mb-2">
+                      <span className="block text-lg font-semibold">👤 Client: {w.client_username}</span>
+                      <span className="block text-md font-medium">🏋️ Workout: {w.workout_title}</span>
+                      </div>
+                      <div className="text-sm text-gray-300">
+                      📅 {new Date(w.scheduled_date).toLocaleString("en-GB")}
+                      </div>
+                    </li>
+                    ))}
                   </ul>
                 )}
 
-                {/* Show more/less button */}
-                {ptScheduledWorkouts.length > 3 && (
-                  <button
-                    onClick={() => setShowAll((prev) => !prev)}
-                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm"
+                {/* Show more button */}
+                {ptScheduledWorkouts.length > 5 && !showAll && (
+                  <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  name="showMoreButton"
+                  onClick={() => setShowAll((prev) => !prev)}
+                  className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
                   >
-                    {showAll ? "Show Less" : "Show More"}
-                  </button>
+                  {"Show More"}
+                  </motion.button>
+                )}
+
+                {/* Show less button (sticky bottom) */}
+                {showAll && (
+                  <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => setShowAll(false)}
+                  className="w-1/3 sticky bottom-5 mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
+                  >
+                  {"Show Less"}
+                  </motion.button>
                 )}
               </motion.div>
 
@@ -471,14 +488,6 @@ export const TrainerDashboard: React.FC = () => {
                                 whileHover={{ scale: 1.05 }}
                               >
                                 Delete
-                              </motion.button>
-                              <motion.button
-                                onClick={() => navigate(`/${workout.id}/workout/session/create`)}
-                                className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded cursor-pointer"
-                                name="startWorkoutButton"
-                                whileHover={{ scale: 1.05 }}
-                              >
-                                Start
                               </motion.button>
                             </div>
                           </div>

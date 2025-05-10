@@ -40,6 +40,7 @@ export const CustomerDashboard: React.FC = () => {
     const [uniqueNotifications, setUniqueNotifications] = useState<Notification[]>([]);
     const [chatRooms, setChatRooms] = useState<chatRoom[]>([]);
     const [chatRoomVisible, setChatRoomVisible] = useState(false);
+    const [showAllPreviousSessions, setShowAllPreviousSessions] = useState(false);
     const socketsRef = useRef<Map<number, WebSocket>>(new Map());
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -404,14 +405,17 @@ export const CustomerDashboard: React.FC = () => {
                 >
                     {/* Middle section: Workout Feed */}
                     <motion.div className="p-6 rounded flex flex-col items-center flex-[2]">
-                    <div className="w-full mb-6">
                         <h3 className="text-xl font-bold mb-4 text-center">Previous Workout Sessions</h3>
     
                         {workoutSessions.length === 0 ? (
                         <p className="text-sm text-gray-400 text-center">No History</p>
                         ) : (
                         <div className="space-y-4 w-full">
-                            {workoutSessions.slice().reverse().map((session) => {
+                            {workoutSessions
+                                .slice() 
+                                .reverse()
+                                .slice(0, showAllPreviousSessions ? undefined : 2) 
+                                .map((session) => {
                             const workout = workouts.find((w) => w.id === session.workout);
                             const workoutName = workout ? workout.name : "Unknown Workout";
     
@@ -466,7 +470,33 @@ export const CustomerDashboard: React.FC = () => {
                             })}
                         </div>
                         )}
-                    </div>
+                        {/* Show more button */}
+                        {workoutSessions.length > 2 && !showAllPreviousSessions && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            name="showMoreButton"
+                            onClick={() => setShowAllPreviousSessions((prev) => !prev)}
+                            className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
+                          >
+                            {"Show More"}
+                          </motion.button>
+                        )}
+
+                        {/* Show less button (sticky bottom) */}
+                        {showAllPreviousSessions && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            name="hidePreviousSessionsButton"
+                            onClick={() => setShowAllPreviousSessions(false)}
+                            className="w-1/3 sticky bottom-5 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
+                          >
+                            Show Less
+                          </motion.button>
+                        )}
                     </motion.div>
     
                     {/* Right Section: Quick Actions */}
