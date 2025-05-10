@@ -222,6 +222,16 @@ export const TrainerDashboard: React.FC = () => {
 		if (diff > 86400) return `${Math.floor(diff / 86400)}d ago`; // Days ago
 	};
 
+  const handleDeleteWorkout = async (workoutId: number) => {
+    try {
+      await deleteWorkout(workoutId); 
+      setWorkouts(prevWorkouts => prevWorkouts.filter(w => w.id !== workoutId));
+    } catch (error) {
+      console.error("Failed to delete workout from dashboard:", error);
+      alert("Could not delete the workout. Please try again.");
+    }
+};
+
   
   return (
     <motion.div
@@ -483,7 +493,7 @@ export const TrainerDashboard: React.FC = () => {
                                 Edit
                               </motion.button>
                               <motion.button
-                                onClick={() => deleteWorkout(workout.id)}
+                                onClick={() => handleDeleteWorkout(workout.id)}
                                 className="px-3 py-1 bg-red-500 hover:bg-red-500 text-white rounded cursor-pointer"
                                 whileHover={{ scale: 1.05 }}
                               >

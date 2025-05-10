@@ -229,8 +229,15 @@ export const CustomerDashboard: React.FC = () => {
             if (diff > 86400) return `${Math.floor(diff / 86400)}d ago`; // Days ago
         };
 
-
-
+        const handleDeleteWorkout = async (workoutId: number) => {
+          try {
+            await deleteWorkout(workoutId); 
+            setWorkouts(prevWorkouts => prevWorkouts.filter(w => w.id !== workoutId));
+          } catch (error) {
+            console.error("Failed to delete workout from dashboard:", error);
+            alert("Could not delete the workout. Please try again.");
+          }
+        };
 
     return (
         <motion.div
@@ -521,22 +528,22 @@ export const CustomerDashboard: React.FC = () => {
                                 <div className="flex space-x-2 mt-2">
                                     <motion.button
                                     onClick={() => navigate(`/workouts/update/${workout.id}`)}
-                                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded cursor-pointer"
                                     name="viewWorkoutButton"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Edit
                                     </motion.button>
                                     <motion.button
-                                    onClick={() => deleteWorkout(workout.id)}
-                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    onClick={() => handleDeleteWorkout(workout.id)}
+                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded cursor-pointer"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Delete
                                     </motion.button>
                                     <motion.button
                                     onClick={() => navigate(`/${workout.id}/workout/session/create`)}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
                                     name="startWorkoutButton"
                                     whileHover={{ scale: 1.05 }}
                                     >
@@ -552,7 +559,7 @@ export const CustomerDashboard: React.FC = () => {
     
                     <motion.button
                         onClick={() => navigate("/workouts/create")}
-                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         name="createWorkoutButton"
                         whileHover={{ scale: 1.05 }}
                     >
@@ -560,14 +567,14 @@ export const CustomerDashboard: React.FC = () => {
                     </motion.button>
                     <motion.button
                         onClick={() => navigate("/exercises")}
-                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                     >
                         Exercise List
                     </motion.button>
                     <motion.button
                         onClick={() => navigate("/calendar")}
-                        className="w-3/4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                     >
                         Calendar
