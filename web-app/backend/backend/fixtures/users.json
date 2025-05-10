@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "username": "hallgeir.n",
-            "password": "pbkdf2_sha256$...", 
+            "password": "somethingThatIsNotSoEasyToGuess2343", 
             "first_name": "Hallgeir",
             "last_name": "Hansen"
         }
@@ -24,7 +24,7 @@
         "pk": 2,
         "fields": {
             "username": "janK10",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Jan",
             "last_name": "Kristoffersen"
         }
@@ -44,7 +44,7 @@
         "pk": 3,
         "fields": {
             "username": "erikfitzone",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Erik",
             "last_name": "Solberg"
         }
@@ -64,7 +64,7 @@
         "pk": 4,
         "fields": {
             "username": "linamove",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Lina",
             "last_name": "Åsland"
         }
@@ -84,7 +84,7 @@
         "pk": 5,
         "fields": {
             "username": "camilaflow",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Camila",
             "last_name": "Rivas"
         }
@@ -104,7 +104,7 @@
         "pk": 6,
         "fields": {
             "username": "malik_strength",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Malik",
             "last_name": "Bryant"
         }
@@ -124,7 +124,7 @@
         "pk": 7,
         "fields": {
             "username": "trainwithtom",
-            "password": "pbkdf2_sha256$...",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
             "first_name": "Tom",
             "last_name": "Haugen"
         }
