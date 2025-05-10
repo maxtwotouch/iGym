@@ -61,6 +61,8 @@ export const Calendar: React.FC = () => {
     null
   );
 
+  const [viewALlEventsDay, setViewAllEventsDay] = useState(false);
+
   const loadEvents = async () => {
     setLoading(true);
     try {
@@ -131,7 +133,7 @@ export const Calendar: React.FC = () => {
             ptSched = r.data.map((it: any) => {
               const client = clients.find((c) => c.id === it.client);
               const withWhom =
-                user.userType === "trainer"
+                user && user.userType === "trainer" 
                   ? client?.username ?? "Client"
                   : it.pt_username ?? "Trainer";
               return {
@@ -254,42 +256,109 @@ export const Calendar: React.FC = () => {
           <div className="spinner-border text-light" role="status" />
         </div>
       ) : error ? (
-        <div className="text-red-400 text-center">{error}</div>
+        <div className="text-red-400 text-center">
+          <p>Error loading calendar: {error}</p>
+        </div>
       ) : (
         <>
-            {/* Calendar Grid */}
-            <motion.div className="flex flex-col flex-grow min-h-0 bg-gray-800 text-white rounded-2xl shadow-lg p-6" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+            {/* Calendar */}
+            <div className="flex flex-col flex-grow min-h-0 bg-gray-800 text-white rounded-2xl shadow-lg p-6 mt-4">
               <h1 className="text-2xl font-bold text-center mb-4">Workout Calendar</h1>
-              <div className="flex items-center justify-between mb-2">
-                <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">‹ Prev</button>
-                <div className="text-lg font-medium">{currentMonth.toLocaleString("default",{month:"long",year:"numeric"})}</div>
-                <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">Next ›</button>
+              {/* Month navigation */}
+              <div className="flex items-center justify-between mb-4">
+                <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
+                <div className="text-lg font-medium">{currentMonth.toLocaleString(undefined,{month:"long",year:"numeric"})}</div>
+                <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
               </div>
-              <div className="grid grid-cols-7 text-center text-sm font-semibold border-b border-gray-700 pb-1">
-                { ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d}>{d}</div>) }
+
+              {/* Weekday headers */}
+              <div className="grid grid-cols-7 text-gray-300 text-center text-sm font-semibold border-b border-gray-700 pb-1">
+                { ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} className="py-2">{d}</div>) }
               </div>
+
+              {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-px bg-gray-700 flex-grow min-h-0">
-                {calendarDays.map((day, idx) => {
+                {calendarDays.map((day, i) => {
                   const key = day.toLocaleDateString();
                   const isCurrent = day.getMonth() === currentMonth.getMonth();
                   const isToday = key === new Date().toLocaleDateString();
                   const dayEvents = eventsByDate[key] || [];
                   return (
-                    <div key={idx} onClick={() => onDayClick(day)} className={`${!isCurrent?"opacity-50":""} ${isToday?"ring-2 ring-blue-500":""} flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer`} data-date={day.toISOString().split("T")[0]}>
-                      <span className="text-sm">{day.getDate()}</span>
-                      <div className="mt-1 space-y-1 flex-1 overflow-y-auto">
+                    <div 
+                      key={i} 
+                      onClick={() => onDayClick(day)} 
+                      className={
+                        `flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer ${!isCurrent?"opacity-50" : ""} ${isToday ? "ring-2 ring-blue-500" : ""}` 
+                      }
+                      data-date={day.toISOString().split("T")[0]}
+                    >
+                      <span className="text-gray-400 text-sm mb-1">{day.getDate()}</span>
+                      <div className="flex flex-col space-y-1 flex-1 overflow-y-auto">
                         {dayEvents.slice(0,3).map(ev => (
-                          <div key={ev.id} onClick={e=>{e.stopPropagation(); onEventClick(ev)}} className={`text-xs truncate rounded px-1 cursor-pointer ${ev.type==="session"?"bg-green-600 hover:bg-green-500": ev.type==="pt"?"bg-purple-600 hover:bg-purple-500":"bg-blue-600 hover:bg-blue-500"}`} title={new Date(ev.start).toLocaleString()}>
-                            {new Date(ev.start).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})} – {ev.title}
+                          <div 
+                            key={ev.id} 
+                            onClick={e=> {
+                              e.stopPropagation(); 
+                              onEventClick(ev);
+                            }} 
+                            className={
+                              `h-6 rounded text-xs leading-6 px-1 truncate ${ev.type==="session"?"bg-green-600 hover:bg-green-500": ev.type==="pt"?"bg-purple-600 hover:bg-purple-500":"bg-blue-600 hover:bg-blue-500"}`
+                            } 
+                            title={new Date(ev.start).toLocaleString()}  
+                          >
+                            {new Date(ev.start).toLocaleTimeString(undefined, {hour:"2-digit",minute:"2-digit"})} – {ev.title}
                           </div>
                         ))}
-                        {dayEvents.length>3 && <div className="text-xs text-gray-400">+{dayEvents.length-3} more</div>}
+                        {dayEvents.length > 3 && (
+                            <div className="text-xs text-gray-400">
+                              +{dayEvents.length - 3} more
+                            </div>
+                        )}
+                        {/* View all events button */}
+                        {dayEvents.length > 0 && (
+                          <button
+                            className="text-xs text-blue-500 hover:text-blue-400 mt-1 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent triggering scheduling of workout
+                              setSelectedDateTime(toLocalISOString(day)); // Current day selected
+                              setViewAllEventsDay(true);
+                            }}
+                          >
+                            View All Events
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
+
+            {/* View all events modal */}
+            {viewALlEventsDay && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+                  <h2 className="text-xl font-semibold text-white">All Events for {new Date(selectedDateTime).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</h2>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {eventsByDate[new Date(selectedDateTime).toLocaleDateString()]
+                      ?.slice() 
+                      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()) 
+                      .map((ev) => (
+                      <div key={ev.id} onClick={() => { onEventClick(ev); setViewAllEventsDay(false); }} className={`p-3 rounded-lg shadow-md cursor-pointer transition-all hover:shadow-xl ${ev.type==="session"?"bg-green-600 hover:bg-green-500": ev.type==="pt"?"bg-purple-600 hover:bg-purple-500":"bg-blue-600 hover:bg-blue-500"}`} title={new Date(ev.start).toLocaleString()}>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-sm">{ev.title}</span>
+                          <span className="text-xs text-gray-200">{new Date(ev.start).toLocaleTimeString(undefined, {hour:"2-digit",minute:"2-digit"})}</span>
+                        </div>
+                        <p className="text-xs text-gray-300 mt-1">
+                          {ev.type === "session" ? "✅ Completed" : ev.type === "pt" ? "🤝 1-on-1" : "🗓️ Planned"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white">Close</button>
+                </div>
+              </div>
+            )}
       
 
           {/* Schedule Workout Modal */}
@@ -373,7 +442,7 @@ export const Calendar: React.FC = () => {
                   </h2>
                   <span className="text-sm text-gray-400">
                     {new Date(selectedEvent.start).toLocaleDateString(
-                      "en-GB",
+                      undefined, 
                       {
                         weekday: "short",
                         year: "numeric",
