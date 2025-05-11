@@ -35,7 +35,7 @@ const ChatRoomPage: React.FC = () => {
                 {/* Exit Chat Room button */}
                 <motion.button
                     onClick={() => navigate("/chat")} 
-                    className="fixed top-16 right-6 bg-gray-700 text-white p-3 rounded-lg shadow-lg z-50 hover:bg-gray-600 flex items-center gap-2"
+                    className="fixed top-16 right-6 bg-gray-700 text-white p-3 rounded-lg shadow-lg z-50 hover:bg-gray-600 flex items-center gap-2 cursor-pointer"
                     whileHover={{ scale: 1.1 }}
                 >
                     {/* Exit Chat Room icon */}

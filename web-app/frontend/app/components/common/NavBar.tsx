@@ -165,7 +165,7 @@ export const NavBar: React.FC = () => {
             <div ref={clientsDropdownRef} className="relative">
               <button 
                 onClick={toggleClientsDropdown}
-                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
+                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 cursor-pointer ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
                 name="clientsButton"
               >
                 My Clients
@@ -204,7 +204,7 @@ export const NavBar: React.FC = () => {
         <div ref={dropdownRef} className="relative">
           <button
             onClick={toggleProfileDropdown}
-            className="flex items-center focus:outline-none"
+            className="flex items-center focus:outline-none cursor-pointer"
           >
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
               <img src={profileImage} alt={user?.username} className="w-full h-full object-cover" />
@@ -244,12 +244,12 @@ export const NavBar: React.FC = () => {
                 <div className="border-t border-gray-700 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                  className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 cursor-pointer"
                 >
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                     Logout
                   </div>
                 </button>

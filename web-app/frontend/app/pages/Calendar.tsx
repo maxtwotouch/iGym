@@ -355,7 +355,7 @@ export const Calendar: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white">Close</button>
+                  <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer">Close</button>
                 </div>
               </div>
             )}
@@ -372,7 +372,7 @@ export const Calendar: React.FC = () => {
                   <>
                     <label className="text-gray-300">Select Client:</label>
                     <select
-                      className="w-full p-2 bg-gray-700 text-white rounded mb-3"
+                      className="w-full p-2 bg-gray-700 text-white rounded mb-3 cursor-pointer"
         
                       value={selectedClientId ?? ""}
                       onChange={(e) =>
@@ -391,14 +391,14 @@ export const Calendar: React.FC = () => {
                 <label className="text-gray-300">Pick Date & Time:</label>
                 <input
                   type="datetime-local"
-                  className="w-full p-2 bg-gray-700 text-white rounded mb-3"
+                  className="w-full p-2 bg-gray-700 text-white rounded mb-3 cursor-pointer"
                   value={selectedDateTime}
                   onChange={(e) => setSelectedDateTime(e.target.value)}
                   min={toLocalISOString(new Date())}
                 />
                 <label className="text-gray-300">Select Workout:</label>
                 <select 
-                  className="w-full p-2 bg-gray-700 text-white rounded mb-3"
+                  className="w-full p-2 bg-gray-700 text-white rounded mb-3 cursor-pointer"
                   name="workoutSelect" 
                   value={selectedWorkoutId ?? ""}
                   onChange={(e) =>
@@ -415,13 +415,13 @@ export const Calendar: React.FC = () => {
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={() => setShowSchedule(false)}
-                    className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white"
+                    className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => schedule()}
-                    className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white"
+                    className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 text-white cursor-pointer"
                     name="scheduleButton"
                   >
                     Save
@@ -514,7 +514,7 @@ export const Calendar: React.FC = () => {
                 <div className="flex justify-end">
                   <button
                     onClick={() => setSelectedEvent(null)}
-                    className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white"
+                    className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
                     name="closeButton"
                   >
                     Close

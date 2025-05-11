@@ -326,7 +326,7 @@ export default function ClientCalendar() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white">Close</button>
+              <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer">Close</button>
             </div>
           </div>
         )}
@@ -413,7 +413,7 @@ export default function ClientCalendar() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white"
+                  className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
                   name="closeButton"
                 >
                   Close

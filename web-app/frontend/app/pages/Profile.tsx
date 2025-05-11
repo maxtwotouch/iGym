@@ -205,7 +205,7 @@ const ProfilePage: React.FC = () => {
               {editing && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full"
+                  className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full cursor-pointer"
                 >
                   ✎
                 </button>
@@ -218,7 +218,7 @@ const ProfilePage: React.FC = () => {
             {!editing && (
               <button
                 onClick={() => setEditing(true)}
-                className="mt-6 px-6 py-2 bg-blue-500 rounded"
+                className="mt-6 px-6 py-2 bg-blue-500 rounded cursor-pointer"
               >
                 Edit Profile
               </button>
@@ -286,7 +286,7 @@ const ProfilePage: React.FC = () => {
                           name="pt_type"
                           value={form.pt_type}
                           onChange={handleChange}
-                          className="w-full bg-gray-700 text-white p-2 rounded"
+                          className="w-full bg-gray-700 text-white p-2 rounded cursor-pointer"
                         >
                           {[
                             ["general", "General Fitness Trainer"],
@@ -343,13 +343,13 @@ const ProfilePage: React.FC = () => {
                       setError(null);
                       setSuccess(null);
                     }}
-                    className="px-6 py-2 bg-gray-600 rounded"
+                    className="px-6 py-2 bg-gray-600 rounded cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-blue-500 rounded"
+                    className="px-6 py-2 bg-blue-500 rounded cursor-pointer"
                   >
                     Save Changes
                   </button>

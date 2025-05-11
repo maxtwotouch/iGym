@@ -220,7 +220,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 {/* Create Chat Room Button */}
                 <motion.button
                     onClick={handleCreateChatRoom}
-                    className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                    className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition cursor-pointer"
                     name="createChatRoom"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
