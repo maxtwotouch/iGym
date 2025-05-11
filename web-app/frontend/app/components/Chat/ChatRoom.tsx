@@ -552,7 +552,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                                         {/* Button for Accepting Workout */}
                                         <motion.button
                                             onClick={() => {acceptWorkout(message)}}
-                                            className="mt-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+                                            className="mt-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                                             whileHover={{ scale: 1.05 }}
                                         >
                                             Accept Workout
