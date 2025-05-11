@@ -54,7 +54,7 @@
         "fields": {
             "user": 3,
             "pt_type": "bodybuilding",
-            "experience": " Bachelor's degree in Sports Science and a certified ISSA Bodybuilding Specialist and NASM-CPT, with 8 years of experience coaching clients in muscle growth, competition prep, and strength conditioning",
+            "experience": "ISSA-certified Bodybuilding Specialist and NASM-CPT with 8 years of coaching experience in hypertrophy, contest prep, and physique transformation. Background in Sports Science.",
             "role": "trainer",
             "profile_picture": "profile_pictures/erik.png"
         }
@@ -74,7 +74,7 @@
         "fields": {
             "user": 4,
             "pt_type": "physio",
-            "experience": "Master's degree in Physiotherapy and certified in Functional Movement Screening (FMS) and FRC (Functional Range Conditioning). 6 years of clinical and coaching experience, specialized in rehabilitation, injury prevention, and restoring optimal movement through functional training and personalized mobility protocols. ",
+            "experience": "Licensed physiotherapist with a Masters in Physiotherapy and certifications in FRC and Functional Movement Screening. Over 6 years of experience in rehab, injury prevention, and functional movement coaching.",
             "role": "trainer",
             "profile_picture": "profile_pictures/lina.png"
         }
@@ -94,7 +94,7 @@
         "fields": {
             "user": 5,
             "pt_type": "functional",
-            "experience": "Background in Human Movement Science and certifications in Functional Training (ACE) and Animal Flow. 5 years of experience, focusing on improving mobility, body control, and functional strength. Training style combines structured movement patterns with creative bodyweight flows, aiming to enhance overall physical performance and prevent injury in daily life",
+            "experience": "Certified Functional Training and Animal Flow coach with a background in Human Movement Science. Over 5 years of experience helping clients move better, gain body control, and prevent injuries.",
             "role": "trainer",
             "profile_picture": "profile_pictures/camila.png"
         }
@@ -114,7 +114,7 @@
         "fields": {
             "user": 6,
             "pt_type": "strength",
-            "experience": "Certified Strength & Conditioning Specialist (CSCS) with a BSc in Exercise Science and over 8 years of experience training collegiate and semi-professional basketball athletes. Known for a data-driven approach to performance optimization, blending strength training, agility work, and injury prevention to help athletes reach their full potential.",
+            "experience": "CSCS-certified coach with a BSc in Exercise Science and over 8 years of experience training athletes, focusing on power, agility, and injury prevention for peak performance.",
             "role": "trainer",
             "profile_picture": "profile_pictures/malik.png"
         }
@@ -134,7 +134,7 @@
         "fields": {
             "user": 7,
             "pt_type": "general",
-            "experience": "Certified Personal Trainer (NASM-CPT) with a background in kinesiology and over 6 years of experience helping clients of all fitness levels build sustainable habits, improve mobility, and achieve lasting results through personalized training and nutrition guidance.",
+            "experience": "Certified Personal Trainer (NASM-CPT) with 6+ years of experience helping clients of all levels improve strength, endurance, and lifestyle habits through structured, personalized training programs.",
             "role": "trainer",
             "profile_picture": "profile_pictures/tom.png"
         }
