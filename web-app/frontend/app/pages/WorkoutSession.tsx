@@ -326,11 +326,11 @@ const WorkoutSession: React.FC = () => {
                                     </motion.h2>
                                     {session.sets.map((set, index) => (
                                         <motion.div key={set.id} className="w-full mb-4">
-                                            <motion.h3 
+                                            <motion.label 
                                                 className="text-md font-medium"
                                             >
                                                 Set {index + 1}
-                                            </motion.h3>
+                                            </motion.label>
                                             {/* Input for weight */}
                                             <input 
                                                 name={`weight-${exerciseName}-${index + 1}`}
@@ -352,8 +352,10 @@ const WorkoutSession: React.FC = () => {
                                             {/* Remove set Button */}
                                             <motion.button 
                                                 type="button" 
-                                                className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition" 
+                                                className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition cursor-pointer" 
                                                 onClick={() => removeSet(session.exercise, set.id)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
                                             >
                                                 Remove Set
                                             </motion.button>
@@ -363,8 +365,10 @@ const WorkoutSession: React.FC = () => {
                                     <motion.button 
                                         name={`addSet-${exerciseName}`} 
                                         type="button" 
-                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
+                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition cursor-pointer" 
                                         onClick={() => addSet(session.exercise)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
                                         Add Set
                                     </motion.button>
@@ -377,7 +381,7 @@ const WorkoutSession: React.FC = () => {
                         <motion.button 
                             name="saveButton"
                             type="submit"
-                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition cursor-pointer"
                             whileHover={{ scale: 1.05 }}
                         >
                             Save Session
@@ -388,7 +392,7 @@ const WorkoutSession: React.FC = () => {
                 {/* Back Button */}
                 <motion.button
                     onClick={() => navigate("/dashboard")}
-                    className="mt-4 text-blue-400 hover:text-blue-500 underline"
+                    className="mt-4 text-blue-400 hover:text-blue-500 underline cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Back to Dashboard
