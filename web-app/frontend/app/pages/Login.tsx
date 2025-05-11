@@ -57,7 +57,7 @@ export const LoginForm = () => {
         <motion.button
             type="submit"
             name="loginButton"
-            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
+            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition cursor-pointer"
             whileHover={{ scale: 1.05 }}
         >
             Login

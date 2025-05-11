@@ -151,7 +151,7 @@ const CreateWorkout: React.FC = () => {
           <motion.button
             name="addExercisesButton"
             type="button"
-            onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
+            onClick={() => navigate("/workouts/modify/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
             className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4 cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >

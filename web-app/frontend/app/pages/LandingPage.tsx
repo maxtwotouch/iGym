@@ -50,7 +50,7 @@ export const LandingPage = () => {
               <Link to="/login">
                 <motion.button
                   name="loginButton"
-                  className="px-6 py-3 bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition"
+                  className="px-6 py-3 bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition cursor-pointer"
                   whileHover={{ scale: 1.03 }}
                 >
                   Login
@@ -59,7 +59,7 @@ export const LandingPage = () => {
               <Link to="/register">
                 <motion.button
                   name="registrationButton"
-                  className="px-6 py-3 bg-green-600 rounded-lg shadow hover:bg-green-700 transition"
+                  className="px-6 py-3 bg-green-600 rounded-lg shadow hover:bg-green-700 transition cursor-pointer"
                   whileHover={{ scale: 1.03 }}
                 >
                   Register
