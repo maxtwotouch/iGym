@@ -527,6 +527,14 @@ export const CustomerDashboard: React.FC = () => {
                                 <p className="font-semibold mb-0">{workout.name}</p>
                                 <div className="flex space-x-2 mt-2">
                                     <motion.button
+                                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
+                                    name="startWorkoutButton"
+                                    whileHover={{ scale: 1.05 }}
+                                    >
+                                    Start
+                                    </motion.button>
+                                    <motion.button
                                     onClick={() => navigate(`/workouts/update/${workout.id}`)}
                                     className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded cursor-pointer"
                                     name="viewWorkoutButton"
@@ -540,14 +548,6 @@ export const CustomerDashboard: React.FC = () => {
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Delete
-                                    </motion.button>
-                                    <motion.button
-                                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
-                                    name="startWorkoutButton"
-                                    whileHover={{ scale: 1.05 }}
-                                    >
-                                    Start
                                     </motion.button>
                                 </div>
                                 </div>
