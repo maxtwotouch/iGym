@@ -25,7 +25,7 @@ class PersonalTrainerProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainer_profile')
     
-    experience = models.CharField(max_length=100, blank=True, default='none')  
+    experience = models.CharField(max_length=500, blank=True, default='none')  
     role = models.CharField(max_length=20, default="trainer")
     pt_type = models.CharField(max_length=20, choices=PT_TYPES, default="general")
 
