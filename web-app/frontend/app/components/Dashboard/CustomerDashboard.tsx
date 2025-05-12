@@ -41,6 +41,7 @@ export const CustomerDashboard: React.FC = () => {
     const [chatRooms, setChatRooms] = useState<chatRoom[]>([]);
     const [chatRoomVisible, setChatRoomVisible] = useState(false);
     const [showAllPreviousSessions, setShowAllPreviousSessions] = useState(false);
+    const [workoutIdToDelete, setWorkoutIdToDelete] = useState<number | null>(null); 
     const socketsRef = useRef<Map<number, WebSocket>>(new Map());
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -237,6 +238,7 @@ export const CustomerDashboard: React.FC = () => {
             console.error("Failed to delete workout from dashboard:", error);
             alert("Could not delete the workout. Please try again.");
           }
+          setWorkoutIdToDelete(null); 
         };
 
     return (
@@ -543,7 +545,7 @@ export const CustomerDashboard: React.FC = () => {
                                     Edit
                                     </motion.button>
                                     <motion.button
-                                    onClick={() => handleDeleteWorkout(workout.id)}
+                                    onClick={() => setWorkoutIdToDelete(workout.id)} 
                                     className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded cursor-pointer"
                                     whileHover={{ scale: 1.05 }}
                                     >
@@ -584,6 +586,36 @@ export const CustomerDashboard: React.FC = () => {
                 )}
             </AnimatePresence>
             </motion.div>
+
+            {/* Delete Workout Confirmation Modal */}
+            {workoutIdToDelete !== null && ( 
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+                  <h3 className="text-2xl font-semibold text-center">Are you sure you want to delete the workout from your workout list?</h3>
+                  <p className="text-sm text-gray-400 text-center">This action cannot be undone.</p>
+                  <div className="space-x-4 flex items-center justify-center">
+                    <motion.button
+                      onClick={() => setWorkoutIdToDelete(null)}
+                      className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      onClick={() => {
+                        if (workoutIdToDelete !== null) {
+                            handleDeleteWorkout(workoutIdToDelete);
+                        }
+                      }} 
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Delete
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            )}
         </motion.div>
     );
 }
