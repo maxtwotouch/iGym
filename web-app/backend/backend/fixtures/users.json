@@ -1,0 +1,142 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "username": "hallgeir.n",
+            "password": "somethingThatIsNotSoEasyToGuess2343", 
+            "first_name": "Hallgeir",
+            "last_name": "Hansen"
+        }
+    },
+    {
+        "model": "backend.UserProfile",
+        "fields": {
+            "user": 1,
+            "weight": 82,
+            "height": 174,
+            "role": "user",
+            "profile_picture": "profile_pictures/hallgeir.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "username": "janK10",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Jan",
+            "last_name": "Kristoffersen"
+        }
+    },
+    {
+        "model": "backend.UserProfile",
+        "fields": {
+            "user": 2,
+            "weight": 68,
+            "height": 181,
+            "role": "user",
+            "profile_picture": "profile_pictures/jan.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 3,
+        "fields": {
+            "username": "erikfitzone",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Erik",
+            "last_name": "Solberg"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 3,
+            "pt_type": "bodybuilding",
+            "experience": "ISSA-certified Bodybuilding Specialist and NASM-CPT with 8 years of coaching experience in hypertrophy, contest prep, and physique transformation. Background in Sports Science.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/erik.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 4,
+        "fields": {
+            "username": "linamove",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Lina",
+            "last_name": "Åsland"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 4,
+            "pt_type": "physio",
+            "experience": "Licensed physiotherapist with a Masters in Physiotherapy and certifications in FRC and Functional Movement Screening. Over 6 years of experience in rehab, injury prevention, and functional movement coaching.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/lina.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 5,
+        "fields": {
+            "username": "camilaflow",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Camila",
+            "last_name": "Rivas"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 5,
+            "pt_type": "functional",
+            "experience": "Certified Functional Training and Animal Flow coach with a background in Human Movement Science. Over 5 years of experience helping clients move better, gain body control, and prevent injuries.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/camila.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 6,
+        "fields": {
+            "username": "malik_strength",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Malik",
+            "last_name": "Bryant"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 6,
+            "pt_type": "strength",
+            "experience": "CSCS-certified coach with a BSc in Exercise Science and over 8 years of experience training athletes, focusing on power, agility, and injury prevention for peak performance.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/malik.png"
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 7,
+        "fields": {
+            "username": "trainwithtom",
+            "password": "somethingThatIsNotSoEasyToGuess2343",
+            "first_name": "Tom",
+            "last_name": "Haugen"
+        }
+    },
+    {
+        "model": "backend.PersonalTrainerProfile",
+        "fields": {
+            "user": 7,
+            "pt_type": "general",
+            "experience": "Certified Personal Trainer (NASM-CPT) with 6+ years of experience helping clients of all levels improve strength, endurance, and lifestyle habits through structured, personalized training programs.",
+            "role": "trainer",
+            "profile_picture": "profile_pictures/tom.png"
+        }
+    }
+]

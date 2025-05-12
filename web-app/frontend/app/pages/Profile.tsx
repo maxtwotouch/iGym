@@ -23,11 +23,15 @@ type UserProfileResponse = {
   };
 };
 
-const formatLabel = (field: string) =>
-  field
+const formatLabel = (field: string) => {
+  const baseLabel = field
     .split("_")
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
+  if (field === "weight") return `${baseLabel} (kg)`;
+  if (field === "height") return `${baseLabel} (cm)`;
+  return baseLabel;
+};
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -205,7 +209,7 @@ const ProfilePage: React.FC = () => {
               {editing && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full"
+                  className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full cursor-pointer"
                 >
                   ✎
                 </button>
@@ -216,12 +220,14 @@ const ProfilePage: React.FC = () => {
             </h2>
             <p className="text-gray-300">{profileData.email}</p>
             {!editing && (
-              <button
+              <motion.button
                 onClick={() => setEditing(true)}
-                className="mt-6 px-6 py-2 bg-blue-500 rounded"
+                className="mt-6 px-6 py-2 bg-blue-500 rounded cursor-pointer"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Edit Profile
-              </button>
+              </motion.button>
             )}
           </div>
 
@@ -286,7 +292,7 @@ const ProfilePage: React.FC = () => {
                           name="pt_type"
                           value={form.pt_type}
                           onChange={handleChange}
-                          className="w-full bg-gray-700 text-white p-2 rounded"
+                          className="w-full bg-gray-700 text-white p-2 rounded cursor-pointer"
                         >
                           {[
                             ["general", "General Fitness Trainer"],
@@ -324,7 +330,9 @@ const ProfilePage: React.FC = () => {
                           />
                         ) : (
                           <p className="text-white">
-                            {profileData.profile?.[f] ?? "—"}
+                            {profileData.profile?.[f as keyof typeof profileData.profile] 
+                              ? `${profileData.profile[f as keyof typeof profileData.profile]} ${f === "weight" ? "kg" : "cm"}`
+                              : "—"}
                           </p>
                         )}
                       </div>
@@ -335,7 +343,7 @@ const ProfilePage: React.FC = () => {
 
               {editing && (
                 <div className="flex justify-end space-x-4 mt-6">
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => {
                       setEditing(false);
@@ -343,16 +351,20 @@ const ProfilePage: React.FC = () => {
                       setError(null);
                       setSuccess(null);
                     }}
-                    className="px-6 py-2 bg-gray-600 rounded"
+                    className="px-6 py-2 bg-gray-600 rounded cursor-pointer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Cancel
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     type="submit"
-                    className="px-6 py-2 bg-blue-500 rounded"
+                    className="px-6 py-2 bg-blue-500 rounded cursor-pointer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Save Changes
-                  </button>
+                  </motion.button>
                 </div>
               )}
             </form>

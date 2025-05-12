@@ -36,6 +36,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
             const chatRoom = await chatRoomResponse.data;
             setChatRooms(chatRoom);
+            console.log(chatRoom);
         } catch (error) {
             console.error("Error fetching chat rooms:", error);
         }
@@ -52,12 +53,15 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
                 const userObjects = await userObjectsResponse.data;
                 setUsers(userObjects);
-    
-                // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
-                const current_user_id = user?.userId;
-                const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
-                if (current_user) {
-                    setCurrentUser(current_user);
+
+                if (user?.userType === "user") {
+                    // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
+                    const current_user_id = user?.userId;
+                    const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
+                    if (current_user) {
+                        setCurrentUser(current_user);
+                        return;
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -75,26 +79,53 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
             const participantIds = selectedParticipants.map(user => user.id);
             
             // Include the creator of the chat room
-            if (currentUser && !participantIds.includes(currentUser.id)) {
+            if (user?.userType === "user" && currentUser && !participantIds.includes(currentUser.id)) {
                 participantIds.push(currentUser.id);
             }
-
-            const response = await apiClient.post("/chat/create/", {
-                name: newChatRoomName,
-                participants: participantIds
-            });
-
-            if (response.status !== 201) {
-                console.error("Failed to create chat room");
-                return;
+            else if (user?.userType === "trainer") { // Trainers are not included in the selection to participate in the chat room. But will be included in the chat room when creating the chat room himself
+                participantIds.push(user.userId);
             }
 
-            setNewChatRoomName(""); // Reset chat room name
-            setSelectedParticipants([]); // Reset selected participants
+            try {
+                const response = await apiClient.post("/chat/create/", {
+                    name: newChatRoomName,
+                    participants: participantIds
+                });
 
-            fetchChatRooms(); // Fetch updated chat rooms
+                const data = await response.data;
+                
+                if (response.status === 201) {
+                    setNewChatRoomName(""); // Reset chat room name
+                    setSelectedParticipants([]); // Reset selected participants
+
+                    fetchChatRooms(); // Fetch updated chat rooms
+                } else {
+                    const fieldErrors = [];
+
+                    for (const key in data) {
+                      if (Array.isArray(data[key])) {
+                        fieldErrors.push(`${key}: ${data[key].join("")}`);
+                      } else {
+                        fieldErrors.push(`${key}: ${data[key]}`);
+                      }
+                    }
+            
+                    alert("Chatroom creation failed:\n" + fieldErrors.join("\n"));
+                    return;
+                }
+            } catch (error: any) {
+                if (error.response?.data?.name) {
+                    alert(`Validation Error: ${error.response.data.name.join(" ")}`);
+                    return;
+                  } 
+            
+                  else{
+                    alert(`Error: ${error.response?.data?.detail || error.message}`);
+                    return;
+                  }
+            }
         } else {
-            console.error("Chat room name and participants are required");
+            alert("Chat room name and at least one participant are required.");
         }
     };
 
@@ -196,7 +227,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                 {/* Create Chat Room Button */}
                 <motion.button
                     onClick={handleCreateChatRoom}
-                    className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                    className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition cursor-pointer"
                     name="createChatRoom"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -208,4 +239,4 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     );
 };
 
-export default Sidebar; 
+export default Sidebar;

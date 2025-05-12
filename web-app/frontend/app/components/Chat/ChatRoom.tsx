@@ -198,7 +198,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                         workout_message: notification.workout_message?.name || null,
                     }]);
                 });
-                console.log("Fetched notifications:", notificationsUserData);
             } catch (error) {
                 console.error("Error fetching notifications:", error);
             }
@@ -444,7 +443,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
 
             {/* Messages in Chat Room*/}
-            <motion.div className="bg-gray-800 p-4 rounded-lg shadow-md w-full max-w-2xl flex flex-col h-[60vh]">
+            <motion.div className="bg-gray-700 p-4 rounded-t-lg shadow-md w-full max-w-3xl flex flex-col h-[70vh] border border-gray-500 border-b-0">
                 <motion.div className="flex-1 overflow-y-scroll p-4 space-y-4">
                     {sortedMessages.map((message, index) => {
                         let sender;
@@ -479,7 +478,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                                         className={`p-3 rounded-lg max-w-xs ${
                                             isOwnMessage
                                             ? "bg-blue-500 text-white"
-                                            : "bg-gray-700 text-gray-200"
+                                            : "bg-gray-600 text-gray-100"
                                         }`}
                                     >
                                         <p className="text-sm">{message.content}</p>
@@ -543,7 +542,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                                         className={`p-3 rounded-lg max-w-xs ${
                                             isOwnMessage
                                             ? "bg-blue-500 text-white"
-                                            : "bg-gray-700 text-gray-200"
+                                            : "bg-gray-600 text-gray-100"
                                         }`}
                                     >
                                         <p className="text-sm">(Shared by {sender})</p>
@@ -552,7 +551,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                                         {/* Button for Accepting Workout */}
                                         <motion.button
                                             onClick={() => {acceptWorkout(message)}}
-                                            className="mt-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+                                            className="mt-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                                             whileHover={{ scale: 1.05 }}
                                         >
                                             Accept Workout
@@ -568,7 +567,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             </motion.div>
             
             {/* Send Workout */}
-            <motion.div className="flex p-2 bg-gray-700 rounded-b-lg">
+            <motion.div className="flex p-2 bg-gray-700 rounded-b-lg w-full max-w-3xl border border-gray-500 border-t-0 items-center gap-x-2">
                 <motion.div className="relative flex flex-col items-center">
                     {/* Biceps button to toggle dropdown */}
                     <motion.button
@@ -584,10 +583,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                     {/* Dropdown and Button (hidden until icon clicked) */}
                     {isWorkoutsVisible && (
                         <motion.div
-                            className="mt-2 flex flex-col items-center bg-gray-700 p-3 rounded-lg shadow-lg"
-                            initial={{ opacity: 0, y: -10 }}
+                            className="absolute bottom-full left-0 mb-2 w-72 flex flex-col items-center bg-gray-800 border border-gray-600 p-3 rounded-lg shadow-lg z-10"
+                            initial={{ opacity: 0, y: 10 }} 
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
+                            exit={{ opacity: 0, y: 10 }} 
                         >
                             {/* Dropdown Menu Workout */}
                             <Select
@@ -628,7 +627,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             {/* Send Workout Button */}
                             <motion.button
                                 onClick={sendWorkout}
-                                className="p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+                                className="p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                                 whileHover={{ scale: 1.05 }}
                             >
                                 Send Workout
@@ -649,14 +648,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             sendMessage();
                         }
                     }}
-                    className="flex-1 p-2 rounded bg-gray-600 text-white"
+                    className="flex-1 p-2 rounded bg-gray-600 text-white placeholder-gray-400"
                     placeholder="Type a message..."
                 />
 
                 {/* Send Message Button */}
                 <motion.button
                     onClick={sendMessage}
-                    className="ml-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition"
+                    className="ml-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Send
@@ -664,7 +663,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                 
                 {/* Leave Button */}
                 <motion.button
-                    className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition"
+                    className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition cursor-pointer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => leaveChatRoom(chatRoomId)}

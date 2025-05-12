@@ -66,9 +66,8 @@ class PersonalTrainerScheduledWorkoutDeleteView(generics.DestroyAPIView):
     serializer_class = PersonalTrainerScheduledWorkoutSerializer
     permission_classes = [IsAuthenticated]
     
-    # Can only delete pt scheduled workouts related to the current user
     def get_queryset(self):
         user = self.request.user
-        # Only the pt can delete the scheduled workout
+        # Only the pt can delete pt scheduled workout sessions
         return PersonalTrainerScheduledWorkout.objects.filter(pt=user)
 

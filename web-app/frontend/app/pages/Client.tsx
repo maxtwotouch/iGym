@@ -1,13 +1,36 @@
-// src/components/ClientCalendar.tsx
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "react-router";
 import apiClient from "~/utils/api/apiClient";
+import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
+import { toLocalISOString } from "~/utils/date";
 
 interface Client {
   id: number;
   username: string;
+  first_name: string;
+  last_name: string;
+  profile: {
+    profile_picture: string;
+    height: number;
+    weight: number;
+    id: number;
+    personal_trainer: number;
+    pt_chatroom: number;
+  }
 }
+
+type SetInfo = { 
+  id: string | number; 
+  repetitions: number; 
+  weight: number; 
+};
+
+type ExerciseSessionInfoForClient = { 
+  id: string | number; 
+  exercise: { name: string; };
+  sets: SetInfo[];
+};
 
 type CalendarEvent = {
   id: string;
@@ -17,370 +40,390 @@ type CalendarEvent = {
   end?: string;
   duration?: string;
   exercises?: any[];
-  exercise_sessions?: any[];
+  exercise_sessions?: ExerciseSessionInfoForClient[];
   calories_burned?: number;
-  type: "planned" | "session";
+  type: "planned" | "session" | "pt";
 };
 
 export default function ClientCalendar() {
   const { id } = useParams<{ id: string }>();
   const [client, setClient] = useState<Client | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true); 
 
-  const [showDetail, setShowDetail] = useState(false);
-  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [viewALlEventsDay, setViewAllEventsDay] = useState(false);
 
-  // ─── Fetch client + calendar data ─────────────────────────────────────────
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
+
+  const onEventClick = (ev: CalendarEvent) => setSelectedEvent(ev);
+
   useEffect(() => {
     if (!id) return;
     (async () => {
-      setIsLoading(true);
+      setIsLoading(true); 
+      setError("");
       try {
-        // 1) load client
-        const userRes = await apiClient.get<Client>(`/user/${id}/`);
-        if (userRes.status === 200) setClient(userRes.data);
-
-        // 2) fetch planned workouts
-        const schedRes = await apiClient.get(`/trainer/client/${id}/scheduled_workouts/`);
-        const ptSchedRes = await apiClient.get(`/schedule/pt_workout/`);
-        const clientIdAsNumber = Number(id); // Convert id to number
-        const ptSched = (ptSchedRes.data as any[]).find(w => w.client === clientIdAsNumber);
-        if (ptSched) {
-          schedRes.data.push({
-            id: ptSched.id,
-            scheduled_date: ptSched.scheduled_date,
-            user: ptSched.client,
-            workout_template: ptSched.workout_template,
-            workout_title: ptSched.workout_title,
-          });
+        // 1) Load client info
+        const userRes = await apiClient(`/user/${id}/`);
+        if (userRes.status === 200) {
+          setClient(userRes.data as Client);
         }
-        schedRes.data.sort((a: any, b: any) => {
-          const dateA = new Date(a.scheduled_date);
-          const dateB = new Date(b.scheduled_date);
-          return dateA.getTime() - dateB.getTime();
-        });
+
+        const clientIdNum = Number(id);
         const now = new Date();
-        const future = (schedRes.data as any[])
-          .filter(w => new Date(w.scheduled_date) >= now);
 
-        const scheduledEvents: CalendarEvent[] = await Promise.all(
-          future.map(async item => {
-            try {
-              const exRes = await apiClient.get(`/workout/${item.workout_template}/exercises/`);
-              return {
-                id: `planned-${item.id}`,
-                workout_id: item.workout_template,
-                title: item.workout_title,
-                start: item.scheduled_date,
-                exercises: exRes.data,
-                type: "planned",
-              };
-            } catch {
-              return {
-                id: `planned-${item.id}`,
-                workout_id: item.workout_template,
-                title: item.workout_title,
-                start: item.scheduled_date,
-                exercises: [],
-                type: "planned",
-              };
-            }
-          })
-        );
+        // 2) Planned workouts
+        const schedRes = await apiClient.get<any[]>(`/trainer/client/${id}/scheduled_workouts/`);
+        const plannedEvents: CalendarEvent[] = (
+          schedRes.data as any[]
+        )
+          .map(w => ({
+            id: `planned-${w.id}`,
+            workout_id: w.workout_template,
+            title: w.workout_title,
+            start: w.scheduled_date,
+            type: "planned",
+          }));
 
-        // 3) fetch past sessions
+        // 3) PT 1-on-1 sessions for this client (visible to trainer and client)
+        const ptRes = await apiClient.get<any[]>(`/schedule/pt_workout/`);
+        const ptEvents: CalendarEvent[] = (
+          ptRes.data as any[]
+        )
+          .filter(session => session.client === clientIdNum)
+          .map(session => ({
+            id: `pt-${session.id}`,
+            workout_id: session.workout_template,
+            title: `${session.workout_title} with ${session.trainer_username || 'Trainer'}`,
+            start: session.scheduled_date,
+            type: "pt",
+          }));
+
+        // 4) Past workout sessions
         const [wkRes, sesRes] = await Promise.all([
           apiClient.get(`/trainer/client/${id}/workouts/`),
-          apiClient.get(`/trainer/client/${id}/workout_sessions/`)
+          apiClient.get(`/trainer/client/${id}/workout_sessions/`),
         ]);
         const workoutMap = new Map<number, string>(
           (wkRes.data as any[]).map(w => [w.id, w.name])
         );
+        const sessionEvents: CalendarEvent[] = (sesRes.data as any[]).map(session => {
+          const start = new Date(session.start_time);
+          const [h, m, s] = (session.duration || "00:00:00").split(":").map(Number);
+          const end = new Date(start.getTime() + (h * 3600 + m * 60 + s) * 1000);
+          return {
+            id: `session-${session.id}`,
+            workout_id: session.workout,
+            title: workoutMap.get(session.workout) || "Workout Session",
+            start: start.toISOString(),
+            end: end.toISOString(),
+            duration: session.duration,
+            exercises: (session.exercise_sessions || []).map((es: any) => es.exercise),
+            exercise_sessions: (session.exercise_sessions || []).map((es: any) => ({
+              id: es.id,
+              exercise: { name: es.exercise?.name || "Unknown Exercise" },
+              sets: (es.sets || []).map((set: any) => ({
+                id: set.id,
+                repetitions: set.repetitions,
+                weight: set.weight,
+              })),
+            })),
+            calories_burned: session.calories_burned,
+            type: "session",
+          };
+        });
 
-        const sessionEvents: CalendarEvent[] = await Promise.all(
-          (sesRes.data as any[]).map(async session => {
-            const startTime = new Date(session.start_time);
-            const [h, m, s] = (session.duration || "00:00:00")
-              .split(":").map(Number);
-            const endTime = new Date(
-              startTime.getTime() + (h * 3600 + m * 60 + s) * 1000
-            );
-            let exercises: any[] = [];
-            try {
-              const exRes = await apiClient.get(`/workout/${session.workout}/exercises/`);
-              exercises = exRes.data;
-            } catch {}
-            return {
-              id: `session-${session.id}`,
-              workout_id: session.workout,
-              title: workoutMap.get(session.workout) ?? "Workout Session",
-              start: startTime.toISOString(),
-              end: endTime.toISOString(),
-              duration: session.duration,
-              exercises,
-              exercise_sessions: session.exercise_sessions,
-              calories_burned: session.calories_burned,
-              type: "session",
-            };
-          })
-        );
-
-        setEvents([...scheduledEvents, ...sessionEvents]);
+        // Combine all events
+        setEvents([...plannedEvents, ...ptEvents, ...sessionEvents]);
       } catch (e: any) {
         console.error(e);
-        setError(e.message || "Failed to load calendar");
+        setError(e.response?.data?.detail || e.message || "Failed to load client calendar data");
       } finally {
-        setIsLoading(false);
-      }
+        setIsLoading(false); 
+      } 
     })();
   }, [id]);
 
-  // ─── Month state & navigation ────────────────────────────────────────────
+  // Month navigation
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const prevMonth = () =>
-    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
-  const nextMonth = () =>
-    setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+  const prevMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
-  // ─── Build 42-day grid for the month ─────────────────────────────────────
+  // Build calendar grid
   const calendarDays = useMemo(() => {
     const y = currentMonth.getFullYear();
-    const mon = currentMonth.getMonth();
-    const first = new Date(y, mon, 1);
+    const m = currentMonth.getMonth();
+    const first = new Date(y, m, 1);
     const startDow = first.getDay();
-    const dim = new Date(y, mon + 1, 0).getDate();
-    const prevDim = new Date(y, mon, 0).getDate();
-    const cells: Date[] = [];
-    for (let i = startDow - 1; i >= 0; i--) {
-      cells.push(new Date(y, mon - 1, prevDim - i));
-    }
-    for (let d = 1; d <= dim; d++) {
-      cells.push(new Date(y, mon, d));
-    }
+    const dim = new Date(y, m + 1, 0).getDate();
+    const prevDim = new Date(y, m, 0).getDate();
+    const days: Date[] = [];
+    for (let i = startDow - 1; i >= 0; i--) days.push(new Date(y, m - 1, prevDim - i));
+    for (let d = 1; d <= dim; d++) days.push(new Date(y, m, d));
     let nxt = 1;
-    while (cells.length < 42) {
-      cells.push(new Date(y, mon + 1, nxt++));
-    }
-    return cells;
+    while (days.length < 42) days.push(new Date(y, m + 1, nxt++));
+    return days;
   }, [currentMonth]);
 
-  // ─── Group events by date string ─────────────────────────────────────────
   const eventsByDate = useMemo(() => {
-    const m: Record<string, CalendarEvent[]> = {};
+    const map: Record<string, CalendarEvent[]> = {};
     events.forEach(ev => {
-      const key = new Date(ev.start).toLocaleDateString("en-US");
-      (m[key] ||= []).push(ev);
+      const key = new Date(ev.start).toLocaleDateString();
+      (map[key] ||= []).push(ev);
     });
-    return m;
+    return map;
   }, [events]);
 
-  if (!client) {
+  if (isLoading) { 
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        Loading client…
+        <div className="spinner-border text-light" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if client is null or error is not null
+  if (!client && !error) { // Must ensure that the client is defined before displaying the calendar
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        <p className="text-lg">Client not found or could not be loaded.</p>
       </div>
     );
   }
 
   return (
-    <motion.div
-      className="flex flex-col h-screen bg-gray-900"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-    >
-      {/* Header */}
-      <div className="bg-gray-800 text-white text-center py-2">
-        <span className="text-lg font-semibold">{client.username}</span>
+    <motion.div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    {isLoading ? (
+      <div className="flex-grow flex items-center justify-center">
+        <div className="spinner-border text-light" role="status"/>
       </div>
-
-      {/* Month nav */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
-        <button
-          onClick={prevMonth}
-          className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-        >
-          ‹ Prev
-        </button>
-        <div className="text-white font-semibold">
-          {currentMonth.toLocaleString("default", {
-            month: "long",
-            year: "numeric"
-          })}
+    ) : error ? (
+      <div className="text-red-400 text-center">
+        <p>Error loading client calendar: {error}</p>
+      </div>
+    ) : !client ? ( 
+        <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+            <p className="text-lg">Client data is not available.</p>
         </div>
-        <button
-          onClick={nextMonth}
-          className="text-white px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-        >
-          Next ›
-        </button>
-      </div>
-
-      {/* Weekday headers */}
-      <div className="grid grid-cols-7 bg-gray-800 text-gray-300 text-sm font-semibold text-center">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-          <div key={d} className="py-2 border-b border-gray-700">
-            {d}
+    ) : (
+      <>
+        {/* Header Client information */}
+        <div className="text-white flex justify-center px-4 py-6">
+          <div className="bg-gray-700 max-w-xl flex items-center justify-center p-4 rounded-lg shadow-md gap-x-6">
+            <div className="text-left">
+              <h1 className="text-xl font-bold text-white">Client: {client.first_name} {client.last_name}</h1>
+              <p className="text-sm text-gray-300 mt-1">
+                Height: {client.profile.height} cm | Weight: {client.profile.weight} kg
+              </p>
+            </div>
+            <img
+              src={client.profile.profile_picture || defaultProfilePicture} 
+              alt={`${client.first_name} ${client.last_name}`}
+              className="w-16 h-16 rounded-full border-2 border-gray-600 flex-shrink-0"
+            />
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Calendar grid */}
-      <div className="flex-1 overflow-y-auto bg-gray-800">
-        <div className="grid grid-cols-7 gap-px bg-gray-700 h-full">
-          {calendarDays.map((day, i) => {
-            const key = day.toLocaleDateString("en-US");
-            const isCurr = day.getMonth() === currentMonth.getMonth();
-            const isToday = key === new Date().toLocaleDateString("en-US");
-            const dayEvents = eventsByDate[key] || [];
+        {/* Calendar */}
+        <div className="flex flex-col flex-grow min-h-0 bg-gray-800 text-white rounded-2xl shadow-lg p-6 mt-4">
+          {/* Month navigation */}
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
+            <div className="text-white font-semibold">{currentMonth.toLocaleString(undefined, { month: "long", year: "numeric" })}</div>
+            <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
+          </div>
 
-            return (
-              <div
-                key={i}
-                onClick={() => {}}
-                className={`
-                  flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer
-                  ${!isCurr ? "opacity-50" : ""} ${isToday ? "ring-2 ring-blue-500" : ""}
-                `}
-              >
-                <div className="text-gray-400 text-sm mb-1">{day.getDate()}</div>
-                <div className="flex flex-col space-y-1 flex-1 overflow-y-auto">
-                  {dayEvents.slice(0, 3).map(ev => (
-                    <div
-                      key={ev.id}
-                      onClick={e => {
-                        e.stopPropagation();
-                        setDetailEvent(ev);
-                        setShowDetail(true);
-                      }}
-                      className={`
-                        h-6 rounded text-white text-xs leading-6 px-1 truncate
-                        ${ev.type === "session"
-                          ? "bg-green-600 hover:bg-green-500"
-                          : "bg-blue-600 hover:bg-blue-500"}
-                      `}
-                      title={new Date(ev.start).toLocaleString("en-US")}
-                    >
-                      {new Date(ev.start).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}{" "}
-                      – {ev.title}
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 text-gray-300 text-sm font-semibold text-center border-b border-gray-700 pb-1">
+            { ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
+              <div key={d} className="py-2">{d}</div>
+            )) }
+          </div>
+          
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-px bg-gray-700 flex-grow min-h-0">
+            {calendarDays.map((day, i) => {
+              const key = day.toLocaleDateString();
+              const isCurrent = day.getMonth() === currentMonth.getMonth();
+              const isToday = key === new Date().toLocaleDateString();
+              const dayEvents = eventsByDate[key] || [];
+              return (
+                <div
+                  key={i}
+                  className={
+                    `flex flex-col p-2 bg-gray-800 hover:bg-gray-700 cursor-pointer ${!isCurrent ? "opacity-50" : ""} ${isToday ? "ring-2 ring-blue-500" : ""}`
+                  }
+                >
+                  <span className="text-gray-400 text-sm mb-1">{day.getDate()}</span>
+                  <div className="flex flex-col space-y-1 flex-1 overflow-y-auto">
+                    {dayEvents.slice(0,3).map(ev => (
+                      <div
+                        key={ev.id}
+                        onClick={e => { 
+                          e.stopPropagation(); 
+                          onEventClick(ev); 
+                        }}
+                        className={
+                          `h-6 rounded text-xs leading-6 px-1 truncate ${ev.type === "session" ? "bg-green-600 hover:bg-green-500" : ev.type === "pt" ? "bg-purple-600 hover:bg-purple-500" : "bg-blue-600 hover:bg-blue-500"}`
+                        }
+                        title={new Date(ev.start).toLocaleString()}
+                      >
+                        {new Date(ev.start).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })} – {ev.title}
+                      </div>
+                    ))}
+                    {dayEvents.length > 3 && (
+                        <div className="text-xs text-gray-400">
+                          +{dayEvents.length - 3} more
+                        </div>
+                    )}
+                    {/* View all events button */}
+                    {dayEvents.length > 0 && (
+                      <button
+                        className="text-xs text-blue-500 hover:text-blue-400 mt-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering scheduling of workout
+                          setSelectedDateTime(toLocalISOString(day)); // Current day selected
+                          setViewAllEventsDay(true);
+                        }}
+                      >
+                        View All Events
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* View all events modal */}
+        {viewALlEventsDay && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+              <h2 className="text-xl font-semibold text-white">All Events for {new Date(selectedDateTime).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</h2>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {eventsByDate[new Date(selectedDateTime).toLocaleDateString()]
+                  ?.slice() 
+                  .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()) 
+                  .map((ev) => (
+                  <div key={ev.id} onClick={() => { onEventClick(ev); setViewAllEventsDay(false); }} className={`p-3 rounded-lg shadow-md cursor-pointer transition-all hover:shadow-xl ${ev.type==="session"?"bg-green-600 hover:bg-green-500": ev.type==="pt"?"bg-purple-600 hover:bg-purple-500":"bg-blue-600 hover:bg-blue-500"}`} title={new Date(ev.start).toLocaleString()}>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-sm">{ev.title}</span>
+                      <span className="text-xs text-gray-200">{new Date(ev.start).toLocaleTimeString(undefined, {hour:"2-digit",minute:"2-digit"})}</span>
+                    </div>
+                    <p className="text-xs text-gray-300 mt-1">
+                      {ev.type === "session" ? "✅ Completed" : ev.type === "pt" ? "🤝 1-on-1" : "🗓️ Planned"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setViewAllEventsDay(false)} className="w-full px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer">Close</button>
+            </div>
+          </div>
+        )}
+
+        {/* Event Detail Modal */}
+        {selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+              {/* Title + Date */}
+              <div className="flex justify-between items-baseline">
+                <h2 className="text-2xl font-semibold text-white">
+                  💪 {selectedEvent.title}
+                </h2>
+                <span className="text-sm text-gray-400">
+                  {new Date(selectedEvent.start).toLocaleDateString(
+                  undefined, 
+                    {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                    }
+                  )}
+                </span>
+              </div>
+                <p className="text-sm mb-2"
+                  style={{ color:
+                  selectedEvent.type === "session" ? "#4ade80" /*green*/ :
+                    selectedEvent.type === "pt"      ? "#c084fc" /*purple*/ :
+                    "#93c5fd" /*blue*/ }}>
+                    {selectedEvent.type === "session"
+                    ? "✅ Completed Session"
+                    : selectedEvent.type === "pt"
+                    ? "🤝 1-on-1 Session"
+                    : "🗓️ Planned Workout"}
+                    </p>
+
+              {/* Calories Burned */}
+              {selectedEvent.calories_burned != null && (
+                <p className="text-sm text-gray-400">
+                  🔥 Calories Burned:{" "}
+                  <span className="font-semibold text-white">
+                    {Math.round(selectedEvent.calories_burned)}
+                  </span>
+                </p>
+              )}
+
+              {/* Duration */}
+              {selectedEvent.duration && (
+                <p className="text-sm text-gray-400">
+                  ⏱ Duration:{" "}
+                  <span className="font-semibold text-white">
+                    {selectedEvent.duration}
+                  </span>
+                </p>
+              )}
+
+              {/* Exercises & Sets */}
+              {selectedEvent.exercise_sessions && selectedEvent.exercise_sessions.length > 0 && (
+                <div className="mt-4 space-y-4">
+                  {selectedEvent.exercise_sessions.map((es) => (
+                    <div key={es.id}>
+                      <p className="text-white font-semibold">
+                        {es.exercise.name}
+                      </p>
+                      <div className="ml-4 text-sm text-gray-400 space-y-1">
+                        {es.sets.map((st, idx) => (
+                          <div key={st.id} className="flex justify-between">
+                            <span>Set {idx + 1}:</span>
+                            <span className="font-semibold text-white">
+                              {st.repetitions} reps
+                            </span>
+                            <span className="font-semibold text-white">
+                              {st.weight} kg
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <div className="text-gray-500 text-xs">
-                      +{dayEvents.length - 3} more
-                    </div>
-                  )}
                 </div>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
+                  name="closeButton"
+                >
+                  Close
+                </button>
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Loading spinner */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full" />
-        </div>
-      )}
-
-      {/* Detail modal */}
-      {showDetail && detailEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <motion.div
-            className="bg-gray-800 text-white rounded-lg shadow-lg p-6 max-w-md w-full"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{detailEvent.title}</h2>
-              <button
-                className="text-white text-2xl"
-                onClick={() => setShowDetail(false)}
-              >
-                ×
-              </button>
             </div>
-            <div className="space-y-2">
-              <p>
-                <strong>Type:</strong>{" "}
-                {detailEvent.type === "session"
-                  ? "Completed Session"
-                  : "Planned Workout"}
-              </p>
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(detailEvent.start).toLocaleDateString("en-US")}
-              </p>
-              <p>
-                <strong>Time:</strong>{" "}
-                {new Date(detailEvent.start).toLocaleTimeString("en-US")}
-                {detailEvent.end
-                  ? ` – ${new Date(detailEvent.end).toLocaleTimeString("en-US")}`
-                  : ""}
-              </p>
-              {detailEvent.duration && (
-                <p>
-                  <strong>Duration:</strong> {detailEvent.duration}
-                </p>
-              )}
-              {detailEvent.calories_burned != null && (
-                <p>
-                  <strong>Calories:</strong> {detailEvent.calories_burned}
-                </p>
-              )}
-              {detailEvent.exercises?.length ? (
-                <>
-                <strong>Exercises:</strong>
-                <ul className="list-disc pl-5">
-                    {detailEvent.exercises.map((exercise: any) => (
-                        <li key={exercise.id}>
-                            {exercise.name}
-                            {detailEvent.exercise_sessions && detailEvent.exercise_sessions.length > 0 && (
-                                (() => {
-                                    const exercise_session = detailEvent.exercise_sessions.find(
-                                        (ex: any) => ex.exercise === exercise.id
-                                    );
-                                    return exercise_session ? (
-                                        <ul className="list-disc pl-5">
-                                            {exercise_session.sets.map((set: any, index: number) => (
-                                                <li key={index}>
-                                                    Set: {index + 1}: Reps: {set.repetitions}, Weight: {set.weight} kg
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : null;
-                                })()
-                            )}
-                        </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <p>No exercises.</p>
-              )}
-            </div>
-            <div className="mt-6 text-right">
-              <button
-                onClick={() => setShowDetail(false)}
-                className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
-                name="closeButton"
-              >
-                Close
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+          </div>
+        )}
+      </>
+    )}
     </motion.div>
   );
 }

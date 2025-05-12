@@ -26,7 +26,7 @@ if settings.DEBUG:
     
 """
     How it works:
-        1: frontend sends a request to http://127.0.0.1:8000/media/exercise_pictures/picture.png
+        1: frontend sends foe example a request to http://127.0.0.1:8000/media/exercise_pictures/picture.png
         2: Django's URL configuration looks for URL patters that match the requested path. Since we have set up the static file serving as we have, the requested path will match the condition because it starts with /media/
         3: Since the MEDIA_URL is defined as /media/, Django knows to handle it as a request for a media file
         4: Django will look for the the file in the directory specified by MEDIA_ROOT

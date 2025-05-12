@@ -17,7 +17,7 @@ export default [
             route("chat", "routes/ChatRoute.tsx"),
             route("chat/:id", "routes/ChatRoomRoute.tsx"),
             route("workouts/create", "routes/CreateWorkoutRoute.tsx"),
-            route("workouts/create/exercises", "routes/ExerciseSelectionRoute.tsx"),
+            route("workouts/modify/exercises", "routes/ExerciseSelectionRoute.tsx"),
             route("workouts/update/:id", "routes/EditWorkoutRoute.tsx"),
             route(":id/workout/session/create", "routes/WorkoutSessionRoute.tsx"),
             route("exercises", "routes/ExercisesRoute.tsx"),

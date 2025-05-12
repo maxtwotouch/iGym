@@ -49,16 +49,34 @@ const CreateWorkout: React.FC = () => {
           }
         }
 
-        alert("Edit failed:\n" + fieldErrors.join("\n"));
+        alert("Workout creation failed:\n" + fieldErrors.join("\n"));
         return;
       }
 
       navigate("/dashboard");
 
-    } catch (error) {
-      console.error("Error adding workout:", error);
-      alert("An unexpected error occurred.");
+    } catch (error: any) {
+      if (error.response?.data?.exercises) {
+        alert(`Validation Error: ${error.response.data.exercises.join(" ")} (Exercises)`);
+        return;
+      }
+
+      else if (error.response?.data?.name) {
+        alert(`Validation Error: ${error.response.data.name.join(" ")}`)
+        return;
+      } 
+
+      else{
+        alert(`Error: ${error.response?.data?.detail || error.message}`);
+        return;
+      }
     }
+  };
+
+  const removeExerciseFromWorkout = (exerciseId: number) => {
+    setSelectedExercises((prevSelectedExercises) => {
+      return prevSelectedExercises.filter((exercise) => exercise.id !== exerciseId);
+    });
   };
 
   return (
@@ -113,6 +131,16 @@ const CreateWorkout: React.FC = () => {
                     transition={{ duration: 0.5 }}
                   >
                     {exercise ? exercise.name : "Unknown Exercise"}
+                  
+                    {/* Delete exercise from Exercise List */}
+                    <motion.button
+                      name="deleteExercise"
+                      onClick={() => removeExerciseFromWorkout(exercise.id)}
+                      className="btn btn-sm btn-danger ml-4 cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      ✕
+                    </motion.button>
                   </motion.li>
                 );
               })}
@@ -123,8 +151,8 @@ const CreateWorkout: React.FC = () => {
           <motion.button
             name="addExercisesButton"
             type="button"
-            onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
-            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
+            onClick={() => navigate("/workouts/modify/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
+            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4 cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Add Exercises
@@ -134,7 +162,7 @@ const CreateWorkout: React.FC = () => {
           <motion.button
             name="createWorkoutButton"
             type="submit"
-            className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition"
+            className="w-full py-2 bg-green-600 rounded hover:bg-green-700 transition cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Create Workout
@@ -144,7 +172,7 @@ const CreateWorkout: React.FC = () => {
         {/* Back Button */}
         <motion.button
           onClick={() => navigate("/dashboard")}
-          className="mt-4 text-blue-400 hover:text-blue-500 underline"
+          className="mt-4 text-blue-400 hover:text-blue-500 underline cursor-pointer"
           whileHover={{ scale: 1.05 }}
         >
           Back to Dashboard

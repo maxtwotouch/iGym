@@ -132,7 +132,7 @@ class TestUpdateUserView(APITestCase):
     def test_update_user_basic(self):
         self.client.force_authenticate(user=self.user)
         
-        # Only update some fields
+        # Only update some of the fields
         new_data = {
             "profile": {
                 "height": 185,

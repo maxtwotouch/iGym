@@ -40,6 +40,7 @@ export const CustomerDashboard: React.FC = () => {
     const [uniqueNotifications, setUniqueNotifications] = useState<Notification[]>([]);
     const [chatRooms, setChatRooms] = useState<chatRoom[]>([]);
     const [chatRoomVisible, setChatRoomVisible] = useState(false);
+    const [showAllPreviousSessions, setShowAllPreviousSessions] = useState(false);
     const socketsRef = useRef<Map<number, WebSocket>>(new Map());
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -228,8 +229,15 @@ export const CustomerDashboard: React.FC = () => {
             if (diff > 86400) return `${Math.floor(diff / 86400)}d ago`; // Days ago
         };
 
-
-
+        const handleDeleteWorkout = async (workoutId: number) => {
+          try {
+            await deleteWorkout(workoutId); 
+            setWorkouts(prevWorkouts => prevWorkouts.filter(w => w.id !== workoutId));
+          } catch (error) {
+            console.error("Failed to delete workout from dashboard:", error);
+            alert("Could not delete the workout. Please try again.");
+          }
+        };
 
     return (
         <motion.div
@@ -357,7 +365,7 @@ export const CustomerDashboard: React.FC = () => {
                 <p className="text-gray-400">You do not have a personal trainer yet.</p>
                 <motion.button
                     onClick={() => navigate("/personalTrainers")}
-                    className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                    className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Find a personal trainer
@@ -404,14 +412,17 @@ export const CustomerDashboard: React.FC = () => {
                 >
                     {/* Middle section: Workout Feed */}
                     <motion.div className="p-6 rounded flex flex-col items-center flex-[2]">
-                    <div className="w-full mb-6">
                         <h3 className="text-xl font-bold mb-4 text-center">Previous Workout Sessions</h3>
     
                         {workoutSessions.length === 0 ? (
                         <p className="text-sm text-gray-400 text-center">No History</p>
                         ) : (
                         <div className="space-y-4 w-full">
-                            {workoutSessions.slice().reverse().map((session) => {
+                            {workoutSessions
+                                .slice() 
+                                .reverse()
+                                .slice(0, showAllPreviousSessions ? undefined : 2) 
+                                .map((session) => {
                             const workout = workouts.find((w) => w.id === session.workout);
                             const workoutName = workout ? workout.name : "Unknown Workout";
     
@@ -466,7 +477,33 @@ export const CustomerDashboard: React.FC = () => {
                             })}
                         </div>
                         )}
-                    </div>
+                        {/* Show more button */}
+                        {workoutSessions.length > 2 && !showAllPreviousSessions && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            name="showMoreButton"
+                            onClick={() => setShowAllPreviousSessions((prev) => !prev)}
+                            className="mt-4 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
+                          >
+                            {"Show More"}
+                          </motion.button>
+                        )}
+
+                        {/* Show less button (sticky bottom) */}
+                        {showAllPreviousSessions && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            name="hidePreviousSessionsButton"
+                            onClick={() => setShowAllPreviousSessions(false)}
+                            className="w-1/3 sticky bottom-5 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white text-base cursor-pointer"
+                          >
+                            Show Less
+                          </motion.button>
+                        )}
                     </motion.div>
     
                     {/* Right Section: Quick Actions */}
@@ -490,27 +527,27 @@ export const CustomerDashboard: React.FC = () => {
                                 <p className="font-semibold mb-0">{workout.name}</p>
                                 <div className="flex space-x-2 mt-2">
                                     <motion.button
+                                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
+                                    name="startWorkoutButton"
+                                    whileHover={{ scale: 1.05 }}
+                                    >
+                                    Start
+                                    </motion.button>
+                                    <motion.button
                                     onClick={() => navigate(`/workouts/update/${workout.id}`)}
-                                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                                    className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded cursor-pointer"
                                     name="viewWorkoutButton"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Edit
                                     </motion.button>
                                     <motion.button
-                                    onClick={() => deleteWorkout(workout.id)}
-                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    onClick={() => handleDeleteWorkout(workout.id)}
+                                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded cursor-pointer"
                                     whileHover={{ scale: 1.05 }}
                                     >
                                     Delete
-                                    </motion.button>
-                                    <motion.button
-                                    onClick={() => navigate(`/${workout.id}/workout/session/create`)}
-                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
-                                    name="startWorkoutButton"
-                                    whileHover={{ scale: 1.05 }}
-                                    >
-                                    Start
                                     </motion.button>
                                 </div>
                                 </div>
@@ -522,7 +559,7 @@ export const CustomerDashboard: React.FC = () => {
     
                     <motion.button
                         onClick={() => navigate("/workouts/create")}
-                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         name="createWorkoutButton"
                         whileHover={{ scale: 1.05 }}
                     >
@@ -530,14 +567,14 @@ export const CustomerDashboard: React.FC = () => {
                     </motion.button>
                     <motion.button
                         onClick={() => navigate("/exercises")}
-                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 mb-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                     >
                         Exercise List
                     </motion.button>
                     <motion.button
                         onClick={() => navigate("/calendar")}
-                        className="w-3/4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                        className="w-3/4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                         whileHover={{ scale: 1.05 }}
                     >
                         Calendar

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "~/context/AuthContext";
 import apiClient from "~/utils/api/apiClient";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
+import logo from "~/assets/igym-logo-transparent.png";
 
 type Profile = { profile_picture?: string | null };
 type User =    { id: number; username: string; profile: Profile };
@@ -11,7 +12,7 @@ type TrainerProfile = { id: number; experience: string; profile_picture?: string
 type Trainer = { id: number; username: string; trainer_profile: TrainerProfile };
 
 export const NavBar: React.FC = () => {
-  const { user, logout, updateUserContext } = useAuth();            // must provide .userId
+  const { user, logout } = useAuth();          
   const location          = useLocation();
   const dropdownRef       = useRef<HTMLDivElement>(null);
   const clientsDropdownRef = useRef<HTMLDivElement>(null);
@@ -25,12 +26,13 @@ export const NavBar: React.FC = () => {
   // --- 1) On mount: fetch either /user/:id/ or fallback to /trainer/:id/ ---
   useEffect(() => {
     if (!user?.userId) return;
-    const load = async () => {
-      setProfileImage(user?.profile.profile_picture || defaultProfilePicture);
-    };
-    load();
-  }, [user?.userId]);
-
+  
+    if (user.profile.profile_picture) {
+      setProfileImage(user.profile.profile_picture);
+    } else {
+      setProfileImage(defaultProfilePicture);
+    }
+  }, [user]);
   // --- 2) Once we know our type, fetch the other list: trainer→clients, user→their trainer ---
   useEffect(() => {
     if (!user?.userType || !user?.userId) return;
@@ -95,7 +97,11 @@ export const NavBar: React.FC = () => {
       <div className="container mx-auto flex items-center space-x-6">
         {/* Logo */}
         <motion.div initial={{ x: -20 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
-          <Link to="/dashboard" className="text-2xl font-bold">iGym</Link>
+          <Link to="/dashboard" className="text-2xl font-bold">    
+          <img src={logo} 
+          alt="iGym Logo" 
+          className="w-14 h-auto" 
+    /></Link>
         </motion.div>
 
         {/* Main nav links */}
@@ -106,6 +112,7 @@ export const NavBar: React.FC = () => {
           <Link 
             to="/dashboard"     
             className={`hover:text-blue-400 ${location.pathname==='/dashboard'      && "text-blue-400"}`}
+            data-name="Home Page"
           >
             Home
           </Link>
@@ -147,7 +154,7 @@ export const NavBar: React.FC = () => {
             <div ref={clientsDropdownRef} className="relative">
               <button 
                 onClick={toggleClientsDropdown}
-                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
+                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 cursor-pointer ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
                 name="clientsButton"
               >
                 My Clients
@@ -186,7 +193,7 @@ export const NavBar: React.FC = () => {
         <div ref={dropdownRef} className="relative">
           <button
             onClick={toggleProfileDropdown}
-            className="flex items-center focus:outline-none"
+            className="flex items-center focus:outline-none cursor-pointer"
           >
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
               <img src={profileImage} alt={user?.username} className="w-full h-full object-cover" />
@@ -226,12 +233,12 @@ export const NavBar: React.FC = () => {
                 <div className="border-t border-gray-700 my-1" />
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                  className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 cursor-pointer"
                 >
                   <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                     Logout
                   </div>
                 </button>

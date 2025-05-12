@@ -93,53 +93,44 @@ const WorkoutSession: React.FC = () => {
 
     const handleInputChange = (exerciseId: number, setId: number, field: "weight" | "repetitions", value: string) => {
         if (!/^\d*$/.test(value)) return; // Prevent non-numeric input
-        let newValue = value.replace(/^0+/, ""); // Remove leading zeros
 
-        // If empty, set to empty string. This allows for clearing the input
-        if (newValue === "") {
-            setWorkoutExerciseSessions(prev => {
-                return prev.map(session =>
+        let newValue = value;
+        // Remove leading zeros unless it's the only digit
+        if (value.length > 1 && value.startsWith('0')) {
+            if (value === "00") {
+                newValue = "0"; // Allow single zero
+            }
+            else {
+                newValue = value.replace(/^0+/, ""); // Remove leading zeros
+            }
+        }
+        if (newValue === "") { // Allow empty field
+             setWorkoutExerciseSessions(prev => 
+                prev.map(session =>
                     session.exercise === exerciseId
-                        ? {
-                            ...session,
-                            sets: session.sets.map(set =>
-                                set.id === setId ? { ...set, [field]: "" } : set
-                            ),
-                        }
+                        ? { ...session, sets: session.sets.map(set => set.id === setId ? { ...set, [field]: "" } : set) }
                         : session
-                )
-            });
+            ));
+            return;
         }
 
-        // If input is longer than 5 digits, set it to max
-        if (newValue.length > 5) {
-            setWorkoutExerciseSessions(prev => {
-                return prev.map(session =>
-                    session.exercise === exerciseId
-                        ? {
-                            ...session,
-                            sets: session.sets.map((set) =>
-                                set.id === setId ? { ...set, [field]: 99999 } : set
-                            ),
-                        }
-                        : session
-                )
-            });
-        }
+        const numValue = Number(newValue);
 
-        console.log(newValue);
+        if (isNaN(numValue)) return;
+
+        if (numValue > 999) { // Check against max limit of 999
+            newValue = "999";
+        } else if (numValue < 0) { // Check against min limit of 0
+            newValue = "0";
+        }
         
-        const numValue = Number(newValue); // Convert to number, for testing
-        if (isNaN(numValue) || numValue < 1 || numValue > 99999) return;
-
-        // Update the state with a fresh reference
         setWorkoutExerciseSessions(prev => {
             return prev.map(session =>
                 session.exercise === exerciseId
                     ? {
                         ...session,
                         sets: session.sets.map(set =>
-                            set.id === setId ? { ...set, [field]: numValue.toString() } : set
+                            set.id === setId ? { ...set, [field]: newValue } : set 
                         ),
                     }
                     : session
@@ -179,7 +170,15 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
-    const createSets = async (exerciseSessionId: number, sets: { weight: string, repetitions: string }[]) => {
+    const createSets = async (exerciseSessionId: number, sets: { id: number; weight: string, repetitions: string }[]): Promise<boolean> => {
+        // Check if any sets have empty values for either weight or repetitions
+        for (const set of sets) {
+            if (set.weight.trim() === "" || set.repetitions.trim() === "" || Number(set.weight) < 0 || Number(set.repetitions) < 0) {
+                alert("Please fill in all weights and repetitions for every set.");
+                return false; 
+            }
+        }
+
         try {
             const requests = sets.map(set => {
                 return apiClient.post(`/session/set/create/`,
@@ -208,43 +207,27 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
-    const createExerciseSessions = async (workoutSessionId: number): Promise<number | null> => {
+    const createExerciseSessions = async (workoutSessionId: number): Promise<boolean> => {
         try {
-            const requests = workoutExerciseSessions.map(async session => {
-                const response = await apiClient.post(`/session/exercise/create/`,
-                    {
-                        exercise: session.exercise,
-                        workout_session: workoutSessionId,
-                    }
-                )
-                
-                if(response.status != 201) {
+            for (const session of workoutExerciseSessions) {
+                const response = await apiClient.post(`/session/exercise/create/`, {
+                    exercise: session.exercise,
+                    workout_session: workoutSessionId,
+                });
+
+                if (response.status !== 201) {
                     console.error("Failed to create exercise session for exercise", session.exercise);
-                    return null;
+                    return false;
                 }
 
                 const data = await response.data;
-                console.log("Exercise Session Created:", data);
                 
-                //  Create sets for this exercise session
                 await createSets(data.id, session.sets);
-
-                return data.id;
-            });
-        
-            const exerciseSessionIds = await Promise.all(requests);
-            if (!exerciseSessionIds.every(id => id !== null)) {
-                console.error("Some exercise sessions failed to create");
-                alert("Some exercise sessions failed to create");
-                return null;
             }
-
-            console.log("All exercise sessions created successfully.");
-            return null;
-        
+            return true; 
         } catch (error) {
             console.error("Error creating exercise sessions:", error);
-            return null;
+            return false;
         }
     };
 
@@ -269,6 +252,16 @@ const WorkoutSession: React.FC = () => {
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
         console.log("Handling log session");
         e.preventDefault();
+
+        // Check if any sets have empty values for either weight or repetitions
+        for (const session of workoutExerciseSessions) {
+            for (const set of session.sets) {
+                if (set.weight.trim() === "" || set.repetitions.trim() === "" || Number(set.weight) < 0 || Number(set.repetitions) < 0) {
+                    alert("Please fill in all weights and repetitions for every set.");
+                    return false; 
+                }
+            }
+        }
 
         const totalCaloriesBurned = calculateTotalCalories();
         console.log("total calories burned: ", totalCaloriesBurned);
@@ -326,11 +319,11 @@ const WorkoutSession: React.FC = () => {
                                     </motion.h2>
                                     {session.sets.map((set, index) => (
                                         <motion.div key={set.id} className="w-full mb-4">
-                                            <motion.h3 
+                                            <motion.label 
                                                 className="text-md font-medium"
                                             >
                                                 Set {index + 1}
-                                            </motion.h3>
+                                            </motion.label>
                                             {/* Input for weight */}
                                             <input 
                                                 name={`weight-${exerciseName}-${index + 1}`}
@@ -352,8 +345,10 @@ const WorkoutSession: React.FC = () => {
                                             {/* Remove set Button */}
                                             <motion.button 
                                                 type="button" 
-                                                className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition" 
+                                                className="w-full py-2 bg-red-600 rounded hover:bg-red-700 transition cursor-pointer" 
                                                 onClick={() => removeSet(session.exercise, set.id)}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
                                             >
                                                 Remove Set
                                             </motion.button>
@@ -363,8 +358,10 @@ const WorkoutSession: React.FC = () => {
                                     <motion.button 
                                         name={`addSet-${exerciseName}`} 
                                         type="button" 
-                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition" 
+                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition cursor-pointer" 
                                         onClick={() => addSet(session.exercise)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
                                         Add Set
                                     </motion.button>
@@ -377,7 +374,7 @@ const WorkoutSession: React.FC = () => {
                         <motion.button 
                             name="saveButton"
                             type="submit"
-                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition"
+                            className="w-64 py-2 bg-green-600 rounded hover:bg-green-700 transition cursor-pointer"
                             whileHover={{ scale: 1.05 }}
                         >
                             Save Session
@@ -388,7 +385,7 @@ const WorkoutSession: React.FC = () => {
                 {/* Back Button */}
                 <motion.button
                     onClick={() => navigate("/dashboard")}
-                    className="mt-4 text-blue-400 hover:text-blue-500 underline"
+                    className="mt-4 text-blue-400 hover:text-blue-500 underline cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Back to Dashboard

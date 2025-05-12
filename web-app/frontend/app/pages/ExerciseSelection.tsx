@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { ExerciseSearchBar } from "~/components/Exercises/ExerciseSearchBar"; // Import the ExerciseSearchBar component
+import { ExerciseSearchBar } from "~/components/Exercises/ExerciseSearchBar"; 
 import apiClient from "~/utils/api/apiClient";
 
-// Interface to define the structure of an exercise object
 interface Exercise {
     name: string;
     id: number;
@@ -20,7 +19,6 @@ const MUSCLE_CATEGORY_MAP: { [key: string]: string } = {
     abs: "Abdominals",              
     chest: "Chest",
 };
-
 
 const ExerciseSelection: React.FC = () => {
     const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
@@ -44,7 +42,7 @@ const ExerciseSelection: React.FC = () => {
                 }
 
                 const data = await response.data;
-                    setAvailableExercises(data); 
+                setAvailableExercises(data); 
             } catch (error) {
                 console.error("Error fetching exercises:", error);
             }
@@ -52,12 +50,12 @@ const ExerciseSelection: React.FC = () => {
 
         if (location.state) {
             setFromPage(location.state.fromPage);
-            setSelectedExercises(location.state.selectedExercises);
+            setSelectedExercises(location.state.selectedExercises || [] as Exercise[]); 
             setNewWorkoutName(location.state.newWorkoutName);
         }
 
         fetchExercises();
-    }, []); 
+    }, []);
 
     const filteredExercises = availableExercises
         .filter((exercise) =>
@@ -74,7 +72,7 @@ const ExerciseSelection: React.FC = () => {
 
     const handleSelectExercise = (exercise: Exercise) => {
         setSelectedExercises((prevSelectedExercises) => {
-            if (prevSelectedExercises.includes(exercise)) {
+            if (prevSelectedExercises.some((selEx) => selEx.id === exercise.id)) {
                 return prevSelectedExercises.filter((e) => e.id !== exercise.id);
             } else {
                 return [...prevSelectedExercises, exercise];
@@ -111,7 +109,7 @@ const ExerciseSelection: React.FC = () => {
                         <select
                             value={filterCategory}
                             onChange={(e) => setFilterCategory(e.target.value)}
-                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700"
+                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 cursor-pointer"
                         >
                             <option value="all">All Types</option>
                             {Object.entries(MUSCLE_CATEGORY_MAP).map(([key, value]) => (
@@ -124,7 +122,7 @@ const ExerciseSelection: React.FC = () => {
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value)}
-                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700"
+                            className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 cursor-pointer"
                         >
                             <option value="asc">A-Z</option>
                             <option value="desc">Z-A</option>
@@ -145,10 +143,10 @@ const ExerciseSelection: React.FC = () => {
                             {filteredExercises.map((exercise) => (
                                 <motion.div
                                     key={exercise.id}
-                                    data-id={exercise.id}
+                                    data-name={exercise.name}
                                     className={`cursor-pointer p-2 rounded-md mb-2 text-left transition ${
-                                        selectedExercises.includes(exercise) 
-                                            ? "bg-blue-500 text-white" // Highlighted when selected
+                                        selectedExercises.some(selEx => selEx.id === exercise.id) 
+                                            ? "bg-blue-500 text-white"
                                             : "bg-gray-700 hover:bg-gray-600 text-white"
                                     }`}
                                     whileHover={{ scale: 1.02 }}
@@ -166,18 +164,16 @@ const ExerciseSelection: React.FC = () => {
 
                 </motion.div>
                 {/* Confirm Selection Button */}
-                    {selectedExercises.length > 0 && (
-                        <div className="w-1/3 sticky bottom-0 bg-gray-800 p-4">
-                            <motion.button
-                                name="confirmSelectionButton"
-                                onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
-                                className="w-full py-2 mt-4 bg-blue-500 hover:bg-blue-600 rounded text-white"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                Confirm Selection
-                            </motion.button>
-                        </div>
-                    )}
+                <div className="w-1/3 sticky bottom-0 bg-gray-800 p-4">
+                    <motion.button
+                        name="confirmSelectionButton"
+                        onClick={() => navigate(fromPage, { state: { selectedExercises, newWorkoutName } })}
+                        className="w-full py-2 mt-4 bg-blue-500 hover:bg-blue-600 rounded text-white cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        Confirm Selection
+                    </motion.button>
+                </div>
             </motion.div>
     );
 };  

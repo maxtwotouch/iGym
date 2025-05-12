@@ -65,7 +65,6 @@ export const RegistrationForm: React.FC = () => {
       alert("Registration successful!");
       navigate("/login");
     } catch (err) {
-      console.error("Network error:", err);
       alert("An error occurred during registration.");
     }
   };
@@ -135,7 +134,7 @@ export const RegistrationForm: React.FC = () => {
           value={userType}
           name="userType"
           onChange={e => setUserType(e.target.value as any)}
-          className="w-full p-2 rounded bg-gray-700 text-white"
+          className="w-full p-2 rounded bg-gray-700 text-white cursor-pointer"
         >
           <option value="user">User</option>
           <option value="trainer">Personal Trainer</option>
@@ -175,7 +174,7 @@ export const RegistrationForm: React.FC = () => {
             <select
               value={ptType}
               onChange={e => setPtType(e.target.value)}
-              className="w-full p-2 rounded bg-gray-700 text-white"
+              className="w-full p-2 rounded bg-gray-700 text-white cursor-pointer"
             >
               <option value="general">General Fitness Trainer</option>
               <option value="strength">Strength & Conditioning</option>
@@ -199,7 +198,7 @@ export const RegistrationForm: React.FC = () => {
       <motion.button
         type="submit"
         name="submitButton"
-        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
+        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition cursor-pointer"
         whileHover={{ scale: 1.05 }}
       >
         Register

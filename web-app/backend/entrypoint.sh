@@ -16,6 +16,7 @@ python manage.py collectstatic --noinput
 if [ ! -f /app/seeded/loaddata_done.txt ]; then
   echo "Loading fixture data..."
   python manage.py loaddata exercises.json
+  python manage.py loaddata users.json
   # Create marker file to prevent reloading in the future
   mkdir -p /app/seeded && touch /app/seeded/loaddata_done.txt
 else

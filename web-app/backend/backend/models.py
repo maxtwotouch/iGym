@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.validators import UnicodeUsernameValidator
 import re
 
-# Custom validator for names to avoid SQL injections
+# Custom validator for names
 def validate_name(name):
     if not re.fullmatch(r"^[\w.@+\- ]+$", name, re.UNICODE):
         raise ValidationError("Enter a valid name. Only letters, digits, spaces, and @/./+/-/_ characters are allowed.")
@@ -29,10 +29,7 @@ class PersonalTrainerProfile(models.Model):
     role = models.CharField(max_length=20, default="trainer")
     pt_type = models.CharField(max_length=20, choices=PT_TYPES, default="general")
 
-    profile_picture = models.ImageField(      upload_to="profile_pictures/",
-        blank=True,
-        null=True
-  )
+    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
 
 # Model for normal users
 class UserProfile(models.Model):
@@ -146,7 +143,7 @@ class ScheduledWorkout(models.Model):
          return f"{self.workout_template.name} scheduled on {self.scheduled_date}"
 
 class PersonalTrainerScheduledWorkout(models.Model):
-    # A client and its personal trainer trains together
+    # One-on-one session between a personal trainer and one of his clients
     client = models.ForeignKey(User, on_delete=models.CASCADE, related_name="pt_scheduled_workouts", blank=False, null=False)
     pt = models.ForeignKey(User, on_delete=models.CASCADE, related_name="arranged_workouts_clients", blank=False, null=False)
     

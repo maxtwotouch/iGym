@@ -103,9 +103,17 @@ const EditWorkout: React.FC = () => {
         return;
       }
     }
-    catch (error) {
-      console.error("Error saving workout:", error);
-      return;
+    catch (error: any) {
+      // Check if the error is due to name validation
+      if (error.response?.data?.name) {
+        alert(`Validation Error: ${error.response.data.name.join(" ")}`);
+        return;
+      } 
+
+      else{
+        alert(`Error: ${error.response?.data?.detail || error.message}`);
+        return;
+      }
     }
 
     navigate("/dashboard");
@@ -143,7 +151,7 @@ const EditWorkout: React.FC = () => {
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <label className="block text-lg mb-2">Change Workout Name:</label>
+          <h2 className="block text-lg mb-2">Change Workout Name:</h2>
           <input
             name="workoutName"
             type="text"
@@ -174,12 +182,12 @@ const EditWorkout: React.FC = () => {
                     <motion.button
                       name="deleteExercise"
                       onClick={() => removeExerciseFromWorkout(exercise.id)}
-                      className="btn btn-sm btn-danger ml-4"
+                      className="btn btn-sm btn-danger ml-4 cursor-pointer"
                       whileHover={{ scale: 1.05 }}
                     >
                       ✕
                     </motion.button>
-                    </motion.li>
+                  </motion.li>
                 );
               })}
             </ul>
@@ -189,8 +197,8 @@ const EditWorkout: React.FC = () => {
           <motion.button
             name="editExercises"
             type="button"
-            onClick={() => navigate("/workouts/create/exercises", { state: { fromPage: `/workouts/update/${id}/`, selectedExercises, newWorkoutName } })}
-            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4"
+            onClick={() => navigate("/workouts/modify/exercises", { state: { fromPage: `/workouts/update/${id}/`, selectedExercises, newWorkoutName } })}
+            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4 cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Add Exercises
@@ -200,7 +208,7 @@ const EditWorkout: React.FC = () => {
           <motion.button
             name="saveWorkout"
             onClick={handleSaveWorkout}
-            className="w-full py-2 mt-4 bg-green-600 hover:bg-green-700 rounded text-white"
+            className="w-full py-2 mt-4 bg-green-600 hover:bg-green-700 rounded text-white cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Save Workout
@@ -210,7 +218,7 @@ const EditWorkout: React.FC = () => {
         {/* Back Button */}
         <motion.button
           onClick={() => navigate("/dashboard")}
-          className="mt-4 text-blue-400 hover:text-blue-500 underline"
+          className="mt-4 text-blue-400 hover:text-blue-500 underline cursor-pointer"
           whileHover={{ scale: 1.05 }}
         >
           Back to Dashboard
