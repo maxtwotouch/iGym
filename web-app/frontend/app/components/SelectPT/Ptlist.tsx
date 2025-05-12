@@ -184,7 +184,7 @@ const PtList: React.FC = () => {
                   <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                      className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white cursor-pointer"
                   >
                       <option value="all">All Types</option>
                       {Object.entries(PT_TYPE_MAP).map(([key, value]) => (
@@ -197,7 +197,7 @@ const PtList: React.FC = () => {
                   <select
                       value={sortOrder}
                       onChange={(e) => setSortOrder(e.target.value)}
-                      className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white"
+                      className="flex-1 p-2 rounded-lg border border-gray-600 bg-gray-700 text-white cursor-pointer"
                   >
                       <option value="asc">A-Z</option>
                       <option value="desc">Z-A</option>

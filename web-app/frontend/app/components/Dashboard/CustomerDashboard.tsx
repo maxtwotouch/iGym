@@ -365,7 +365,7 @@ export const CustomerDashboard: React.FC = () => {
                 <p className="text-gray-400">You do not have a personal trainer yet.</p>
                 <motion.button
                     onClick={() => navigate("/personalTrainers")}
-                    className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded"
+                    className="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Find a personal trainer
