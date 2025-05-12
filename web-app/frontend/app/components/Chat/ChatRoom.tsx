@@ -198,7 +198,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                         workout_message: notification.workout_message?.name || null,
                     }]);
                 });
-                console.log("Fetched notifications:", notificationsUserData);
             } catch (error) {
                 console.error("Error fetching notifications:", error);
             }

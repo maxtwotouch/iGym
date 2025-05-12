@@ -36,6 +36,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
             const chatRoom = await chatRoomResponse.data;
             setChatRooms(chatRoom);
+            console.log(chatRoom);
         } catch (error) {
             console.error("Error fetching chat rooms:", error);
         }
@@ -52,12 +53,15 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
                 const userObjects = await userObjectsResponse.data;
                 setUsers(userObjects);
-    
-                // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
-                const current_user_id = user?.userId;
-                const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
-                if (current_user) {
-                    setCurrentUser(current_user);
+
+                if (user?.userType === "user") {
+                    // Find the current user, for filtering out in the dropdown menu when choosing participants of chat room
+                    const current_user_id = user?.userId;
+                    const current_user = userObjects.find((user: { id: number }) => user.id === Number(current_user_id));
+                    if (current_user) {
+                        setCurrentUser(current_user);
+                        return;
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -75,8 +79,11 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
             const participantIds = selectedParticipants.map(user => user.id);
             
             // Include the creator of the chat room
-            if (currentUser && !participantIds.includes(currentUser.id)) {
+            if (user?.userType === "user" && currentUser && !participantIds.includes(currentUser.id)) {
                 participantIds.push(currentUser.id);
+            }
+            else if (user?.userType === "trainer") { // Trainers are not included in the selection to participate in the chat room. But will be included in the chat room when creating the chat room himself
+                participantIds.push(user.userId);
             }
 
             try {
