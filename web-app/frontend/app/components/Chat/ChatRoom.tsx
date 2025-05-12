@@ -57,6 +57,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const [chatWorkouts, setChatWorkouts] = useState<ChatWorkout[]>([]);
     const [isWorkoutsVisible, setIsWorkoutsVisible] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [chatroomIdToLeave, setChatroomIdToLeave] = useState<number | null>(null);
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -390,6 +391,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     
                     if (clientData.profile.pt_chatroom === chatRoomId) {
                         alert("Cannot leave: the client still has this chat room as their PT chat.");
+                        setChatroomIdToLeave(null);
                         return;
                     }
     
@@ -412,6 +414,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
         if (response.status !== 204) {
             throw `Failed to delete chat room. Status: ${response.status}`;
         }
+        setChatroomIdToLeave(null);
 
         onLeave();
     };
@@ -666,11 +669,41 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                     className="py-1 px-3 bg-red-600 rounded hover:bg-red-700 transition cursor-pointer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => leaveChatRoom(chatRoomId)}
+                    onClick={() => setChatroomIdToLeave(chatRoomId)}
                 >
                     Leave
                 </motion.button>
             </motion.div>
+
+            {/* Leave ChatRoom Confirmation Modal */}
+            {chatroomIdToLeave !== null && ( 
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
+                        <h3 className="text-2xl font-semibold text-center">Are you sure you want to leave the Chat Room?</h3>
+                        <p className="text-sm text-gray-400 text-center">This action cannot be undone.</p>
+                        <div className="space-x-4 flex items-center justify-center">
+                            <motion.button
+                                onClick={() => setChatroomIdToLeave(null)}
+                                className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                Cancel
+                            </motion.button>
+                            <motion.button
+                                onClick={() => {
+                                if (chatroomIdToLeave !== null) {
+                                    leaveChatRoom(chatroomIdToLeave);
+                                }
+                                }} 
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded cursor-pointer"
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                Leave
+                            </motion.button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 }
