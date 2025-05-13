@@ -73,6 +73,7 @@ You can register as either a **User** or a **Personal Trainer**.
 * Once a workout is created, you can **start it directly from the dashboard**, and it will appear in your calendar.
 * After completing a workout, it will be marked as completed and remain visible both on the dashboard and in the calendar.
 * Click on events in the calendar to view more detailed information.
+* You can also go to the Chat section to chat with other users and your personal trainer.
 
 ### For Personal Trainers:
 
