@@ -67,7 +67,7 @@ If the python3 command is not available, use python instead. If the pip3 command
     - Windows: `./myenv/Scripts/Activate`
     - Linux/MacOS: `source ./myenv/bin/activate`
 4. Install the dependencies `pip3 install -r requirements.txt`
-5. Run the unit tests `python manage.py test backend/tests`
+5. Run the unit tests `python3 manage.py test backend/tests`
 6. Run the feature tests `python3 manage.py test backend/acceptance_tests`
 
 
