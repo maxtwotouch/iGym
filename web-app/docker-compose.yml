@@ -16,9 +16,9 @@ services:
       - DJANGO_SETTINGS_MODULE=backend.settings_prod
       - DJANGO_SECRET_KEY=nac85TVxkmqCk30nseDgenkVWFk9F1e1fBjAycJ9
       - DJANGO_DEBUG=False
-      - DJANGO_ALLOWED_HOSTS=igym.vikingthe.dev,localhost
+      - DJANGO_ALLOWED_HOSTS=localhost
       - DJANGO_SECURE_SSL_REDIRECT=True
-      - CORS_ALLOWED_ORIGINS=https://igym.vikingthe.dev,https://localhost
+      - CORS_ALLOWED_ORIGINS=https://localhost
       - POSTGRES_DB=igym_db
       - POSTGRES_USER=igym
       - POSTGRES_PASSWORD=iGymAdmin6789
@@ -27,7 +27,7 @@ services:
       - REDIS_CACHE_URL=redis://redis:6379/0
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - CSRF_TRUSTED_ORIGINS=https://igym.vikingthe.dev,https://localhost
+      - CSRF_TRUSTED_ORIGINS=https://localhost
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -50,10 +50,10 @@ services:
       - "3000"
     # If we need environment variables, we can pass them in here
     environment:
-      #- BACKEND_API_URL=https://igym.vikingthe.dev/api
-      #- VITE_BACKEND_API_URL=https://igym.vikingthe.dev/api
-      #- BACKEND_WS_URL=wss://igym.vikingthe.dev/api
-      #- VITE_BACKEND_WS_URL=wss://igym.vikingthe.dev/api
+      #- BACKEND_API_URL=https://domain.dev/api
+      #- VITE_BACKEND_API_URL=https://domain.dev/api
+      #- BACKEND_WS_URL=wss://domain.dev/ws
+      #- VITE_BACKEND_WS_URL=wss://domain.dev/ws
       - MODE=production
     networks:
       - nginx-frontend
