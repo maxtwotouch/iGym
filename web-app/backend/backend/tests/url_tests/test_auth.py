@@ -17,7 +17,7 @@ class AuthUrlsTest(TestCase):
         self.assertEqual(view.func.view_class, CustomTokenObtainPairView)
         
     def test_gym_url_to_refresh_token_endpoint(self):
-        view = resolve('/auth/refresh/')
+        view = resolve('/auth/token/refresh/')
         self.assertEqual(view.func.view_class, TokenRefreshView)
     
     

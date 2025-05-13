@@ -373,6 +373,7 @@ export const Calendar: React.FC = () => {
                     <label className="text-gray-300">Select Client:</label>
                     <select
                       className="w-full p-2 bg-gray-700 text-white rounded mb-3 cursor-pointer"
+                      name="clientSelect"
         
                       value={selectedClientId ?? ""}
                       onChange={(e) =>
@@ -381,7 +382,11 @@ export const Calendar: React.FC = () => {
                     >
                       <option value="">-- Select a Client --</option>  
                       {clients.map((c) => (
-                        <option key={c.id} value={c.id}>
+                        <option 
+                          key={c.id} 
+                          value={c.id}
+                          data-id={c.id}
+                        >
                           {c.username}
                         </option>
                       ))}
