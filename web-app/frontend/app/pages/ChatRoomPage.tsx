@@ -25,7 +25,7 @@ const ChatRoomPage: React.FC = () => {
 
     return (
         <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col text-white"
+            className="min-h-screen bg-900 flex flex-col text-white"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}

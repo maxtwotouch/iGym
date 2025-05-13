@@ -5,14 +5,12 @@ import Select from 'react-select';
 import apiClient from "~/utils/api/apiClient";
 import { useAuth } from "~/context/AuthContext";
 
+// Define type
+import type { User, Notification } from "~/types";
+
 type ChatRoomProps = {
     chatRoomId: number;
     onLeave: () => void;
-};
-
-type User = {
-    id: number;
-    username: string;
 };
 
 type Workout = {
@@ -36,16 +34,6 @@ type Message = {
     date_sent: string;
 };
 
-type Notification = {
-    id: number;
-    sender: number;
-    chat_room_id: number;
-    chat_room_name: string;
-    date_sent: Date;
-    message: string | null;
-    workout_message: string | null;
-};
-
 const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -62,6 +50,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     const { user } = useAuth();
 
     useEffect(() => {
+
+        // Fetch chat room
         const fetchChat = async () => {
             try {
                 const currentChatResponse = await apiClient.get(`/chat/${chatRoomId}/`);
@@ -77,6 +67,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             }
         }
 
+        // Fetch chat room participants
         const fetchParticipants = async () => {
             try {
                 const participantsResponse = await apiClient.get(`/chat/${chatRoomId}/participants/`);
@@ -93,6 +84,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             }
         }
 
+        // Fetch a users workouts to be able to send them in the chat room
         const fetchUserWorkouts = async () => {
             try {
                 const userWorkoutsResponse = await apiClient.get(`/workout/`);
@@ -116,6 +108,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             }
         }
 
+        // Fetch messages in the chat room
         const fetchMessages = async () => {
             try {
                 const messagesResponse = await apiClient.get(`/chat/${chatRoomId}/messages/`);
@@ -144,6 +137,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             }
         }
 
+        // Fetch workout messages in the chat room
         const fetchWorkoutMessages = async () => {
             try {
                 const workoutMessagesResponse = await apiClient.get(`/chat/${chatRoomId}/workout_messages/`);
@@ -178,6 +172,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             }
         }
 
+        // Fetch notifications for the current user
         const notificationsList = async () => {
             try {
                 const notificationsUserResponse = await apiClient.get(`/notification/`);
@@ -238,7 +233,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                     const message = JSON.parse(event.data);
 
                     if (message.type === "notification") { // No notification list inside the chat room
-                        console.log("Received notification:", message);
                         return;
                     }
 
@@ -342,7 +336,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
     const sendWorkout = () => {
         if (!socketRef.current) return; // Not allow for sending messages if the socket is not connected
-        if (!selectedWorkout) return; // Don't send empty workout
+        if (!selectedWorkout || !selectedWorkout.id || !selectedWorkout.name) return; // Don't send empty workout
 
         socketRef.current.send(JSON.stringify({
             type: "workout",
@@ -429,6 +423,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
     );
 
     return (
+        // Chat Room UI
         <motion.div
             className="min-h-screen flex flex-col items-center justify-center text-white p-4"
             initial={{ opacity: 0 }}
@@ -446,13 +441,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
 
             {/* Messages in Chat Room*/}
-            <motion.div className="bg-gray-700 p-4 rounded-t-lg shadow-md w-full max-w-3xl flex flex-col h-[70vh] border border-gray-500 border-b-0">
+            <motion.div className="bg-gray-700 p-4 rounded-t-lg w-full max-w-3xl flex flex-col h-[70vh] border border-gray-500 border-b-0">
                 <motion.div className="flex-1 overflow-y-scroll p-4 space-y-4">
                     {sortedMessages.map((message, index) => {
                         let sender;
                         let isOwnMessage;
                         
-                        // Differentiate between system messages and user messages
+                        {/* Differentiate between system messages and user messages */}
                         if (message.type === "confirmation") { // Accepted workout messages
                             sender = "System";
                             isOwnMessage = false;
@@ -467,7 +462,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             isOwnMessage = sender === user?.username;
                         }
                             
-                        // Display text messages
+                        {/* Display for each message type */}
+                        // Display normal messages
                         if (message.type === "message") {
                             return (
                                 <motion.div
@@ -563,7 +559,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                                     
                                 </motion.div>
                             );
-
                         }
                     })}
                 </motion.div>
@@ -572,6 +567,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             {/* Send Workout */}
             <motion.div className="flex p-2 bg-gray-700 rounded-b-lg w-full max-w-3xl border border-gray-500 border-t-0 items-center gap-x-2">
                 <motion.div className="relative flex flex-col items-center">
+                    
                     {/* Biceps button to toggle dropdown */}
                     <motion.button
                         onClick={() => setIsWorkoutsVisible(!isWorkoutsVisible)}
@@ -629,7 +625,13 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
 
                             {/* Send Workout Button */}
                             <motion.button
-                                onClick={sendWorkout}
+                                onClick={() => {
+                                    sendWorkout();                      // Send the selected workout
+                                    setSelectedWorkout(undefined);      // Reset the selected workout
+                                    if (isWorkoutsVisible) {
+                                        setIsWorkoutsVisible(false);    // Hide the dropdown
+                                    }
+                                }}
                                 className="p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                                 whileHover={{ scale: 1.05 }}
                             >
@@ -651,14 +653,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             sendMessage();
                         }
                     }}
-                    className="flex-1 p-2 rounded bg-gray-600 text-white placeholder-gray-400"
+                    className="flex-1 py-1 px-3 rounded bg-gray-600 text-white placeholder-gray-400"
                     placeholder="Type a message..."
                 />
 
                 {/* Send Message Button */}
                 <motion.button
                     onClick={sendMessage}
-                    className="ml-2 p-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
+                    className="py-1 px-3 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                 >
                     Send
@@ -679,9 +681,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
             {chatroomIdToLeave !== null && ( 
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-gray-900 p-6 rounded-lg w-96 space-y-4">
-                        <h3 className="text-2xl font-semibold text-center">Are you sure you want to leave the Chat Room?</h3>
+                        <h3 className="text-xl font-semibold text-center">Are you sure you want to leave the Chat Room?</h3>
                         <p className="text-sm text-gray-400 text-center">This action cannot be undone.</p>
                         <div className="space-x-4 flex items-center justify-center">
+                            
+                            {/* Cancel Button */}
                             <motion.button
                                 onClick={() => setChatroomIdToLeave(null)}
                                 className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 text-white cursor-pointer"
@@ -689,6 +693,8 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ chatRoomId, onLeave }) => {
                             >
                                 Cancel
                             </motion.button>
+
+                            {/* Leave Button */}
                             <motion.button
                                 onClick={() => {
                                 if (chatroomIdToLeave !== null) {

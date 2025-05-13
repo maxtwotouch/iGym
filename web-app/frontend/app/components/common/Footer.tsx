@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const Footer = () => {
     return (
         <motion.footer 
-            className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-6"
+            className="bg-gray-800 text-white py-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
@@ -16,7 +16,8 @@ const Footer = () => {
                 transition={{ duration: 0.5 }}
             >
                 <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
-                    {/* Column 1 */}
+                    
+                    {/* Column 1 - About Us*/}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
@@ -34,7 +35,8 @@ const Footer = () => {
                             </li>
                         </ul>
                     </motion.div>
-                    {/* Column 2 */}
+                    
+                    {/* Column 2 - Credits*/}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
@@ -46,7 +48,8 @@ const Footer = () => {
                             <li>Default profile pictures by Aditya Agustian Yudi Putra – Free vector from Vecteezy.com</li>
                         </ul>
                     </motion.div>
-                    {/* Column 3 */}
+                    
+                    {/* Column 3 - Disclaimer */}
                     <motion.div
                         initial={{ y: 20 }}
                         animate={{ y: 0 }}
@@ -58,6 +61,7 @@ const Footer = () => {
                         </ul>
                     </motion.div>
                 </motion.div>
+                
                 {/* Footer Bottom */}
                 <motion.div
                     className="text-center mt-6 text-gray-500"

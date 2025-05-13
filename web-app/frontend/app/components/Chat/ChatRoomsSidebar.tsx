@@ -26,6 +26,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
     const [resetDropDown, setResetDropDown] = useState(0); 
     const { user } = useAuth();
 
+    // Fetch all chat rooms
     const fetchChatRooms = async () => {
         try {
             const chatRoomResponse = await apiClient.get(`/chat/`);
@@ -36,13 +37,14 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
             const chatRoom = await chatRoomResponse.data;
             setChatRooms(chatRoom);
-            console.log(chatRoom);
         } catch (error) {
             console.error("Error fetching chat rooms:", error);
         }
     };
 
     useEffect(() => {
+
+        // Fetch the users
         const fetchUsers = async () => {
             try {
                 const userObjectsResponse = await apiClient.get(`/user/`);
@@ -72,6 +74,7 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
         fetchUsers();
     }, [navigate]);
 
+    // Handle chat room creation
     const handleCreateChatRoom = async () => {
         if (newChatRoomName.trim() && selectedParticipants.length > 0) { // Check if chat room name and participants are provided
             setResetDropDown(resetDropDown + 1); // Reset the dropdown
@@ -131,13 +134,13 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
 
     return (
         <motion.div
-            className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center text-white p-6 w-80 shadow-lg"
+            className="min-h-screen bg-gray-900 rounded flex flex-col items-center text-white p-6 w-80 shadow-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
             <motion.h2
-                className="text-2xl font-bold mb-4"
+                className="text-xl font-bold mb-4"
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5 }}
@@ -220,6 +223,9 @@ function Sidebar ({ onSelectChatRoom }: { onSelectChatRoom: (chatRoomId: number)
                         multiValueRemove: (provided) => ({ // The selected values remove button
                             ...provided, color: "white",
                             ":hover": { backgroundColor: "#DC2626", color: "white" }
+                        }),
+                        placeholder: (provided) => ({
+                            ...provided, color: "white"
                         })
                     }}
                 />

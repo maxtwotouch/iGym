@@ -7,7 +7,7 @@ import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
 import logo from "~/assets/igym-logo-transparent.png";
 
 type Profile = { profile_picture?: string | null };
-type User =    { id: number; username: string; profile: Profile };
+type User =    { id: number; username: string; first_name: string; last_name: string; profile: Profile };
 type TrainerProfile = { id: number; experience: string; profile_picture?: string | null };
 type Trainer = { id: number; username: string; trainer_profile: TrainerProfile };
 
@@ -95,6 +95,7 @@ export const NavBar: React.FC = () => {
       transition={{ duration: 0.8 }}
     >
       <div className="container mx-auto flex items-center space-x-6">
+        
         {/* Logo */}
         <motion.div initial={{ x: -20 }} animate={{ x: 0 }} transition={{ duration: 0.5 }}>
           <Link to="/dashboard" className="text-2xl font-bold">    
@@ -138,6 +139,7 @@ export const NavBar: React.FC = () => {
             Chat
           </Link>
 
+          {/* Only show the "Personal Trainers" link if the user is a regular user */}
           {user?.userType==="user" && (
             <>
               <Link 
@@ -150,18 +152,39 @@ export const NavBar: React.FC = () => {
             </>
           )}
 
+          {/* Only show the "My Clients" link if the user is a trainer */}
           {user?.userType==="trainer" && (
             <div ref={clientsDropdownRef} className="relative">
               <button 
                 onClick={toggleClientsDropdown}
-                className={`bg-gray-700 px-3 py-1 rounded hover:bg-gray-600 cursor-pointer ${isClientsDropdownOpen ? 'bg-gray-600' : ''}`}
+                className={`flex items-center rounded hover:text-blue-400 cursor-pointer ${isClientsDropdownOpen ? 'text-blue-400' : ''}`}
                 name="clientsButton"
               >
                 My Clients
+
+                {/* Dropdown arrow */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-4 w-4 ml-1 transition-transform ${
+                    isClientsDropdownOpen ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
               </button>
+
+              {/* Dropdown menu for clients */}
               {isClientsDropdownOpen && (
                 <motion.ul
-                  className="absolute left-0 top-full mt-1 bg-gray-800 py-2 rounded shadow-lg z-10 min-w-[200px]"
+                  className="absolute left-0 top-full mt-2 bg-gray-800 py-2 rounded z-10"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
@@ -171,11 +194,11 @@ export const NavBar: React.FC = () => {
                         <li key={c.id}>
                           <Link 
                             to={`/clients/${c.id}`} 
-                            className="block px-4 py-2 hover:bg-gray-700"
+                            className="block px-4 py-2 hover:text-blue-400"
                             data-id={c.id}
                             onClick={() => setIsClientsDropdownOpen(false)}
                           >
-                            {c.username}
+                          <span className="truncate">{c.first_name} {c.last_name}</span>
                           </Link>
                         </li>
                       ))
@@ -189,16 +212,21 @@ export const NavBar: React.FC = () => {
 
         <div className="flex-1" />
 
-        {/* Profile picture + dropdown */}
+        {/* Profile Dropdown*/}
         <div ref={dropdownRef} className="relative">
           <button
             onClick={toggleProfileDropdown}
             className="flex items-center focus:outline-none cursor-pointer"
           >
+            {/* Profile picture */}
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-blue-500 flex-shrink-0">
               <img src={profileImage} alt={user?.username} className="w-full h-full object-cover" />
             </div>
+            
+            {/* Profile name */}
             <span className="ml-2 hidden md:inline text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</span>
+           
+            {/* Dropdown arrow */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className={`h-4 w-4 ml-1 transition-transform ${isProfileDropdownOpen ? "rotate-180" : ""}`}
@@ -218,12 +246,14 @@ export const NavBar: React.FC = () => {
               transition={{ duration: 0.2 }}
             >
               <div className="bg-gray-800 rounded-md shadow-xl overflow-hidden min-w-[200px]">
+                {/* Profile link */}
                 <Link
                   to="/profile"
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
                   onClick={() => setIsProfileDropdownOpen(false)}
                 >
                   <div className="flex items-center">
+                    {/* Profile icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -231,6 +261,8 @@ export const NavBar: React.FC = () => {
                   </div>
                 </Link>
                 <div className="border-t border-gray-700 my-1" />
+                
+                {/* Logout button */}
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700 cursor-pointer"

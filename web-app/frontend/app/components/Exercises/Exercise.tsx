@@ -81,7 +81,7 @@ export const Exercise = () => {
               </h2>
               <p className="text-gray-300 leading-relaxed">
                 {exercise.description}
-              </p>
-              </div>
+              </p>  
+            </div>
           );
         };

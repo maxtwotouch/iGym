@@ -170,6 +170,8 @@ class ExerciseSessionSerializer(serializers.ModelSerializer):
 
 
 class WorkoutSerializer(serializers.ModelSerializer):
+    exercises = ExerciseSerializer(many=True, read_only=True)
+
     class Meta:
         model = Workout
         fields = ["id", "author", "owners", "name", "date_created", "exercises"]
@@ -208,12 +210,23 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
 
 
 class PersonalTrainerScheduledWorkoutSerializer(serializers.ModelSerializer):
+    # Accept ID for writing
+    workout_template = serializers.PrimaryKeyRelatedField(
+        queryset= Workout.objects.all(),  # or your model name
+        write_only=True
+    )
+    # Nested object for reading
+    workout_template_details = WorkoutSerializer(source="workout_template", read_only=True)
     workout_title = serializers.ReadOnlyField(source="workout_template.name")
 
     class Meta:
         model = PersonalTrainerScheduledWorkout
-        fields = ["id", "client", "pt", "workout_template", "workout_title", "scheduled_date"]
+        fields = [
+            "id", "client", "pt", "workout_template", "workout_template_details",
+            "workout_title", "scheduled_date"
+        ]
         extra_kwargs = {"pt": {"read_only": True}}
+
 
 
 class MessageSerializer(serializers.ModelSerializer):
