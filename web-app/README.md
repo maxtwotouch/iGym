@@ -61,7 +61,7 @@ Requires Node.js and npm installed. Follow the instructions on the [Node.js webs
 
 # How to Use the Application
 
-Start by either **registering** or **logging in** using the navigation bar.
+Start by either **registering** or **logging in** 
 
 You can register as either a **User** or a **Personal Trainer**.
 
