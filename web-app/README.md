@@ -58,6 +58,18 @@ Requires Node.js and npm installed. Follow the instructions on the [Node.js webs
 4. Open the browser and go to `http://localhost:5173/` (Requires the backend to be running on port 8000)
 5. When finished, stop the server `Ctrl + C` in the terminal where the server is running.
 
+## Running backend tests:
+Requires Python 3.8 or higher and pip. It is recommended to use a virtual environment to avoid conflicts with other projects.
+If the python3 command is not available, use python instead. If the pip3 command is not available, use pip instead.
+1. Change directory to backend `cd /path/to/project/src/backend`
+2. (Optional but recommended) Create virtual environment in the backend folder `python3 -m venv ./myenv`
+3. (Optional but recommended) Activate the virtual environment 
+    - Windows: `./myenv/Scripts/Activate`
+    - Linux/MacOS: `source ./myenv/bin/activate`
+4. Install the dependencies `pip3 install -r requirements.txt`
+5. Run the unit tests `python manage.py test backend/tests`
+6. Run the feature tests `python3 manage.py test backend/acceptance_tests`
+
 
 # How to Use the Application
 
