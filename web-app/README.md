@@ -77,9 +77,9 @@ You can register as either a **User** or a **Personal Trainer**.
 
 ### For Personal Trainers:
 
-* After logging in, your dashboard will display your current clients.
+* After logging in, your dashboard will display your current clients. 
+* Visit your **Profile** page (via the navbar) to update your personal information and upload a profile picture.
 * You can **chat with clients**, **create workouts**, and **send workouts directly to them**.
 * From your personal calendar, you can also **schedule 1-on-1 sessions**, which will automatically appear in both your own calendar and the client’s calendar.
 * To view a client’s calendar, select them from the **Clients** dropdown in the navbar.
 
-All users can update their profile information and upload a personal profile picture at any time by navigating to the **Profile** page via the navbar.
