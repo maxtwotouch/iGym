@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from backend.models import Workout, WorkoutSession, ExerciseSession, Exercise, Set, UserProfile, PersonalTrainerProfile, ScheduledWorkout
-from backend.serializers import  WorkoutSessionSerializer, PersonalTrainerSerializer, DefaultUserSerializer, ScheduledWorkoutSerializer, WorkoutSerializer
+from backend.serializers import  WorkoutSessionSerializer, PersonalTrainerSerializer, UserSerializer, ScheduledWorkoutSerializer, WorkoutSerializer
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from django.utils.timezone import now
@@ -168,7 +168,7 @@ class TestListClientsView(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        serializer = DefaultUserSerializer(self.clients, many=True)
+        serializer = UserSerializer(self.clients, many=True)
         
         self.assertEqual(len(response.data), len(self.clients))
         self.assertEqual(response.data, serializer.data)

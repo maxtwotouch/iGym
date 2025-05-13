@@ -68,8 +68,8 @@ class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
         self.trainer = User.objects.create_user(username="testTrainer", password="somethingThatIsNotSoEasyToGuess2343")
         self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer)
         
-        self.user = User.objects.create_user(username="testUser", password="password")
-        self.user_profile = UserProfile.objects.create(user=self.user, personal_trainer=self.trainer_profile)
+        self.user = User.objects.create_user(username="testUser", first_name="Test", last_name="User", password="somethingThatIsNotSoEasyToGuess2343")
+        self.user_profile = UserProfile.objects.create(user=self.user, height=180, weight=80, personal_trainer=self.trainer_profile)
 
         self.workout = Workout.objects.create(name="test workout", author=self.user)
         self.workout.owners.add(self.user)
