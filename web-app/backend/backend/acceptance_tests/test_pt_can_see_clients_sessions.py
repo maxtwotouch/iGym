@@ -12,6 +12,7 @@ from backend.models import UserProfile, WorkoutSession, Set, Exercise, Workout, 
 from django.conf import settings
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
+from django.db import connection
 from django.utils.timezone import now
 
 class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
@@ -26,15 +27,19 @@ class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
         # Set environment variable in frontend
         with open(env_path, "w") as f:
             f.write(f"VITE_BACKEND_URL={cls.live_server_url}\n")
+            
         
-
         # Start frontend
         cls.frontend_process = subprocess.Popen(
             ["npm", "run", "dev"],
             cwd=str(frontend_dir),
             env={
                 **os.environ,
-                "VITE_BACKEND_URL": cls.live_server_url,    
+                "VITE_BACKEND_URL": cls.live_server_url,
+                "VITE_ACCESS_TOKEN": "", 
+                "VITE_REFRESH_TOKEN": "",  
+                "VITE_USERNAME": "",       
+                "VITE_USER_TYPE": "",     
             },
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -86,6 +91,7 @@ class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
         
         self.scheduled_date = now() + timedelta(days=1)
         self.scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
+        connection.commit()
         
         self.browser.refresh()
         self.browser.get("http://localhost:5173")

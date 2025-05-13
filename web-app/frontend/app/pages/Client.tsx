@@ -68,7 +68,8 @@ export default function ClientCalendar() {
       setError("");
       try {
         // 1) Load client info
-        const userRes = await apiClient(`/user/${id}/`);
+        const userRes = await apiClient.get(`/user/${id}/`);
+        
         if (userRes.status === 200) {
           setClient(userRes.data as Client);
         }
