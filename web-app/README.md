@@ -73,7 +73,7 @@ If the python3 command is not available, use python instead. If the pip3 command
 
 # How to Use the Application
 
-Start by either **registering** or **logging in** using the navigation bar.
+Start by either **registering** or **logging in** 
 
 You can register as either a **User** or a **Personal Trainer**.
 
@@ -81,6 +81,7 @@ You can register as either a **User** or a **Personal Trainer**.
 
 * After logging in, visit your **Profile** page (via the navbar) to update your personal information and upload a profile picture.
 * Start by **selecting a personal trainer** and initiate a chat with them.
+* You can view all available exercises by navigating to the exercises section. Pictures and detail descriptions are provided
 * You can then create workouts and schedule them in your personal calendar.
 * Once a workout is created, you can **start it directly from the dashboard**, and it will appear in your calendar.
 * After completing a workout, it will be marked as completed and remain visible both on the dashboard and in the calendar.
@@ -89,9 +90,10 @@ You can register as either a **User** or a **Personal Trainer**.
 
 ### For Personal Trainers:
 
-* After logging in, your dashboard will display your current clients.
+* After logging in, your dashboard will display your current clients. 
+* Visit your **Profile** page (via the navbar) to update your personal information and upload a profile picture.
+* You can view all available exercises by navigating to the exercises section. Pictures and detail descriptions are provided
 * You can **chat with clients**, **create workouts**, and **send workouts directly to them**.
 * From your personal calendar, you can also **schedule 1-on-1 sessions**, which will automatically appear in both your own calendar and the client’s calendar.
 * To view a client’s calendar, select them from the **Clients** dropdown in the navbar.
 
-All users can update their profile information and upload a personal profile picture at any time by navigating to the **Profile** page via the navbar.
