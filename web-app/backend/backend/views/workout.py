@@ -84,4 +84,3 @@ class ListExercisesInWorkoutView(generics.ListAPIView):
             raise serializers.ValidationError("Cannot request exercises of a workout that you are not a owner of, or if you are not a personal trainer")
        
         return workout_object.exercises.all()
-            

@@ -7,7 +7,9 @@ import apiClient from "~/utils/api/apiClient";
 import ChatRoom from "../Chat/ChatRoom";
 
 import { deleteWorkout } from "~/utils/api/workouts";
+import { fetchExercises } from "~/utils/api/exercises";
 import defaultProfilePicture from "~/assets/defaultProfilePicture.jpg";
+
 
 
 import type { Workout, Exercise, chatRoom, Notification, User } from "~/types";
@@ -108,6 +110,9 @@ export const TrainerDashboard: React.FC = () => {
       
           const scheduledData = await scheduledRes.data;
           const clientsData: User[] = await clientsRes.data;
+
+          const allExercises = fetchExercises();
+          console.log("All Exercises:", allExercises);
       
           const withUser = scheduledData.map((item: any) => {
             const client = clientsData.find(c => c.id === item.client);
@@ -116,9 +121,12 @@ export const TrainerDashboard: React.FC = () => {
               client_username: client?.username || "Client",
               client_first_name: client?.first_name || "First Name",
               client_last_name: client?.last_name || "Last Name",
+              exercises: allExercises || [],
             };
           });
       
+          console.log("Processed Scheduled Workouts:", withUser);
+
           setPtScheduledWorkouts(withUser);
         } catch (error) {
           console.error("Error fetching scheduled workouts or clients:", error);
@@ -451,14 +459,14 @@ export const TrainerDashboard: React.FC = () => {
                       </div>
                       
                       {/* Display workout template name and exercises */}
-                      <span className="block text-md font-medium">🏋️ Workout: {w.workout_template_details?.name} </span>
-                      <ul className="mt-2 px-2 text-sm">
-                        {w.workout_template_details?.exercises.map((ex: any, idx: number) => (
+                      <span className="block text-md font-medium">🏋️ Workout: {w.workout_title} </span>
+                      {/* <ul className="mt-2 px-2 text-sm">
+                        {w.exercises.map((ex: Exercise, idx: number) => (
                           <li className="py-1" key={idx}> 
                           <span className="font-semibold">Exercise {idx + 1}: </span>{ex.name}
                           </li>
                         ))}
-                      </ul>
+                      </ul> */}
                     </li>
                     ))}
                   </ul>

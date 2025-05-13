@@ -138,7 +138,7 @@ export const Calendar: React.FC = () => {
                   : it.pt_username ?? "Trainer";
               return {
                 id: `pt-${it.id}`,
-                workout_id: it.workout_template?.id,
+                workout_id: it.workout_template,
                 title: `${it.workout_title} with ${withWhom}`,
                 start: it.scheduled_date,
                 completed: new Date(it.scheduled_date) < now,
