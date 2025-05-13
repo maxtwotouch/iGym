@@ -57,3 +57,28 @@ Requires Node.js and npm installed. Follow the instructions on the [Node.js webs
 3. Start the development server `npm run dev`
 4. Open the browser and go to `http://localhost:5173/` (Requires the backend to be running on port 8000)
 5. When finished, stop the server `Ctrl + C` in the terminal where the server is running.
+
+
+# How to Use the Application
+
+Start by either **registering** or **logging in** using the navigation bar.
+
+You can register as either a **User** or a **Personal Trainer**.
+
+### For Users:
+
+* After logging in, visit your **Profile** page (via the navbar) to update your personal information and upload a profile picture.
+* Start by **selecting a personal trainer** and initiate a chat with them.
+* You can then create workouts and schedule them in your personal calendar.
+* Once a workout is created, you can **start it directly from the dashboard**, and it will appear in your calendar.
+* After completing a workout, it will be marked as completed and remain visible both on the dashboard and in the calendar.
+* Click on events in the calendar to view more detailed information.
+
+### For Personal Trainers:
+
+* After logging in, your dashboard will display your current clients.
+* You can **chat with clients**, **create workouts**, and **send workouts directly to them**.
+* From your personal calendar, you can also **schedule 1-on-1 sessions**, which will automatically appear in both your own calendar and the client’s calendar.
+* To view a client’s calendar, select them from the **Clients** dropdown in the navbar.
+
+All users can update their profile information and upload a personal profile picture at any time by navigating to the **Profile** page via the navbar.
