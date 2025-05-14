@@ -523,17 +523,6 @@ export const TrainerDashboard: React.FC = () => {
                         <div className="p-3 bg-gray-700 rounded flex justify-between items-center">
                           <p className="font-semibold mb-0 truncate">{workout.name}</p>
                           <div className="flex space-x-2 mt-2">
-                            
-                            {/* Start workout button */}
-                            <motion.button
-                              onClick={() => navigate(`/${workout.id}/workout/session/create`)}
-                              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded cursor-pointer"
-                              name="startWorkoutButton"
-                              whileHover={{ scale: 1.05 }}
-                              >
-                              Start
-                            </motion.button>
-
                             {/* Edit workout button */}
                             <motion.button
                               onClick={() => navigate(`/workouts/update/${workout.id}`)}
