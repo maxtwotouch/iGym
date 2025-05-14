@@ -86,7 +86,7 @@ If you don't have an account, follow the **Registering an Account** instructions
     - **For Users**: Enter your **weight** and **height**.  
     - **For Personal Trainers**: Specify your **experience** and **type of trainer**.  
 4. Submit the registration form to complete your account creation.  
-5. Log in using your newly created credentials (**username** and **password**).  
+5. Log in using your newly created credentials (**username** and **password**) when redirected to the login page.  
 
 ### Logging In:
 
@@ -107,7 +107,7 @@ If you don't have an account, follow the **Registering an Account** instructions
 * **Creating Workouts**: You can create workouts by navigating to the dashboard either by clicking **Home** or the **iGym logo**. Once on the dashboard, click on **Create New Workout**.  
     1. Enter the name of the workout you want to create.  
     2. Click **Add Exercises** to add exercises to the workout. This will redirect you to a new page where you can select exercises.  
-    3. On the exercise selection page, you can sort exercises by **type**, **name**, or **alphabetical order**.  
+    3. On the exercise selection page, you can sort exercises by type, name, or alphabetical order.  
     4. After selecting the desired exercises, click **Confirm Selection** to store them in the workout.  
     5. Once you have chosen exercises and named the workout, click **Create Workout** to finalize the workout creation.  
 * **Workout Session**: Once a workout is created, you can start logging your workout session related to the workout. Navigate to the dashboard and click **Start** button on the individual workout.  
@@ -117,15 +117,14 @@ If you don't have an account, follow the **Registering an Account** instructions
     4. This allows you to easily review your progress over time.  
 * **Scheduling Workouts**: You can schedule workouts in your calendar by clicking the **Calendar** link via the navbar, entering the calendar page.  
     1. Select the desired date in the future for your scheduled workout.  
-    2. Click on the selected date to open the scheduling interface.  
-    3. Choose the date/time, and the workout you want to schedule.  
-    4. After making your selections, click **Save** to add the workout to your calendar.  
-    5. This feature allows you to easily view and manage your upcoming workouts.  
+    2. Choose the date/time, and the workout you want to schedule.  
+    3. After making your selections, click **Save** to add the workout to your calendar.  
+    4. This feature allows you to easily view and manage your upcoming workouts.  
 * **View Events**: By navigating to the **Calendar** page, you can view more detailed information about individual events. Click on each event to read more about it, such as:  
     - **1-on-1 sessions with your personal trainer**  
     - **Scheduled workouts**  
     - **Completed workout sessions**  
-* **Chat**: You can also enter the chat page by clicking the **Chat** link in the navbar. Once on the chat page, you can either select an existing chat room, such as your established chat with your personal trainer, or create a new chat room.  
+* **Chat**: You can enter the chat page by clicking the **Chat** link in the navbar. Once on the chat page, you can either select an existing chat room, such as your established chat with your personal trainer, or create a new chat room.  
     - **Creating a New Chat Room**:  
         1. Enter the name of the chat in the sidebar.  
         2. Add participants to the chat by typing their names or using the dropdown menu. Note that you can only add other clients to the chatroom.  
@@ -147,11 +146,11 @@ If you don't have an account, follow the **Registering an Account** instructions
 * **Editing Profile**: When you are authenticated, click on your name or profile image in the top right corner (navbar) to enter the page for editing your profile or adding a profile image.
 * **Exercise View**: You can view all available exercises by clicking on **Exercises** in the navbar. 
     1. Here, you can browse through various categories such as **Legs**, **Arms**, **Shoulders**, **Back**, **Abdominals**, and **Chest**. 
-    2. By clicking on a specific exercise, you can view detailed information with text descriptions and an image illustration to guide you.  
+    2. By clicking on a specific exercise, you can view detailed information with text descriptions and an image illustration to guide you. 
 * **Creating Workouts**: You can create workouts by navigating to the dashboard either by clicking **Home** or the **iGym logo**. Once on the dashboard, click on **Create New Workout**.  
     1. Enter the name of the workout you want to create.  
     2. Click **Add Exercises** to add exercises to the workout. This will redirect you to a new page where you can select exercises.  
-    3. On the exercise selection page, you can sort exercises by **type**, **name**, or **alphabetical order**.  
+    3. On the exercise selection page, you can sort exercises by type, name, or alphabetical order.  
     4. After selecting the desired exercises, click **Confirm Selection** to store them in the workout.  
     5. Once you have chosen exercises and named the workout, click **Create Workout** to finalize the workout creation.  
 * **Client**: You can view your clients by clicking on the **My Clients** link in the navbar.  
@@ -167,8 +166,8 @@ If you don't have an account, follow the **Registering an Account** instructions
     - **1-on-1 sessions with you**  
     - **Scheduled workouts**  
     - **Completed workout sessions**  
-* **View Own Events**: You can enter the **Calendar** page to view your own events. These include your upcoming scheduled 1-on-1 session. Click on each event to read more about it, such as:  
-* **Chat**: You can also enter the chat page by clicking the **Chat** link in the navbar. Once on the chat page, you can either select an existing chat room, such as your established chats with your clients, or create a new chat room.  
+* **View Own Events**: You can enter the **Calendar** page to view your own events. These are your scheduled 1-on-1 session. Click on each event to read more about it.  
+* **Chat**: You can enter the chat page by clicking the **Chat** link in the navbar. Once on the chat page, you can either select an existing chat room, such as your established chats with your clients, or create a new chat room.  
     - **Creating a New Chat Room**:  
         1. Enter the name of the chat in the sidebar.  
         2. Add participants to the chat by typing their names or using the dropdown menu. Note that you can only add other clients to the chatroom.  
