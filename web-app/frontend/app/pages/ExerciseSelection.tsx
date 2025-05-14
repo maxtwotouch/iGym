@@ -32,6 +32,7 @@ const ExerciseSelection: React.FC = () => {
     const location = useLocation();
 
     useEffect(() => {
+        // Fetch all exercises from the backend
         const fetchExercises = async () => {
             try {
                 const response = await apiClient.get(`/exercise/`);
@@ -56,7 +57,8 @@ const ExerciseSelection: React.FC = () => {
 
         fetchExercises();
     }, []);
-
+    
+    // Functionality to filter and sort exercises
     const filteredExercises = availableExercises
         .filter((exercise) =>
             exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -70,6 +72,7 @@ const ExerciseSelection: React.FC = () => {
                 : b.name.localeCompare(a.name)
     );
 
+    // Function to handle exercise selection
     const handleSelectExercise = (exercise: Exercise) => {
         setSelectedExercises((prevSelectedExercises) => {
             if (prevSelectedExercises.some((selEx) => selEx.id === exercise.id)) {
@@ -81,6 +84,7 @@ const ExerciseSelection: React.FC = () => {
     };
 
     return (
+            // Exercise selection page used in both CreateWorkout and EditWorkout pages
             <motion.div
                 className="flex flex-col items-center text-white justify-center p-8"
                 initial={{ opacity: 0 }}
@@ -159,11 +163,11 @@ const ExerciseSelection: React.FC = () => {
                         </motion.div>
 
                     ) : (
-                        <h2 className="text-sm text-gray-400">No exercises found.</h2>
+                        <h2 className="text-sm text-gray-400">No exercises found.</h2> // Show only when no exercises match the search query
                     )}
 
                 </motion.div>
-                {/* Confirm Selection Button */}
+                {/* Confirm Selection Button - sticks to bottom of exercise list */}
                 <div className="w-1/3 sticky bottom-0 bg-gray-800 p-4">
                     <motion.button
                         name="confirmSelectionButton"

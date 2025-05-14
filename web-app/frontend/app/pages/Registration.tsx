@@ -127,7 +127,7 @@ export const RegistrationForm: React.FC = () => {
         />
       </div>
 
-      {/* User Type */}
+      {/* Select User Type */}
       <div className="mb-4">
         <label className="block mb-1">Register as</label>
         <select
@@ -141,9 +141,10 @@ export const RegistrationForm: React.FC = () => {
         </select>
       </div>
 
-      {/* Conditional Fields */}
+      {/* User type - weight and height */}
       {userType === "user" && (
         <>
+          {/* Weight input */}
           <div className="mb-4">
             <label className="block mb-1">Weight (kg)</label>
             <input
@@ -154,6 +155,8 @@ export const RegistrationForm: React.FC = () => {
               className="w-full p-2 rounded bg-gray-700 text-white"
             />
           </div>
+
+          {/* Height input */}
           <div className="mb-4">
             <label className="block mb-1">Height (cm)</label>
             <input
@@ -167,8 +170,10 @@ export const RegistrationForm: React.FC = () => {
         </>
       )}
 
+      {/* Trainer type - PT type and experience */}
       {userType === "trainer" && (
         <>
+          {/* PT type drowdown */}
           <div className="mb-4">
             <label className="block mb-1">Type of Trainer</label>
             <select
@@ -183,6 +188,8 @@ export const RegistrationForm: React.FC = () => {
               <option value="physio">Physical Therapist</option>
             </select>
           </div>
+
+          {/* Experience input */}
           <div className="mb-4">
             <label className="block mb-1">Experience</label>
             <input
@@ -195,6 +202,7 @@ export const RegistrationForm: React.FC = () => {
         </>
       )}
 
+      {/* Register button */}
       <motion.button
         type="submit"
         name="submitButton"

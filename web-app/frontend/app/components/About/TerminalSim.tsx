@@ -9,6 +9,7 @@ interface TerminalProps {
   lineDelay?: number;
 }
 
+// Functional component to simulate a terminal typing effect, used in the About page
 const TerminalSimulator: React.FC<TerminalProps> = ({
   lines,
   typingSpeed = 50,

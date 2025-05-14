@@ -51,14 +51,9 @@ export default function ClientCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true); 
-
   const [selectedDateTime, setSelectedDateTime] = useState("");
   const [viewALlEventsDay, setViewAllEventsDay] = useState(false);
-
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
-
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const onEventClick = (ev: CalendarEvent) => setSelectedEvent(ev);
 
   useEffect(() => {
@@ -201,8 +196,9 @@ export default function ClientCalendar() {
     );
   }
 
+  // Allow a personal trainer to view all client calendars, and their events
   return (
-    <motion.div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="flex flex-col min-h-screen bg-gray-900 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
     {isLoading ? (
       <div className="flex-grow flex items-center justify-center">
         <div className="spinner-border text-light" role="status"/>
@@ -239,7 +235,7 @@ export default function ClientCalendar() {
           {/* Month navigation */}
           <div className="flex items-center justify-between mb-4">
             <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
-            <div className="text-white font-semibold">{currentMonth.toLocaleString(undefined, { month: "long", year: "numeric" })}</div>
+            <div className="text-white font-semibold">{currentMonth.toLocaleString("en-uk", { month: "long", year: "numeric" })}</div>
             <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
           </div>
 
@@ -343,7 +339,7 @@ export default function ClientCalendar() {
                 </h2>
                 <span className="text-sm text-gray-400">
                   {new Date(selectedEvent.start).toLocaleDateString(
-                  undefined, 
+                  "en-uk", 
                     {
                       weekday: "short",
                       year: "numeric",

@@ -16,6 +16,7 @@ const MUSCLE_CATEGORY_MAP: { [key: string]: string } = {
     chest: "Chest",
 };
 
+// Function to fetch all exercises from the backend
 function ExerciseList() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const navigate = useNavigate();
@@ -56,7 +57,8 @@ function ExerciseList() {
             >
                 Exercises
             </motion.h1>
-            {/* Exercise Categories */}
+            
+            {/* Exercise Categories in a grid pattern*/}
             <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {MUSCLE_CATEGORIES.map((category) => (
                     <motion.div

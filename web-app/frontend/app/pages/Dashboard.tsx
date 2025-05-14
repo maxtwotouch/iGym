@@ -9,6 +9,7 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div>
+        {/* Render different dashboards based on user type */}
         {user?.userType === "user" ? <CustomerDashboard /> : <TrainerDashboard />}
         </div>
     );

@@ -11,12 +11,14 @@ export const LoginForm = () => {
   const [searchParams] = useSearchParams();
   const from = searchParams.get("redirectTo") || "/dashboard";
 
+  //
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
     try {
       await login({ username, password }).then(async (success) => {
         if (success) {
+          
           // Redirect to the page they were trying to access
           navigate(from);
         } 
@@ -36,6 +38,7 @@ export const LoginForm = () => {
         animate={{ scale: 1 }}
         transition={{ duration: 0.5 }}
     >
+        {/* Username input */}
         <input
             type="text"  // Changed from "username" to "text"
             name="username"
@@ -45,6 +48,7 @@ export const LoginForm = () => {
             className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
             required
         />
+        {/* Password input */}
         <input
             type="password"
             name="password"
@@ -54,6 +58,7 @@ export const LoginForm = () => {
             className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
             required
         />
+        {/* Login button */}
         <motion.button
             type="submit"
             name="loginButton"

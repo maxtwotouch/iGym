@@ -8,12 +8,14 @@ interface ExerciseSearchBarProps {
 
 
 export const ExerciseSearchBar: React.FC<ExerciseSearchBarProps> = ({ searchQuery, setSearchQuery }) => {
+    
     // Handle search input change
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
     }
 
     return (
+        // Search bar for filtering exercises
         <input
             type="text"
             placeholder="Search exercises..."

@@ -1,5 +1,6 @@
 import apiClient from '~/utils/api/apiClient';
 
+// Fetch scheduled workouts from the backend
 export const fetchScheduledWorkouts = async () => {
     try {
         const response = await apiClient.get('/schedule/workout/');
@@ -40,6 +41,7 @@ export const fetchScheduledWorkouts = async () => {
     }
 }
 
+// Function to delete a scheduled workout
 export const deleteScheduledWorkout = async (scheduledWorkoutId: number) => {
     try {
         const deletePromise = apiClient.delete(`/schedule/workout/delete/${scheduledWorkoutId}/`);
@@ -53,6 +55,7 @@ export const deleteScheduledWorkout = async (scheduledWorkoutId: number) => {
     
 }
 
+// Function to create a scheduled workout
 export const createScheduledWorkout = async (workoutId: number, scheduledDate: string) => {
     // Convert local date/time from input to full ISO string
     const fullDate = new Date(scheduledDate);

@@ -37,7 +37,6 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, updateUserContext } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [profileData, setProfileData] = useState<UserProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +106,7 @@ const ProfilePage: React.FC = () => {
     setForm(f => ({ ...f, [name]: value }));
   };
 
+  // Handle file input for profile picture
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file?.type.startsWith("image/")) {
@@ -136,12 +136,14 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
+    // First name, last name, and username
     const data = new FormData();
     data.append("first_name", form.first_name);
     data.append("last_name", form.last_name);
     data.append("username", form.username);
     if (form.password) data.append("password", form.password);
 
+    // User specific fields
     if (isTrainer) {
       data.append("trainer_profile.experience", form.experience);
       data.append("trainer_profile.pt_type", form.pt_type);
@@ -191,9 +193,12 @@ const ProfilePage: React.FC = () => {
     >
       <div className="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="md:flex">
+          
+          {/* Sidebar */}
           <div className="md:w-1/3 bg-gray-700 p-8 flex flex-col items-center">
             <div className="relative">
               <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500">
+                {/* Profile picture - default or chosen */}
                 <img
                   src={
                     previewImage ||
@@ -206,6 +211,8 @@ const ProfilePage: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
               </div>
+
+              {/* Change profile picture */}
               {editing && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
@@ -215,14 +222,20 @@ const ProfilePage: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {}
+
+            {/* Profile name */}
             <h2 className="text-xl font-bold text-white mt-4">
               {profileData.first_name} {profileData.last_name}
             </h2>
             <p className="text-gray-300">{profileData.email}</p>
+            
+            {/* If not editing, show edit button */}
             {!editing && (
               <motion.button
                 onClick={() => setEditing(true)}
-                className="mt-6 px-6 py-2 bg-blue-500 rounded cursor-pointer"
+                className="text-white mt-6 px-6 py-2 bg-blue-500 rounded cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -231,6 +244,7 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
+          {/* Profile form - check if in edit mode or not - display profile info or handle input */}
           <div className="md:w-2/3 p-8">
             {error && <div className="text-red-400 mb-4">{error}</div>}
             {success && <div className="text-green-400 mb-4">{success}</div>}
@@ -244,12 +258,14 @@ const ProfilePage: React.FC = () => {
                 className="hidden"
               />
 
+              {/* Common profile fields: first name, last name, username */}
               <div className="grid md:grid-cols-2 gap-6">
                 {["first_name", "last_name", "username"].map(f => (
                   <div key={f}>
                     <label className="block text-gray-300 mb-1">
                       {formatLabel(f)}
                     </label>
+                    {/* If editing, show input field, else show profile data */}
                     {editing ? (
                       <input
                         name={f}
@@ -262,7 +278,8 @@ const ProfilePage: React.FC = () => {
                     )}
                   </div>
                 ))}
-
+                
+                {/* Trainer specific fields */}
                 {isTrainer ? (
                   <>
                     <div>
@@ -285,7 +302,7 @@ const ProfilePage: React.FC = () => {
 
                     <div>
                       <label className="block text-gray-300 mb-1">
-                        PT Type
+                        Personal Trainer Type
                       </label>
                       {editing ? (
                         <select
@@ -296,11 +313,12 @@ const ProfilePage: React.FC = () => {
                         >
                           {[
                             ["general", "General Fitness Trainer"],
-                            ["strength", "Strength & Conditioning"],
-                            ["functional", "Functional Coach"],
+                            ["strength", "Strength and Conditioning Trainer"],
+                            ["functional", "Functional Training Coach"],
                             ["bodybuilding", "Bodybuilding Coach"],
                             ["physio", "Physical Therapist"],
                           ].map(([val, label]) => (
+                            
                             <option key={val} value={val}>
                               {label}
                             </option>
@@ -308,13 +326,20 @@ const ProfilePage: React.FC = () => {
                         </select>
                       ) : (
                         <p className="text-white">
-                          {profileData.trainer_profile!.pt_type}
+                          {{
+                            general: "General Fitness Trainer",
+                            strength: "Strength and Conditioning Trainer",
+                            functional: "Functional Training Coach",
+                            bodybuilding: "Bodybuilding Coach",
+                            physio: "Physical Therapist",
+                          }[profileData.trainer_profile!.pt_type] || "unknown"}
                         </p>
                       )}
                     </div>
                   </>
                 ) : (
                   <>
+                    {/* User specific fields */}
                     {["weight", "height"].map(f => (
                       <div key={f}>
                         <label className="block text-gray-300 mb-1">
@@ -340,9 +365,12 @@ const ProfilePage: React.FC = () => {
                   </>
                 )}
               </div>
-
+              
+              {/* While editing */}
               {editing && (
                 <div className="flex justify-end space-x-4 mt-6">
+                  
+                  {/* Cancel button */}
                   <motion.button
                     type="button"
                     onClick={() => {
@@ -351,15 +379,17 @@ const ProfilePage: React.FC = () => {
                       setError(null);
                       setSuccess(null);
                     }}
-                    className="px-6 py-2 bg-gray-600 rounded cursor-pointer"
+                    className="text-white px-6 py-2 bg-gray-600 rounded cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     Cancel
                   </motion.button>
+
+                  {/* Save changes button */}
                   <motion.button
                     type="submit"
-                    className="px-6 py-2 bg-blue-500 rounded cursor-pointer"
+                    className="text-white px-6 py-2 bg-blue-500 rounded cursor-pointer"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >

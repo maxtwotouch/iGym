@@ -28,7 +28,9 @@ const WorkoutSession: React.FC = () => {
     const { user } = useAuth();
 
     useEffect(() => {
-        setIsRunning(true);
+        setIsRunning(true); // Start the timer
+        
+        // Fetch workout details
         const fetchWorkout = async () => {
             try {
                 const response = await apiClient.get(`/workout/${id}/`);
@@ -54,6 +56,7 @@ const WorkoutSession: React.FC = () => {
             }
         }, 1000);
 
+        // Fetch exercises 
         const fetchExercises = async () => {
             try {
                 const response = await apiClient.get(`/exercise/`);
@@ -91,6 +94,7 @@ const WorkoutSession: React.FC = () => {
         ));
     };
 
+    // Handle input change for weight and repetitions
     const handleInputChange = (exerciseId: number, setId: number, field: "weight" | "repetitions", value: string) => {
         if (!/^\d*$/.test(value)) return; // Prevent non-numeric input
 
@@ -123,7 +127,7 @@ const WorkoutSession: React.FC = () => {
         } else if (numValue < 0) { // Check against min limit of 0
             newValue = "0";
         }
-        
+    
         setWorkoutExerciseSessions(prev => {
             return prev.map(session =>
                 session.exercise === exerciseId
@@ -138,6 +142,7 @@ const WorkoutSession: React.FC = () => {
         });
     };
 
+    // Create a workout session object
     const createWorkoutSession = async (totalCalories: number): Promise<number | null> => {
         try {
             // Convert timer (seconds) to HH:MM:SS format
@@ -198,7 +203,6 @@ const WorkoutSession: React.FC = () => {
                 return false;
             }
 
-            console.log(`All sets for ExerciseSession ${exerciseSessionId} created successfully`);
             return true;
         
         } catch (error) {
@@ -231,6 +235,7 @@ const WorkoutSession: React.FC = () => {
         }
     };
 
+    // Calculate estimated calories burned based on MET value
     const calculateTotalCalories = () => {
         let totalCalories = 0;
         let MET = 3.0
@@ -249,8 +254,8 @@ const WorkoutSession: React.FC = () => {
         return roundedCalories;
     }
 
+    // Save session 
     const handleLogSession = async (e: React.FormEvent<HTMLFormElement>) => {
-        console.log("Handling log session");
         e.preventDefault();
 
         // Check if any sets have empty values for either weight or repetitions
@@ -264,8 +269,6 @@ const WorkoutSession: React.FC = () => {
         }
 
         const totalCaloriesBurned = calculateTotalCalories();
-        console.log("total calories burned: ", totalCaloriesBurned);
-
         const workoutSessionId = await createWorkoutSession(totalCaloriesBurned);
 
         if(!workoutSessionId) {
@@ -280,7 +283,7 @@ const WorkoutSession: React.FC = () => {
 
     return (
         <motion.div className="d-flex flex-column min-vh-100">
-            <motion.div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white">
+            <motion.div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white">
                 <motion.h1 
                     className="text-4xl font-bold mt-6 mb-6" 
                     initial={{ y: -20, opacity: 0 }} 
@@ -290,7 +293,8 @@ const WorkoutSession: React.FC = () => {
                     Log Workout Session
                 </motion.h1>
 
-                <div className="absolute top-16 right-2 text-lg bg-gray-800 p-2 rounded">
+                {/* Timer display */}
+                <div className="absolute top-26 right-8 text-lg bg-gray-800 p-2 rounded">
                     Time: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
                 </div>
 
@@ -312,18 +316,22 @@ const WorkoutSession: React.FC = () => {
                                     key={session.exercise} 
                                     className="bg-gray-700 p-4 rounded-lg shadow-md flex flex-col items-center"
                                 >
+                                    {/* Exercise Name */}
                                     <motion.h2 
                                         className="text-lg font-semibold mb-4"
                                     >
                                         {exercise ? exercise.name : "Unknown Exercise"} 
                                     </motion.h2>
                                     {session.sets.map((set, index) => (
-                                        <motion.div key={set.id} className="w-full mb-4">
+                                        <motion.div key={set.id} className="w-full mb-2">
+                                            
+                                            {/* Label for set number */}
                                             <motion.label 
                                                 className="text-md font-medium"
                                             >
                                                 Set {index + 1}
                                             </motion.label>
+                                            
                                             {/* Input for weight */}
                                             <input 
                                                 name={`weight-${exerciseName}-${index + 1}`}
@@ -333,6 +341,7 @@ const WorkoutSession: React.FC = () => {
                                                 value={set.weight}
                                                 onChange={(e) => handleInputChange(session.exercise, set.id, "weight", e.target.value)}
                                             />
+                                            
                                             {/* Input for repetitions */}
                                             <input 
                                                 name={`reps-${exerciseName}-${index + 1}`}
@@ -342,6 +351,7 @@ const WorkoutSession: React.FC = () => {
                                                 value={set.repetitions}
                                                 onChange={(e) => handleInputChange(session.exercise, set.id, "repetitions", e.target.value)}
                                             />
+                                            
                                             {/* Remove set Button */}
                                             <motion.button 
                                                 type="button" 
@@ -354,11 +364,12 @@ const WorkoutSession: React.FC = () => {
                                             </motion.button>
                                         </motion.div>
                                     ))}
+                                    
                                     {/* Add set Button */}
                                     <motion.button 
                                         name={`addSet-${exerciseName}`} 
                                         type="button" 
-                                        className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition cursor-pointer" 
+                                        className="w-full py-2 bg-blue-500 rounded hover:bg-blue-600 transition cursor-pointer" 
                                         onClick={() => addSet(session.exercise)}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
@@ -370,7 +381,7 @@ const WorkoutSession: React.FC = () => {
                         })
                     )}
                     {/* Save Button */}
-                    <motion.div className="w-full col-span-full flex justify-center mt-6">
+                    <motion.div className="w-full col-span-full flex justify-center mt-2">
                         <motion.button 
                             name="saveButton"
                             type="submit"

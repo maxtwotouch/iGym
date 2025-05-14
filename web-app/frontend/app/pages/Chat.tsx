@@ -49,11 +49,11 @@ const Chat = () => {
                     )}
                 
                 
-                 {/* On click, fullscreen Chat Room */}
+                 {/* On click, enter fullscreen Chat Room */}
                  {selectedChatRoom && (
                      <motion.button
                          onClick={() => navigate("/chat/" + selectedChatRoom)}
-                         className="fixed top-16 right-6 bg-gray-700 text-white p-3 rounded-lg shadow-lg z-50 hover:bg-gray-600 flex items-center gap-2 cursor-pointer"
+                         className="fixed top-26 right-8 bg-gray-700 text-white p-3 rounded-lg shadow-lg z-50 hover:bg-gray-600 flex items-center gap-2 cursor-pointer"
                          whileHover={{ scale: 1.1 }}
                      >
                          {/* Fullscreen icon */}

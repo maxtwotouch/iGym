@@ -199,8 +199,6 @@ const updateUserContext = async () => {
         lastName: userData.last_name
     };
 
-    console.log("Updated in updateUserContext: ", newUser);
-
     // Update the user context
     setUser(newUser);
     // Persist updated user data in localStorage

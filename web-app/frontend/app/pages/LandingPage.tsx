@@ -27,12 +27,15 @@ export const LandingPage = () => {
               animate={{ y: 0 }}
               transition={{ duration: 0.8 }}
             >
-                 <img
-            src={logo}
-            alt="iGym Logo"
-            className="w-80 h-auto mb-1"
-          />
+            {/* Logo */}
+            <img
+              src={logo}
+              alt="iGym Logo"
+              className="w-80 h-auto mb-1"
+            />
             </motion.h1>
+            
+            {/* Subtitle */}
             <motion.p
               className="text-xl mb-8"
               initial={{ opacity: 0.5 }}
@@ -47,15 +50,18 @@ export const LandingPage = () => {
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
             >
+              {/* Login button */}
               <Link to="/login">
                 <motion.button
                   name="loginButton"
-                  className="px-6 py-3 bg-blue-600 rounded-lg shadow hover:bg-blue-700 transition cursor-pointer"
+                  className="px-6 py-3 bg-blue-500 rounded-lg shadow hover:bg-blue-600 transition cursor-pointer"
                   whileHover={{ scale: 1.03 }}
                 >
                   Login
                 </motion.button>
               </Link>
+
+              {/* Register button */}
               <Link to="/register">
                 <motion.button
                   name="registrationButton"
