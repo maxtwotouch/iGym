@@ -201,6 +201,7 @@ class ScheduledWorkoutSerializer(serializers.ModelSerializer):
     # Include the name of the related workout
     workout_title = serializers.ReadOnlyField(source="workout_template.name")
 
+
     class Meta:
         model = ScheduledWorkout
         fields = ["id", "user", "workout_template", "workout_title", "scheduled_date"]

@@ -11,6 +11,7 @@ export const Exercises: React.FC = () => {
         }, [navigate]); // Call the effect whenever the user navigates to a new page
 
     return (
+        // Page for exercise list
         <motion.div>
             <motion.div
                 className="min-h-screen bg-900 text-white p-8"
@@ -18,7 +19,6 @@ export const Exercises: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-            
                 <ExerciseList />
             </motion.div>  
         </motion.div>

@@ -75,6 +75,7 @@ const EditWorkout: React.FC = () => {
     };
   }, [loading]);
 
+  // Function to update a workout
   const handleSaveWorkout = async () => {
     const exercises = selectedExercises.map((exercise) => exercise.id);
 
@@ -146,7 +147,7 @@ const EditWorkout: React.FC = () => {
 
         {/* Workout Name Input */}
         <motion.div
-          className="bg-gray-800 p-6 rounded-lg shadow-md w-80"
+          className="bg-gray-800 p-6 rounded-lg shadow-md w-90"
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -178,7 +179,7 @@ const EditWorkout: React.FC = () => {
                   >
                     {exercise ? exercise.name : "Unknown Exercise"}
 
-                    {/* Delete exercise from Exercise List */}
+                    {/* Delete exercise from list of exercises*/}
                     <motion.button
                       name="deleteExercise"
                       onClick={() => removeExerciseFromWorkout(exercise.id)}
@@ -198,7 +199,7 @@ const EditWorkout: React.FC = () => {
             name="editExercises"
             type="button"
             onClick={() => navigate("/workouts/modify/exercises", { state: { fromPage: `/workouts/update/${id}/`, selectedExercises, newWorkoutName } })}
-            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4 cursor-pointer"
+            className="w-full py-2 bg-blue-500 rounded hover:bg-blue-600 transition mb-4 cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Add Exercises
@@ -208,7 +209,7 @@ const EditWorkout: React.FC = () => {
           <motion.button
             name="saveWorkout"
             onClick={handleSaveWorkout}
-            className="w-full py-2 mt-4 bg-green-600 hover:bg-green-700 rounded text-white cursor-pointer"
+            className="w-full py-2 bg-green-600 hover:bg-green-700 rounded text-white cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Save Workout

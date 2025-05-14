@@ -9,7 +9,7 @@ interface Exercise {
   name: string;
 }
 
-
+ // Component to create a new workout
 const CreateWorkout: React.FC = () => {
     const [newWorkoutName, setNewWorkoutName] = useState<string>(""); 
     const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
@@ -73,6 +73,7 @@ const CreateWorkout: React.FC = () => {
     }
   };
 
+  // Function to remove an exercise from the list of selected exercises
   const removeExerciseFromWorkout = (exerciseId: number) => {
     setSelectedExercises((prevSelectedExercises) => {
       return prevSelectedExercises.filter((exercise) => exercise.id !== exerciseId);
@@ -82,7 +83,7 @@ const CreateWorkout: React.FC = () => {
   return (
     <motion.div className="d-flex flex-column min-vh-100">
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center text-white p-8"
+        className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-white p-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -99,7 +100,7 @@ const CreateWorkout: React.FC = () => {
 
         <motion.form
           onSubmit={handleAddWorkout}
-          className="bg-gray-800 p-8 rounded-lg shadow-md w-80"
+          className="bg-gray-800 p-8 rounded-lg shadow-md w-90"
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -115,6 +116,7 @@ const CreateWorkout: React.FC = () => {
             required
           />
 
+
           {/* Exercises List */}
           <h2 className="text-lg font-semibold mb-2">Exercises</h2>
           {selectedExercises.length === 0 ? (
@@ -125,13 +127,13 @@ const CreateWorkout: React.FC = () => {
                 return (
                   <motion.li
                     key={exercise.id}
-                    className="text-gray-300"
+                    className="text-gray-300 flex justify-between items-center p-2 bg-gray-700 rounded-md mb-2"
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ duration: 0.5 }}
                   >
                     {exercise ? exercise.name : "Unknown Exercise"}
-                  
+
                     {/* Delete exercise from Exercise List */}
                     <motion.button
                       name="deleteExercise"
@@ -152,7 +154,7 @@ const CreateWorkout: React.FC = () => {
             name="addExercisesButton"
             type="button"
             onClick={() => navigate("/workouts/modify/exercises", { state: { fromPage: `/workouts/create`, selectedExercises, newWorkoutName } })}
-            className="w-full py-2 bg-blue-600 rounded hover:bg-blue-700 transition mb-4 cursor-pointer"
+            className="w-full py-2 bg-blue-500 rounded hover:bg-blue-600 transition mb-4 cursor-pointer"
             whileHover={{ scale: 1.05 }}
           >
             Add Exercises

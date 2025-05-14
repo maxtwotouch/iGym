@@ -52,7 +52,8 @@ type Notification = {
   type chatRoom = {
     id: number;
   }
-// Interface to define the structure of a user object
+
+// Regular user type
   type User = {
     id: number;
     username: string;
@@ -68,7 +69,7 @@ type Notification = {
     };
   };
 
-// Interface to define the structure of a personal trainer object
+// Personal trainer type
   type PT = {
     id: number;
     username: string;

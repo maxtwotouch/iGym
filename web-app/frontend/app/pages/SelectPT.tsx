@@ -3,6 +3,7 @@ import PtList from "~/components/SelectPT/Ptlist";
 
 export const SelectPT: React.FC = () => {
   return (
+    // Main layout for the SelectPT page, displaying a list of personal trainers
     <main className="flex-grow bg-gray-900 text-white">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div

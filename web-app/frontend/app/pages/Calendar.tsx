@@ -34,33 +34,17 @@ function formatDuration(isoDur: string): string {
 export const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const { user, getToken } = useAuth();
-
-  const [currentMonth, setCurrentMonth] = useState(
-    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
+  const [currentMonth, setCurrentMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [availableWorkouts, setAvailableWorkouts] = useState<
-    { id: number; title: string }[]
-  >([]);
-  const [clients, setClients] = useState<{ id: number; username: string }[]>(
-    []
-  );
+  const [availableWorkouts, setAvailableWorkouts] = useState<{ id: number; title: string }[]>([]);
+  const [clients, setClients] = useState<{ id: number; username: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [showSchedule, setShowSchedule] = useState(false);
   const [selectedDateTime, setSelectedDateTime] = useState("");
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(
-    null
-  );
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(
-    null
-  );
-
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
-    null
-  );
-
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [viewALlEventsDay, setViewAllEventsDay] = useState(false);
 
   const loadEvents = async () => {
@@ -122,7 +106,6 @@ export const Calendar: React.FC = () => {
 
       // 3) PT 1-on-1 sessions
       let ptSched: CalendarEvent[] = [];
-      // if (user?.userType === "trainer") 
       {
         try {
           const r = await apiClient.get("/schedule/pt_workout/", {
@@ -190,10 +173,8 @@ export const Calendar: React.FC = () => {
       .catch((e) => console.error("Failed to load workouts", e));
   }, []);
 
-  const prevMonth = () =>
-    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
-  const nextMonth = () =>
-    setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
+  const prevMonth = () => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1));
 
   const calendarDays = useMemo(() => {
     const y = currentMonth.getFullYear(), m = currentMonth.getMonth();
@@ -267,7 +248,7 @@ export const Calendar: React.FC = () => {
               {/* Month navigation */}
               <div className="flex items-center justify-between mb-4">
                 <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
-                <div className="text-lg font-medium">{currentMonth.toLocaleString(undefined,{month:"long",year:"numeric"})}</div>
+                <div className="text-lg font-medium">{currentMonth.toLocaleString("en-uk",{month:"long",year:"numeric"})}</div>
                 <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
               </div>
 
@@ -447,8 +428,7 @@ export const Calendar: React.FC = () => {
                   </h2>
                   <span className="text-sm text-gray-400">
                     {new Date(selectedEvent.start).toLocaleDateString(
-                      undefined, 
-                      {
+                      undefined, {
                         weekday: "short",
                         year: "numeric",
                         month: "short",

@@ -27,6 +27,7 @@ const PtList: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fetch list of personal trainers from the backend
     apiClient.get("/trainer/")
       .then((res) => {
         if (res.status != 200) throw new Error();
@@ -61,24 +62,26 @@ const PtList: React.FC = () => {
       sortOrder === "asc" ? a.username.localeCompare(b.username) : b.username.localeCompare(a.username)
     );
       
-
-  const newPt = async ( ptUserId: number, ptProfileId: number ) => {
+    // Function to handle selecting a personal trainer
+    const newPt = async ( ptUserId: number, ptProfileId: number ) => {
       try {
           const pt = pts.find(pt => pt.id === ptUserId) || null;
 
+          // Check if the PT exists
           if (!pt) {
               alert("Could not find PT with the given ID");
               return;
           }
 
           try {
+              // Check if the user has a personal trainer already
               if (user?.profile.personal_trainer){
                   if (user.profile.personal_trainer === ptProfileId) {
                       alert(`You already have ${pt.username} as personal trainer`);
                       return;
                   }
 
-                  // The client have someone else as their personal trainer
+                  // Ask the user for confirmation to switch personal trainers
                   else {
                       const current_pt = pts.find(pt => pt.trainer_profile?.id === user.profile.personal_trainer)
 
@@ -86,7 +89,7 @@ const PtList: React.FC = () => {
                           `You already have ${current_pt?.username} as personal trainer. Are you sure you want to switch to ${pt.username}?`
                       );
                       
-                      // The user chose to stay with the current personal trainer
+                      // The user choose to stay with the current personal trainer
                       if (!confirmSwitch) {
                           return;
                       }
@@ -118,6 +121,7 @@ const PtList: React.FC = () => {
       }
   };
 
+  // Function to create a chat room with the selected personal trainer 
   const createChatRoomWithPt = async (ptId: number, ptName: string, clientName: string) => {
       try {
           const chatRoomResponse = await apiClient.post(`/chat/create/`, {
@@ -156,6 +160,7 @@ const PtList: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
       >
+          {/* Header */}
           <motion.h1
               className="text-4xl font-bold mb-4"
               initial={{ y: -20 }}
@@ -211,7 +216,8 @@ const PtList: React.FC = () => {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
-          >
+          > 
+              {/* Check if there are any personal trainers available or if they match a search */}
               {pts.length === 0 ? (
                   <p className="text-gray-400 text-center">No personal trainers available.</p>
               ) : filteredPts.length === 0 ? (
@@ -229,8 +235,10 @@ const PtList: React.FC = () => {
                           whileHover={{ scale: 1.02 }}
                           onClick={() => setSelectedPt(selectedPt?.id === pt.id ? null : pt)}
                       >
+                        {/* PT Card */}
                         <div className="flex flex-row justify-between items-center space-x-4">
                           <div className="flex flex-1 flex-col space-y-2">
+                                {/* PT Name and Type */}
                                 <h3 className="text-2xl font-bold text-white">
                                     {pt.first_name} {pt.last_name}
                                 </h3>
@@ -239,6 +247,7 @@ const PtList: React.FC = () => {
                                 </span>
                                 <p className="text-sm text-gray-400">{pt.trainer_profile?.experience || "N/A"}</p>
                             </div>
+                            {/* PT Profile Picture */}
                             <div className="w-28 h-28 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-600">
                               <img 
                                   src={pt.trainer_profile?.profile_picture || defaultProfilePicture}
@@ -246,7 +255,8 @@ const PtList: React.FC = () => {
                                   className="w-full h-full object-cover"
                               />
                             </div>
-                        </div>            
+                        </div>           
+                              {/* PT Selection Button - Appears on the PT card*/}
                               {selectedPt?.id === pt.id && (
                                   <motion.button
                                   className="w-full py-3 mt-4 bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-300 shadow-lg cursor-pointer"
@@ -266,7 +276,6 @@ const PtList: React.FC = () => {
                       </motion.div>
                   ))
           )}
-
           </motion.div>
       </motion.div>
   );
