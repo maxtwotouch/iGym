@@ -248,7 +248,7 @@ export const Calendar: React.FC = () => {
               {/* Month navigation */}
               <div className="flex items-center justify-between mb-4">
                 <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
-                <div className="text-lg font-medium">{currentMonth.toLocaleString("en-uk",{month:"long",year:"numeric"})}</div>
+                <div className="text-lg font-medium">{currentMonth.toLocaleString(undefined,{month:"long",year:"numeric"})}</div>
                 <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
               </div>
 

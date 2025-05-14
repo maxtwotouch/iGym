@@ -100,13 +100,15 @@ export default function ClientCalendar() {
           }));
 
         // 4) Past workout sessions
-        const [wkRes, sesRes] = await Promise.all([
+        const [wkRes, sesRes, exRes] = await Promise.all([
           apiClient.get(`/trainer/client/${id}/workouts/`),
           apiClient.get(`/trainer/client/${id}/workout_sessions/`),
+          apiClient.get("/exercise/"),
         ]);
         const workoutMap = new Map<number, string>(
           (wkRes.data as any[]).map(w => [w.id, w.name])
         );
+        const exercisesData = exRes.data;
         const sessionEvents: CalendarEvent[] = (sesRes.data as any[]).map(session => {
           const start = new Date(session.start_time);
           const [h, m, s] = (session.duration || "00:00:00").split(":").map(Number);
@@ -119,15 +121,21 @@ export default function ClientCalendar() {
             end: end.toISOString(),
             duration: session.duration,
             exercises: (session.exercise_sessions || []).map((es: any) => es.exercise),
-            exercise_sessions: (session.exercise_sessions || []).map((es: any) => ({
-              id: es.id,
-              exercise: { name: es.exercise?.name || "Unknown Exercise" },
-              sets: (es.sets || []).map((set: any) => ({
-                id: set.id,
-                repetitions: set.repetitions,
-                weight: set.weight,
-              })),
-            })),
+            exercise_sessions: (session.exercise_sessions || []).map((es: any) => {
+              const ex = exercisesData.find((e: any) => e.id === es.exercise);
+              return {
+                id: es.id,
+                exercise: {
+                  id: es.exercise,
+                  name: ex?.name ?? "Unknown Exercise",
+                },
+                sets: es.sets.map((st: any) => ({
+                  id: st.id,
+                  repetitions: st.repetitions,
+                  weight: st.weight,
+                })),
+              };
+            }),
             calories_burned: session.calories_burned,
             type: "session",
           };
@@ -235,7 +243,7 @@ export default function ClientCalendar() {
           {/* Month navigation */}
           <div className="flex items-center justify-between mb-4">
             <button onClick={prevMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Prev</button>
-            <div className="text-white font-semibold">{currentMonth.toLocaleString("en-uk", { month: "long", year: "numeric" })}</div>
+            <div className="text-white font-semibold">{currentMonth.toLocaleString(undefined, { month: "long", year: "numeric" })}</div>
             <button onClick={nextMonth} className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600 cursor-pointer">Next</button>
           </div>
 
@@ -339,7 +347,7 @@ export default function ClientCalendar() {
                 </h2>
                 <span className="text-sm text-gray-400">
                   {new Date(selectedEvent.start).toLocaleDateString(
-                  "en-uk", 
+                  undefined, 
                     {
                       weekday: "short",
                       year: "numeric",
