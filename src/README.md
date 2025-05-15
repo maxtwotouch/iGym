@@ -28,10 +28,10 @@ Requests to https://your-server/media/... will be served by Nginx.
 The project can be run locally without Docker. This is useful for development and testing purposes. When ran locally the application only consists of the frontend and backend.
 The frontend is served on port 5173 and the backend is served on port 8000. 
 Things to note: 
-- When running locally, Django will use SQLite as the database. This is not recommended for production, but it is fine for development and testing purposes.
-- All traffic will go through HTTP. This is not recommended for production, but it is fine for development and testing purposes.
-- The frontend will run in development mode, which means that it will use hot reloading and debug tools are active. This is not recommended for production, but it is fine for development and testing purposes.
-- The backend will run using Django's built-in development server. This is not recommended for production, but it is fine for development and testing purposes.
+- When running locally, Django will use SQLite as the database.
+- All traffic will go through HTTP. 
+- The frontend will run in development mode, which means that it will use hot reloading and debug tools are active. 
+- The backend will run using Django's built-in development server. 
 - When running locally the Redis cache is not available, so the application will use Django's in-memory cache.
 
 ## Running backend locally:
