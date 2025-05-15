@@ -32,7 +32,6 @@ coverage/
 
 
 # Node stuff
-node_modules/
 dist/
 
 # Django stuff
