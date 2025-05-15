@@ -8,7 +8,7 @@ const isProduction = isServer
     ? process.env.NODE_ENV === 'production' // Check the NODE_ENV variable for production mode
     : import.meta.env.MODE === 'production'; // Check the Vite environment variable for production mode
 
-console.log("Is production mode:", isProduction); // Log the production mode for debugging
+// console.log("Is production mode:", isProduction); // Log the production mode for debugging
 
 export let backendUrl: string; // Declare backendUrl variable
 
@@ -37,5 +37,5 @@ if (isProduction) {
 }
 
 
-console.log("Backend URL:", backendUrl); // Log the backend URL for debugging
-console.log("WebSocket URL:", wsUrl); // Log the WebSocket URL for debugging
+// console.log("Backend URL:", backendUrl); // Log the backend URL for debugging
+// console.log("WebSocket URL:", wsUrl); // Log the WebSocket URL for debugging
