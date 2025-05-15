@@ -9,7 +9,7 @@ import { fetchExercises } from "~/utils/api/exercises"; // Import the function t
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Dashboard" },
-    { name: "description", content: "Welcome to workoutapp!" },
+    { name: "description", content: "Your dashboard" },
   ];
 }
 

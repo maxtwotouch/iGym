@@ -4,7 +4,7 @@ import { RegistrationForm } from "../pages/Registration";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Registration" },
-    { name: "description", content: "Create new user" },
+    { name: "description", content: "Create a new account" },
   ];
 }
 

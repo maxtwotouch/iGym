@@ -4,8 +4,8 @@ import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Dashboard" },
-    { name: "description", content: "Welcome to workoutapp!" },
+    { title: "Chat" },
+    { name: "description", content: "Create and join Chat Rooms from the sidebar. And send messages or workouts through each invidual Chat Room" },
   ];
 }
 

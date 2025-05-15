@@ -4,8 +4,8 @@ import LoadingSpinner from "~/components/common/LoadingSpinner";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Dashboard" },
-    { name: "description", content: "Welcome to workoutapp!" },
+    { title: "Exercises" },
+    { name: "description", content: "View all existing exercises" },
   ];
 }
 

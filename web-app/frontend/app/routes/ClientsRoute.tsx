@@ -5,7 +5,7 @@ import LoadingSpinner from "~/components/common/LoadingSpinner";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Client" },
-    { name: "description", content: "Client dashboard with calendar view" },
+    { name: "description", content: "Client information and their Calendar" },
   ];
 }
 

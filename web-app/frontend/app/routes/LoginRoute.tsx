@@ -4,7 +4,7 @@ import { LoginForm } from "../pages/Login";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Login" },
-    { name: "description", content: "Login to your user" },
+    { name: "description", content: "Login to your account" },
   ];
 }
 
