@@ -95,7 +95,6 @@ class ChatRoomTest(StaticLiveServerTestCase):
         os.environ["VITE_USERNAME"] = self.test_user.username
         os.environ["VITE_USER_TYPE"] = str(self.test_profile.role) 
         
-        self.browser.refresh()
         self.browser.get("http://localhost:5173")
         
         login_button = WebDriverWait(self.browser, 10).until(

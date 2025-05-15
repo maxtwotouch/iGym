@@ -33,20 +33,12 @@ export const NavBar: React.FC = () => {
       setProfileImage(defaultProfilePicture);
     }
   }, [user]);
-  // --- 2) Once we know our type, fetch the other list: trainer→clients, user→their trainer ---
+  // --- 2) Once we know our type, if trainer, fetch their clients ---
   useEffect(() => {
     if (!user?.userType || !user?.userId) return;
     const loadList = async () => {
       try {
-        if (user?.userType === "user") {
-          const allTrainers = await apiClient.get<Trainer[]>(`/trainer/`);
-          const me = user;
-          // `profile.personal_trainer` holds the trainer_profile.id on the server
-          const found = allTrainers.data.find(
-            t => t.trainer_profile.id === (me.profile as any).personal_trainer
-          );
-          if (found) setTrainer(found);
-        } else {
+        if (user.userType === "trainer") {
           // Trainer → list clients
           const c = await apiClient.get<User[]>(`/trainer/clients/`);
           setClients(c.data);

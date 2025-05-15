@@ -174,4 +174,3 @@ class PtScheduleWorkoutTest(StaticLiveServerTestCase):
         
         
         
-
