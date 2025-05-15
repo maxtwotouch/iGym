@@ -40,8 +40,14 @@ dist/
 __pycache__/
 db.sqlite3
 
-# Python venv
+# Python virtual environments
 venv/
+myenv/
+env/
+.venv/
+.env/
+.virtualenv/
+virtualenv/
 
 # OS-specific
 .DS_Store
