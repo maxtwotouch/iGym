@@ -83,7 +83,6 @@ class CalendarTest(StaticLiveServerTestCase):
         self.exercise_session = ExerciseSession.objects.create(exercise=self.exercise, workout_session=self.workout_session)
         self.set = Set.objects.create(exercise_session=self.exercise_session, repetitions=10, weight=50)
         
-        self.browser.refresh()
         self.browser.get("http://localhost:5173")
         
         login_button = WebDriverWait(self.browser, 10).until(

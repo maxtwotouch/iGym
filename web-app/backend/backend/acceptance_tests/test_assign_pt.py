@@ -72,7 +72,6 @@ class AssignPtTest(StaticLiveServerTestCase):
         self.trainer = User.objects.create_user(first_name= "Test", last_name="Trainer", username="testTrainer", password="password")
         self.trainer_profile = PersonalTrainerProfile.objects.create(user=self.trainer, experience="5 years", pt_type="strength")
         
-        self.browser.refresh()
         self.browser.get("http://localhost:5173")
         
         login_button = WebDriverWait(self.browser, 10).until(

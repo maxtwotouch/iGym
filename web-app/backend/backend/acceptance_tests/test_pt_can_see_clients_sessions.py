@@ -91,9 +91,7 @@ class TestPTCanSeeClientsSessions(StaticLiveServerTestCase):
         
         self.scheduled_date = now() + timedelta(days=1)
         self.scheduled_workout = ScheduledWorkout.objects.create(user=self.user, workout_template=self.workout, scheduled_date=self.scheduled_date)
-        connection.commit()
-        
-        self.browser.refresh()
+
         self.browser.get("http://localhost:5173")
         
         login_button = WebDriverWait(self.browser, 10).until(
