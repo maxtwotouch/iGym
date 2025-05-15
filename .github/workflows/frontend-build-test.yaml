@@ -14,10 +14,10 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
-        working-directory: src/frontend
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: src/frontend
